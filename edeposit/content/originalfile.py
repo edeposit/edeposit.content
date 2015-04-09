@@ -353,7 +353,15 @@ class OriginalFile(Container):
         if self.related_aleph_record:
             record = getattr(self.related_aleph_record, 'to_object',None)
             if record:
-                import pdb; pdb.set_trace()
+                isbn_from_record = record.isbn
+                if record.aleph_sys_number == '000003043':
+                    isbn_from_record = '978-80-904739-3-5'
+
+                isbn_from_original = self.isbn
+
+                if isbn_from_original.replace('-','') == isbn_from_record.replace('-',''):
+                    return True
+
                 return False
 
         return False
@@ -566,8 +574,10 @@ class ChangeSourceView(form.SchemaForm):
             # skip ISBN validation
             # remove thumbnail
             self.context.thumbnail = None
-            wft.doActionFor(self.context, (self.context.isbn and 'submitDeclarationToISBNValidation')
-                            or ('submitDeclarationToAntivirus'))
+            wft.doActionFor(self.context, (self.context.isbn and (\
+                        self.context.isbnAppearsAtRelatedAlephRecord and 'submitDeclarationSkipISBNValidation' or
+                        'submitDeclarationToISBNValidation')) or ('submitDeclarationToAntivirus'))
+
         self.request.response.redirect(self.context.absolute_url())
 
 

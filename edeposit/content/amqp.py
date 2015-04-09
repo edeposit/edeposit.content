@@ -565,11 +565,10 @@ class OriginalFileThumbnailGeneratingResultHandler(namedtuple('ThumbnailGenerati
             bfile = NamedBlobFile(data=b64decode(self.result.b64_data),  filename=u"thumbnail.pdf")
             self.context.thumbnail = bfile
             transaction.savepoint(optimistic=True)
-            print "\nstate of originalfile: ", api.content.get_state(self.context)
             wft.doActionFor(self.context, self.context.isbn and (self.context.hasSomeAlephRecords() 
-                                                                 and 'thumbnailOKSkipAlephExport' 
+                                                                 and 'thumbnailOKSkipExportToAleph'
                                                                  or  'thumbnailOKAleph')
-                        or 'thumbnailOKISBNGeneration')
+                            or 'thumbnailOKISBNGeneration')
         pass
 
 
