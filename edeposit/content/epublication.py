@@ -35,7 +35,7 @@ from .originalfile import IOriginalFile
 from plone.dexterity.browser.add import DefaultAddForm, DefaultAddView
 from plone.supermodel import model
 from plone.dexterity.utils import getAdditionalSchemata
-from Acquisition import aq_inner, aq_base
+from Acquisition import aq_inner, aq_base, aq_parent
 
 from zope.component import adapts, createObject
 from zope.component import getUtility
@@ -107,6 +107,13 @@ def availableLibraries(context):
     #return ObjPathSourceBinder(navigation_tree_query = query).__call__(context)
     return SimpleVocabulary(map(getTerm, libraries))
 
+class IProducentTextField(schema.interfaces.ITextLine):
+    pass
+
+class ProducentTextField(schema.TextLine):
+    zope.interface.implements(IProducentTextField)
+    pass
+
 class IMainMetadata(form.Schema):
     nazev = schema.TextLine (
         title = u"Název",
@@ -123,7 +130,7 @@ class IMainMetadata(form.Schema):
         required = False,
     )
     
-    nakladatel_vydavatel = schema.TextLine (
+    nakladatel_vydavatel = ProducentTextField (
         title = u"Nakladatel/vydavatel",
         required = True,
         )

@@ -7,6 +7,7 @@
 
     <adapter factory=".voucher.VoucherFileFieldWidget" />
     <adapter factory=".originalfilesource.OriginalFileSourceFieldWidget" />
+    <adapter factory=".producent.ProducentTextFieldWidget" />
 
     <z3c:widgetTemplate
         mode="display"
@@ -20,6 +21,13 @@
         widget="edeposit.content.widgets.interfaces.IOriginalFileSourceWidget"
         layer="z3c.form.interfaces.IFormLayer"
         template="originalfilesource_display.pt"
+        />
+
+    <z3c:widgetTemplate
+        mode="display"
+        widget="edeposit.content.widgets.interfaces.IProducentTextWidget"
+        layer="z3c.form.interfaces.IFormLayer"
+        template="producent_display.pt"
         />
 
 </configure>
