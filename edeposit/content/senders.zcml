@@ -19,6 +19,20 @@
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.OriginalFilePDFBoxValidationRequestSender"
+    name="pdfbox-validation"
+    />
+
+  <adapter
+    for="edeposit.content.originalfile.IOriginalFile"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.OriginalFileEPubCheckValidationRequestSender"
+    name="epubcheck-validation"
+    />
+
+  <adapter
+    for="edeposit.content.originalfile.IOriginalFile"
+    provides="edeposit.content.amqp.IAMQPSender"
     factory=".amqp.OriginalFileISNBValidateRequestSender"
     name="isbn-validate"
     />

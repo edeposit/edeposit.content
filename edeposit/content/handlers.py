@@ -277,6 +277,59 @@ def handlePDFGenResponse(message, event):
         getMultiAdapter((context,result),IAMQPHandler).handle()
         message.ack()
 
+class IPDFBoxResponse(Interface):
+    """Message marker interface"""
+
+class PDFBoxResponseConsumer(Consumer):
+    grok.name('amqp.pdfbox-response-consumer')
+    connection_id = "pdfbox"
+    queue = "plone"
+    serializer = "plain"
+    marker = IPDFBoxResponse
+    pass
+
+@grok.subscribe(IPDFBoxResponse, IMessageArrivedEvent)
+def handlePDFBoxResponse(message, event):
+    print "handle PDFBox response"
+    headers = message.header_frame.headers
+    (context, session_data) = parse_headers(headers)
+    if not context:
+        print "no context at headers"
+        message.ack()
+        return
+
+    import pdb; pdb.set_trace()
+    result = deserialize(json.dumps(message.body),globals())
+    getMultiAdapter((context,result),IAMQPHandler).handle()
+    message.ack()
+
+class IEPubCheckResponse(Interface):
+    """Message marker interface"""
+
+class EPubCheckResponseConsumer(Consumer):
+    grok.name('amqp.epubcheck-response-consumer')
+    connection_id = "epubcheck"
+    queue = "plone"
+    serializer = "plain"
+    marker = IEPubCheckResponse
+    pass
+
+@grok.subscribe(IEPubCheckResponse, IMessageArrivedEvent)
+def handleEPubCheckResponse(message, event):
+    print "handle EpubCheck response"
+    headers = message.header_frame.headers
+    (context, session_data) = parse_headers(headers)
+    if not context:
+        print "no context at headers"
+        message.ack()
+        return
+
+    import pdb; pdb.set_trace()
+    result = deserialize(json.dumps(message.body),globals())
+    getMultiAdapter((context,result),IAMQPHandler).handle()
+    message.ack()
+
+
 class IPloneTask(Interface):
     """Message marker interface"""
 
