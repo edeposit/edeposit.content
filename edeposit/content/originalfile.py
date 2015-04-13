@@ -17,6 +17,7 @@ from plone.directives import dexterity, form
 from plone.app.textfield import RichText
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
 from plone.namedfile.interfaces import IImageScaleTraversable, INamedBlobFileField
+import plone.namedfile.file
 
 from edeposit.content import MessageFactory as _
 from z3c.relationfield.schema import RelationChoice, Relation
@@ -277,8 +278,8 @@ class OriginalFile(Container):
             api.content.delete(obj=resp)
 
         # create new one
-        bfile = NamedBlobFile(data=xmldata,  filename=u"pdfbox-response.xml")
-        createContentInContainer(self,'edeposit.content.pdfboxvalidationresponse',{'xml': bfile})
+        bfile = plone.namedfile.file.NamedBlobFile(data=xmldata,  filename=u"pdfbox-response.xml")
+        createContentInContainer(self, 'edeposit.content.pdfboxvalidationresponse', xml=bfile, title="PDFBox Response" )
 
     def updateOrAddEPubCheckResponse(self, xmldata):
         responses = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.epubcheckvalidationresponse'})
@@ -287,8 +288,8 @@ class OriginalFile(Container):
             api.content.delete(obj=resp)
 
         # create new one
-        bfile = NamedBlobFile(data=xmldata,  filename=u"epubcheck-response.xml")
-        createContentInContainer(self,'edeposit.content.epubcheckvalidationresponse',{'xml': bfile})
+        bfile = plone.namedfile.file.NamedBlobFile(xmldata,  filename=u"epubcheck-response.xml")
+        createContentInContainer(self,'edeposit.content.epubcheckvalidationresponse',xml=bfile, title="EPubCheck Response")
 
     # Add your class methods and properties here
     def updateOrAddAlephRecord(self, dataForFactory):

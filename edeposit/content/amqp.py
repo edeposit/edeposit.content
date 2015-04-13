@@ -164,7 +164,7 @@ class PDFBoxProducent(Producer):
     grok.name('amqp.pdfbox-validation-request')
 
     connection_id = "pdfbox"
-    exchange = "validation"
+    exchange = "validate"
     serializer = "text/plain"
     exchange_type = "topic"
     exchange_durable = True
@@ -177,7 +177,7 @@ class EPubCheckProducent(Producer):
     grok.name('amqp.epubcheck-validation-request')
 
     connection_id = "epubcheck"
-    exchange = "validation"
+    exchange = "validate"
     serializer = "text/plain"
     exchange_type = "topic"
     exchange_durable = True
@@ -524,15 +524,33 @@ class OriginalFileContributionPDFGenerateRequestSender(namedtuple('PDFGenerateRe
 class B64FileData(namedtuple('B64FileData',['b64_data','filename'])):
     pass
 
+class IXML(Interface):
+    xml = Attribute("")
+
+class XML(namedtuple('XML',['xml',])):
+    pass
+classImplements(XML, IXML)
+
+class IPDFBoxResponse(IXML):
+    pass
+
+class PDFBoxResponse(XML):
+    pass
+classImplements(PDFBoxResponse, IPDFBoxResponse)
+
+def PDFBoxResponseFactory():
+    def factory(xml):
+        print "factory calling"
+        return PDFBoxResponse(xml=xml)
+    return factory
+
 class OriginalFilePDFBoxValidationRequestSender(namedtuple('PDFBoxValidationRequest',['context'])):
     implements(IAMQPSender)
     def send(self):
         print "-> PDFBox Validation Request for: ", str(self.context)
         originalfile = self.context
         fileName = originalfile.file.filename
-
-        request = ConversionRequest(b64_data = base64.b64encode(originalfile.file.data),
-                                    filename = fileName)
+        request = B64FileData(b64_data = base64.b64encode(originalfile.file.data), filename = fileName)
         producer = getUtility(IProducer, name="amqp.pdfbox-validation-request")
         msg = ""
         session_data =  { 'isbn': str(self.context.isbn),
@@ -552,9 +570,7 @@ class OriginalFileEPubCheckValidationRequestSender(namedtuple('EPubCheckValidati
         print "-> EPubCheck Validation Request for: ", str(self.context)
         originalfile = self.context
         fileName = originalfile.file.filename
-
-        request = ConversionRequest(b64_data = base64.b64encode(originalfile.file.data),
-                                    filename = fileName)
+        request = B64FileData(b64_data = base64.b64encode(originalfile.file.data), filename = fileName)
         producer = getUtility(IProducer, name="amqp.epubcheck-validation-request")
         msg = ""
         session_data =  { 'isbn': str(self.context.isbn),
@@ -584,6 +600,7 @@ class OriginalFilePDFGenerationResultHandler(namedtuple('PDFGenerationResult',['
     implements(IAMQPHandler)
     def handle(self):
         print "<- PDF Generation Result for: ", str(self.context)
+        wft = api.portal.get_tool('portal_workflow')
         result = self.result
         context = self.context
         epublication=aq_parent(aq_inner(context))
@@ -605,10 +622,11 @@ class OriginalFilePDFBoxValidationResultHandler(namedtuple('PDFBoxValidationResu
     implements(IAMQPHandler)
     def handle(self):
         print "<- PDFBox Validation Result for: ", str(self.context)
+        wft = api.portal.get_tool('portal_workflow')
         result = self.result
         context = self.context
         with api.env.adopt_user(username="system"):
-            context.updateOrAddPDFBoxResponse(result)
+            context.updateOrAddPDFBoxResponse(result.xml)
             wft.doActionFor(context, 'pdfboxResponse')
         pass
 

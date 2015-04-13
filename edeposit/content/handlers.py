@@ -37,6 +37,7 @@ from edeposit.content.amqp import (
     make_headers,
     AlephSearchDocumentResult,
     AlephSearchSummaryRecordResult,
+    PDFBoxResponse,
 )
 import json
 
@@ -81,6 +82,7 @@ from edeposit.amqp.pdfgen.structures import (
 )
 
 from edeposit.content.tasks import *
+from edeposit.content.amqp import XML, IXML
 
 # (occur-1 "class " nil (list (current-buffer)) "*handlers: class*")
 # (occur-1 "def " nil (list(current-buffer)) "*handlers: def*")
@@ -298,8 +300,7 @@ def handlePDFBoxResponse(message, event):
         message.ack()
         return
 
-    import pdb; pdb.set_trace()
-    result = deserialize(json.dumps(message.body),globals())
+    result = PDFBoxResponse(xml=message.body)
     getMultiAdapter((context,result),IAMQPHandler).handle()
     message.ack()
 
