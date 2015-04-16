@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from five import grok
 
 from z3c.form import group, field
@@ -24,11 +25,20 @@ class IEPubCheckValidationResponse(form.Schema, IImageScaleTraversable):
     """
     Response from AMQP EPubCheck validation service
     """
+    isWellFormedEPub2 = schema.Bool(
+        title = u"Odpovídá standardu EPub2",
+        default = False,
+        required = False
+    )
+    isWellFormedEPub3 = schema.Bool(
+        title = u"Odpovídá standardu EPub3",
+        default = False,
+        required = False
+    )
     xml = NamedBlobFile (
         title=_(u"XML file with full response"),
         required = True,
     )
-
 
 
 # Custom content-type class; objects created for this content type will

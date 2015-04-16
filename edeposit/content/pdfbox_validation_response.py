@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from five import grok
 
 from z3c.form import group, field
@@ -13,7 +14,7 @@ from plone.app.textfield import RichText
 from plone.namedfile.field import NamedImage, NamedFile
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
 from plone.namedfile.interfaces import IImageScaleTraversable
-
+from lxml import etree
 
 from edeposit.content import MessageFactory as _
 
@@ -30,6 +31,18 @@ class IPDFBoxValidationResponse(form.Schema, IImageScaleTraversable):
     # If you want a model-based interface, edit
     # models/pdfbox_validation_response.xml to define the content type.
 
+    isValidPDF = schema.Bool(
+        title = u"Je to PDF",
+        default = False,
+        required = False
+    )
+
+    isValidPDFA = schema.Bool(
+        title = u"Vyhovuje normě PDF/A",
+        default = False,
+        required = False
+    )
+
     xml = NamedBlobFile (
         title=_(u"XML file with full response"),
         required = True,
@@ -44,8 +57,24 @@ class IPDFBoxValidationResponse(form.Schema, IImageScaleTraversable):
 class PDFBoxValidationResponse(Item):
     grok.implements(IPDFBoxValidationResponse)
 
-    # Add your class methods and properties here
-    pass
+    @property
+    def isValidPDF(self):
+        if self.xml:
+            elements = etree.fromstring(self.xml.data).xpath('//validation/isValidPDF')
+            isValidPDF = elements and elements[0].text.lower() == 'true'
+            return isValidPDF
+
+        return False
+
+    @property
+    def isValidPDFA(self):
+        if self.xml:
+            elements = etree.fromstring(self.xml.data).xpath('//validation/isValidPDFA')
+            isValidPDFA = elements and elements[0].text.lower() == 'true'
+            return isValidPDFA
+
+        return False
+
 
 
 # View class
