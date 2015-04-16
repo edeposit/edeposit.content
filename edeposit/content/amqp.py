@@ -858,6 +858,7 @@ class AlephRecordExceptionHandler(namedtuple('ExceptionHandler',['context', 'res
             if self.result.exception_name == 'DocumentNotFoundException':
                 print "... remove aleph record: ", self.context
                 api.content.delete(self.context)
+                IPloneTaskSender(CheckUpdates(uid=originalfile.UID())).send()
         pass
 
 class AgreementGenerationRequestSender(namedtuple('AgreementGeneration',['context'])):
