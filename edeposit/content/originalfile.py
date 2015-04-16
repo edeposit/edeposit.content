@@ -46,6 +46,8 @@ from functools import partial
 from .changes import IChanges, IApplicableChange
 from Acquisition import aq_inner, aq_parent
 import simplejson as json
+from edeposit.content.behaviors import IFormat, ICalibreFormat
+
 from .tasks import (
     IPloneTaskSender,
     DoActionFor
@@ -154,7 +156,12 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
     primary_originalfile = RelationChoice( title=u"Primární originál",
                                            required = False,
                                            source = availableOriginalFiles)
-                                           
+                            
+    isWellFormedForLTP = schema.Bool(
+        title = u"Originál je ve formátu vhodném pro LTP",
+        default = False,
+        required = False
+    )
 
 @form.default_value(field=IOriginalFile['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
@@ -236,22 +243,33 @@ class OriginalFile(Container):
         return self.file and not isPdf
 
     def isValidPDFA(self):
-        responses = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.pdfboxvalidationrespon'})
+        responses = [ii[1] for ii in self.items() if ii[1].portal_type == 'edeposit.content.pdfboxvalidationresponse']
         if responses:
             response = responses[0]
-            # TODO
-            # find:
-            # root/validation/isValidPDFA
+            return response.isValidPDFA
+
         return False
 
-    def isValidEPUB2(self):
-        responses = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.epubcheckvalidationrespon'})
+    def isValidEPub2(self):
+        responses = [ii[1] for ii in self.items() if ii[1].portal_type == 'edeposit.content.epubcheckvalidationresponse']
         if responses:
             response = responses[0]
-            # TODO
-            # find:
-            # root/isWellFormedEPUB2
+            return response.isWellFormedEPub2
+
         return False
+
+    @property
+    def isWellFormedForLTP(self):
+        result = self.isValidEPub2() or self.isValidPDFA()
+        return result
+
+    def submitValidationsForLTP(self):
+        format = IFormat(self).format or ""
+        if format == 'PDF':
+            IPloneTaskSender(DoActionFor(transition='submitPDFBoxValidation', uid=self.UID())).send()
+
+        if format == 'EPub':
+            IPloneTaskSender(DoActionFor(transition='submitEPubCheckValidation', uid=self.UID())).send()
 
     def urlToAleph(self):
         record = self.related_aleph_record and getattr(self.related_aleph_record,'to_object',None)
@@ -281,15 +299,20 @@ class OriginalFile(Container):
         bfile = plone.namedfile.file.NamedBlobFile(data=xmldata,  filename=u"pdfbox-response.xml")
         createContentInContainer(self, 'edeposit.content.pdfboxvalidationresponse', xml=bfile, title="PDFBox Response" )
 
-    def updateOrAddEPubCheckResponse(self, xmldata):
+    def updateOrAddEPubCheckResponse(self, result):
         responses = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.epubcheckvalidationresponse'})
         # drop all previous responses
         for resp in responses:
             api.content.delete(obj=resp)
 
         # create new one
-        bfile = plone.namedfile.file.NamedBlobFile(xmldata,  filename=u"epubcheck-response.xml")
-        createContentInContainer(self,'edeposit.content.epubcheckvalidationresponse',xml=bfile, title="EPubCheck Response")
+        bfile = plone.namedfile.file.NamedBlobFile(result.xml,  filename=u"epubcheck-response.xml")
+        createContentInContainer(self,'edeposit.content.epubcheckvalidationresponse',
+                                 xml=bfile, 
+                                 title="EPubCheck Response",
+                                 isWellFormedEPub2 = result.isWellFormedEPUB2,
+                                 isWellFormedEPub3 = result.isWellFormedEPUB3
+        )
 
     # Add your class methods and properties here
     def updateOrAddAlephRecord(self, dataForFactory):
