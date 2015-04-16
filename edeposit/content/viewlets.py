@@ -103,3 +103,12 @@ class Contact(grok.Viewlet):
     grok.require('zope2.View')
     grok.viewletmanager(IBelowContentBody)
     grok.context(IOriginalFile)
+
+class WellFormedForLTP(grok.Viewlet):
+    grok.name('edeposit.wellformedforltp')
+    grok.require('zope2.View')
+    grok.viewletmanager(IContentViews)
+    grok.context(IOriginalFile)
+    #grok.template('viewlets_template/wellformedforltp.pt')
+    
+    

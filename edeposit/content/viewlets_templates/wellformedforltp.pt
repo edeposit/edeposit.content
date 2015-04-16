@@ -1,0 +1,12 @@
+<div class="contentActions"
+     i18n:domain="plone"
+     tal:define="ploneview context/@@plone"
+     tal:condition="ploneview/showEditableBorder"
+     >
+
+    <tal:block define="isWellFormedForLTP context/isWellFormedForLTP">
+      <span class="" tal:condition="isWellFormedForLTP">vyhovuje požadavkům LTP</span>
+      <span class="" tal:condition="not: isWellFormedForLTP">dokument neumožňuje dlouhodobou ochranu</span>
+    </tal:block>
+
+</div>
