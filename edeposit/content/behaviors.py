@@ -5,7 +5,6 @@ from plone.supermodel import model
 from zope.interface import implementer, alsoProvides
 from zope.component import adapter
 from zope import schema
-from edeposit.content.originalfile import IOriginalFile
 from plone import api
 from edeposit.content import MessageFactory as _
 from z3c.form.interfaces import IDisplayForm

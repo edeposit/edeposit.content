@@ -538,6 +538,17 @@ class PDFBoxResponse(XML):
     pass
 classImplements(PDFBoxResponse, IPDFBoxResponse)
 
+class IEPubCheckResponse(Interface):
+    isWellFormedEPUB2 = Attribute("")
+    isWellFormedEPUB3 = Attribute("")
+    validationMessages = Attribute("")
+    xml = Attribute("")
+
+class EPubCheckResponse(namedtuple("EPubCheckResponse",
+                                   ['isWellFormedEPUB2','isWellFormedEPUB3','validationMessages','xml'])):
+    pass
+classImplements(EPubCheckResponse, IEPubCheckResponse)
+                    
 def PDFBoxResponseFactory():
     def factory(xml):
         print "factory calling"
@@ -635,6 +646,7 @@ class OriginalFileEPubCheckValidationResultHandler(namedtuple('EPubCheckValidati
     implements(IAMQPHandler)
     def handle(self):
         print "<- EPubCheck Validation Result for: ", str(self.context)
+        wft = api.portal.get_tool('portal_workflow')
         result = self.result
         context = self.context
         with api.env.adopt_user(username="system"):
@@ -661,6 +673,7 @@ class OriginalFileAntivirusResultHandler(namedtuple('AntivirusResult',['context'
                                   or 'antivirusOKISBNGeneration')
                 print "transition: %s" % (transition,)
                 wft.doActionFor(context, transition)
+                context.submitValidationsForLTP()
             pass
         pass
 
