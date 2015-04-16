@@ -44,6 +44,14 @@
 
   <adapter
     for="edeposit.content.originalfile.IOriginalFile
+         edeposit.content.amqp.IEPubCheckResponse
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.OriginalFileEPubCheckValidationResultHandler"
+    />
+
+  <adapter
+    for="edeposit.content.originalfile.IOriginalFile
          edeposit.content.amqp.IISBNValidationResult
          "
     provides="edeposit.content.amqp.IAMQPHandler"

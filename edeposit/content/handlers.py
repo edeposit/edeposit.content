@@ -38,6 +38,7 @@ from edeposit.content.amqp import (
     AlephSearchDocumentResult,
     AlephSearchSummaryRecordResult,
     PDFBoxResponse,
+    EPubCheckResponse
 )
 import json
 
@@ -317,7 +318,7 @@ class EPubCheckResponseConsumer(Consumer):
 
 @grok.subscribe(IEPubCheckResponse, IMessageArrivedEvent)
 def handleEPubCheckResponse(message, event):
-    print "handle EpubCheck response"
+    print "handle EPubCheck response"
     headers = message.header_frame.headers
     (context, session_data) = parse_headers(headers)
     if not context:
@@ -325,8 +326,8 @@ def handleEPubCheckResponse(message, event):
         message.ack()
         return
 
-    import pdb; pdb.set_trace()
-    result = deserialize(json.dumps(message.body),globals())
+    data = json.loads(message.body)
+    result = EPubCheckResponse(**dict([(key,data.get(key)) for key in ('isWellFormedEPUB2','isWellFormedEPUB3','validationMessages','xml')]))
     getMultiAdapter((context,result),IAMQPHandler).handle()
     message.ack()
 
