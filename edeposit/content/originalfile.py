@@ -17,6 +17,7 @@ from plone.directives import dexterity, form
 from plone.app.textfield import RichText
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
 from plone.namedfile.interfaces import IImageScaleTraversable, INamedBlobFileField
+import plone.namedfile.file
 
 from edeposit.content import MessageFactory as _
 from z3c.relationfield.schema import RelationChoice, Relation
@@ -115,18 +116,6 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
         required = False,
         )
     
-    # format = schema.ASCIILine (
-    #     title=_(u"Format of a file."),
-    #     readonly = True,
-    #     required = False,
-    # )
-
-    # format = schema.Choice(
-    #     title=_(u"Format of a file."),
-    #     vocabulary="edeposit.content.fileTypes",
-    #     required = False,
-    # )
-
     zpracovatel_zaznamu = schema.TextLine(
         title = u'Zpracovatel záznamu',
         required = True,
@@ -246,6 +235,24 @@ class OriginalFile(Container):
         isPdf = parts and parts[-1] and 'pdf' in parts[-1].lower()
         return self.file and not isPdf
 
+    def isValidPDFA(self):
+        responses = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.pdfboxvalidationrespon'})
+        if responses:
+            response = responses[0]
+            # TODO
+            # find:
+            # root/validation/isValidPDFA
+        return False
+
+    def isValidEPUB2(self):
+        responses = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.epubcheckvalidationrespon'})
+        if responses:
+            response = responses[0]
+            # TODO
+            # find:
+            # root/isWellFormedEPUB2
+        return False
+
     def urlToAleph(self):
         record = self.related_aleph_record and getattr(self.related_aleph_record,'to_object',None)
         if not record:
@@ -265,6 +272,25 @@ class OriginalFile(Container):
         alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
         return len(alephRecords)
         
+    def updateOrAddPDFBoxResponse(self, xmldata):
+        responses = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.pdfboxvalidationresponse'})
+        for resp in responses:
+            api.content.delete(obj=resp)
+
+        # create new one
+        bfile = plone.namedfile.file.NamedBlobFile(data=xmldata,  filename=u"pdfbox-response.xml")
+        createContentInContainer(self, 'edeposit.content.pdfboxvalidationresponse', xml=bfile, title="PDFBox Response" )
+
+    def updateOrAddEPubCheckResponse(self, xmldata):
+        responses = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.epubcheckvalidationresponse'})
+        # drop all previous responses
+        for resp in responses:
+            api.content.delete(obj=resp)
+
+        # create new one
+        bfile = plone.namedfile.file.NamedBlobFile(xmldata,  filename=u"epubcheck-response.xml")
+        createContentInContainer(self,'edeposit.content.epubcheckvalidationresponse',xml=bfile, title="EPubCheck Response")
+
     # Add your class methods and properties here
     def updateOrAddAlephRecord(self, dataForFactory):
         sysNumber = dataForFactory.get('aleph_sys_number',None)

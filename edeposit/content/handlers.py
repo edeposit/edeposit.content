@@ -37,6 +37,7 @@ from edeposit.content.amqp import (
     make_headers,
     AlephSearchDocumentResult,
     AlephSearchSummaryRecordResult,
+    PDFBoxResponse,
 )
 import json
 
@@ -81,6 +82,7 @@ from edeposit.amqp.pdfgen.structures import (
 )
 
 from edeposit.content.tasks import *
+from edeposit.content.amqp import XML, IXML
 
 # (occur-1 "class " nil (list (current-buffer)) "*handlers: class*")
 # (occur-1 "def " nil (list(current-buffer)) "*handlers: def*")
@@ -276,6 +278,58 @@ def handlePDFGenResponse(message, event):
         result = deserialize(json.dumps(message.body),globals())
         getMultiAdapter((context,result),IAMQPHandler).handle()
         message.ack()
+
+class IPDFBoxResponse(Interface):
+    """Message marker interface"""
+
+class PDFBoxResponseConsumer(Consumer):
+    grok.name('amqp.pdfbox-response-consumer')
+    connection_id = "pdfbox"
+    queue = "plone"
+    serializer = "plain"
+    marker = IPDFBoxResponse
+    pass
+
+@grok.subscribe(IPDFBoxResponse, IMessageArrivedEvent)
+def handlePDFBoxResponse(message, event):
+    print "handle PDFBox response"
+    headers = message.header_frame.headers
+    (context, session_data) = parse_headers(headers)
+    if not context:
+        print "no context at headers"
+        message.ack()
+        return
+
+    result = PDFBoxResponse(xml=message.body)
+    getMultiAdapter((context,result),IAMQPHandler).handle()
+    message.ack()
+
+class IEPubCheckResponse(Interface):
+    """Message marker interface"""
+
+class EPubCheckResponseConsumer(Consumer):
+    grok.name('amqp.epubcheck-response-consumer')
+    connection_id = "epubcheck"
+    queue = "plone"
+    serializer = "plain"
+    marker = IEPubCheckResponse
+    pass
+
+@grok.subscribe(IEPubCheckResponse, IMessageArrivedEvent)
+def handleEPubCheckResponse(message, event):
+    print "handle EpubCheck response"
+    headers = message.header_frame.headers
+    (context, session_data) = parse_headers(headers)
+    if not context:
+        print "no context at headers"
+        message.ack()
+        return
+
+    import pdb; pdb.set_trace()
+    result = deserialize(json.dumps(message.body),globals())
+    getMultiAdapter((context,result),IAMQPHandler).handle()
+    message.ack()
+
 
 class IPloneTask(Interface):
     """Message marker interface"""

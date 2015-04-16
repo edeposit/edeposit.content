@@ -160,6 +160,32 @@ class PDFGenerationProducent(Producer):
     routing_key = "request"
     pass
 
+class PDFBoxProducent(Producer):
+    grok.name('amqp.pdfbox-validation-request')
+
+    connection_id = "pdfbox"
+    exchange = "validate"
+    serializer = "text/plain"
+    exchange_type = "topic"
+    exchange_durable = True
+    auto_delete = False
+    durable = True
+    routing_key = "request"
+    pass
+
+class EPubCheckProducent(Producer):
+    grok.name('amqp.epubcheck-validation-request')
+
+    connection_id = "epubcheck"
+    exchange = "validate"
+    serializer = "text/plain"
+    exchange_type = "topic"
+    exchange_durable = True
+    auto_delete = False
+    durable = True
+    routing_key = "request"
+    pass
+
 class PloneTaskRunProducent(Producer):
     grok.name('amqp.plone-task-request')
 
@@ -494,6 +520,69 @@ class OriginalFileContributionPDFGenerateRequestSender(namedtuple('PDFGenerateRe
         # headers = make_headers(self.context, session_data)
         # producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
+        
+class B64FileData(namedtuple('B64FileData',['b64_data','filename'])):
+    pass
+
+class IXML(Interface):
+    xml = Attribute("")
+
+class XML(namedtuple('XML',['xml',])):
+    pass
+classImplements(XML, IXML)
+
+class IPDFBoxResponse(IXML):
+    pass
+
+class PDFBoxResponse(XML):
+    pass
+classImplements(PDFBoxResponse, IPDFBoxResponse)
+
+def PDFBoxResponseFactory():
+    def factory(xml):
+        print "factory calling"
+        return PDFBoxResponse(xml=xml)
+    return factory
+
+class OriginalFilePDFBoxValidationRequestSender(namedtuple('PDFBoxValidationRequest',['context'])):
+    implements(IAMQPSender)
+    def send(self):
+        print "-> PDFBox Validation Request for: ", str(self.context)
+        originalfile = self.context
+        fileName = originalfile.file.filename
+        request = B64FileData(b64_data = base64.b64encode(originalfile.file.data), filename = fileName)
+        producer = getUtility(IProducer, name="amqp.pdfbox-validation-request")
+        msg = ""
+        session_data =  { 'isbn': str(self.context.isbn),
+                          'filename': fileName,
+                          'msg': msg
+        }
+        headers = make_headers(self.context, session_data)
+        producer.publish(serialize(request), 
+                         content_encoding = "application/json",
+                         content_type = 'edeposit/pdfbox-validate',
+                         headers = headers)
+    pass
+
+class OriginalFileEPubCheckValidationRequestSender(namedtuple('EPubCheckValidationRequest',['context'])):
+    implements(IAMQPSender)
+    def send(self):
+        print "-> EPubCheck Validation Request for: ", str(self.context)
+        originalfile = self.context
+        fileName = originalfile.file.filename
+        request = B64FileData(b64_data = base64.b64encode(originalfile.file.data), filename = fileName)
+        producer = getUtility(IProducer, name="amqp.epubcheck-validation-request")
+        msg = ""
+        session_data =  { 'isbn': str(self.context.isbn),
+                          'filename': fileName,
+                          'msg': msg
+        }
+        headers = make_headers(self.context, session_data)
+        producer.publish(serialize(request), 
+                         content_encoding = "application/json",
+                         content_type = 'edeposit/epubcheck-validate',
+                         headers = headers)
+    pass
 
 class IPublishPloneTask(namedtuple("IPublishPloneTask",['context'])):
     adapts(IPloneTask)
@@ -507,11 +596,11 @@ class IPublishPloneTask(namedtuple("IPublishPloneTask",['context'])):
 
 provideAdapter(IPublishPloneTask)
 
-
 class OriginalFilePDFGenerationResultHandler(namedtuple('PDFGenerationResult',['context', 'result'])):
     implements(IAMQPHandler)
     def handle(self):
         print "<- PDF Generation Result for: ", str(self.context)
+        wft = api.portal.get_tool('portal_workflow')
         result = self.result
         context = self.context
         epublication=aq_parent(aq_inner(context))
@@ -527,6 +616,30 @@ class OriginalFilePDFGenerationResultHandler(namedtuple('PDFGenerationResult',['
                 print "transition: %s" % (transition,)
                 wft.doActionFor(context, transition)
             pass
+        pass
+
+class OriginalFilePDFBoxValidationResultHandler(namedtuple('PDFBoxValidationResult',['context', 'result'])):
+    implements(IAMQPHandler)
+    def handle(self):
+        print "<- PDFBox Validation Result for: ", str(self.context)
+        wft = api.portal.get_tool('portal_workflow')
+        result = self.result
+        context = self.context
+        with api.env.adopt_user(username="system"):
+            context.updateOrAddPDFBoxResponse(result.xml)
+            wft.doActionFor(context, 'pdfboxResponse')
+        pass
+
+class OriginalFileEPubCheckValidationResultHandler(namedtuple('EPubCheckValidationResult',
+                                                              ['context', 'result'])):
+    implements(IAMQPHandler)
+    def handle(self):
+        print "<- EPubCheck Validation Result for: ", str(self.context)
+        result = self.result
+        context = self.context
+        with api.env.adopt_user(username="system"):
+            context.updateOrAddEPubCheckResponse(result)
+            wft.doActionFor(context, 'epubcheckResponse')
         pass
 
 class OriginalFileAntivirusResultHandler(namedtuple('AntivirusResult',['context', 'result'])):
