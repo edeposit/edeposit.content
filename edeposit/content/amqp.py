@@ -1265,6 +1265,13 @@ class CheckUpdatesTaskHandler(namedtuple('CheckUpdatesTaskHandler', ['context','
             obj = api.content.get(UID = self.result.uid)
             obj.checkUpdates()
 
+class EPublicationsWithErrorEmailNotifyTaskHandler(
+        namedtuple('EPublicationsWithErrorEmailNotifyTaskHandler', ['context','result'])):
+    def handle(self):
+        print "<- Plone AMQP Task: ", str(self.result)
+        with api.env.adopt_user(username="system"):
+            obj = api.content.get(UID = self.result.uid)
+            obj.notifyProducentAboutEPublicationsWithError()
 
 
 class OriginalFileHasBeenChangedSendEmail(namedtuple('OriginalFileHasBeenChangedSendEmail',['context',])):
@@ -1286,3 +1293,17 @@ class EnsureProducentsRolesConsistencyTaskHandler(namedtuple('EnsureProducentsRo
             for uid in uids:
                 IPloneTaskSender(DoActionFor(transition='ensureRolesConsistency', uid=uid)).send()
 
+
+class EPublicationsWithErrorEmailNotifyForAllProducents(namedtuple('EPublicationsWithErrorEmailNotifyForAllProducents',
+                                                                    ['context', 'result'])):
+    """ 
+    context: IAMQPHandler
+    result:  IEPublicationsWithErrorEmailNotifyForAllProducents
+    """
+    def handle(self):
+        print "<- Plone AMQP Task: ", str(self.result)
+        with api.env.adopt_user(username="system"):
+            producents = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producent')
+            uids = map(lambda item: item.UID, producents)
+            for uid in uids:
+                IPloneTaskSender(EPublicationsWithEmailNotify(uid=uid)).send()

@@ -112,6 +112,18 @@ class IEnsureProducentsRolesConsistency(IPloneTask):
 class EnsureProducentsRolesConsistency(namedtuple('EnsureProducentsRolesConsistency',[])):
     implements(IEnsureProducentsRolesConsistency)
 
+class IEPublicationsWithErrorEmailNotify(IPloneTask):
+    uid = schema.ASCIILine()
+
+class EPublicationsWithErrorNotify(namedtuple('EPublicationsWithEmailNotify',['uid'])):
+    implements(IEPublicationsWithErrorEmailNotify)
+
+class IEPublicationsWithErrorEmailNotifyForAllProducents(IPloneTask):
+    pass
+
+class EPublicationsWithErrorEmailNotifyForAllProducents(namedtuple('EPublicationsWithEmailNotifyForAllProducents',[])):
+    implements(IEPublicationsWithErrorEmailNotifyForAllProducents)
+
 if __name__ == '__main__':
     import unittest
 

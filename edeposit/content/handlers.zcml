@@ -199,5 +199,21 @@
       provides="edeposit.content.amqp.IAMQPHandler"
       factory=".amqp.EnsureProducentsRolesConsistencyTaskHandler"
       />
+
+  <adapter
+      for="edeposit.content.amqp_folder.IAMQPFolder
+           edeposit.content.tasks.IEPublicationsWithErrorEmailNotify
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.EPublicationsWithErrorEmailNotifyTaskHandler"
+      />
+
+  <adapter
+      for="edeposit.content.amqp_folder.IAMQPFolder
+           edeposit.content.tasks.IEPublicationsWithErrorEmailNotifyForAllProducents
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.EPublicationsWithErrorEmailNotifyForAllProducents"
+      />
   
 </configure>
