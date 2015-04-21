@@ -1306,4 +1306,4 @@ class EPublicationsWithErrorEmailNotifyForAllProducents(namedtuple('EPublication
             producents = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producent')
             uids = map(lambda item: item.UID, producents)
             for uid in uids:
-                IPloneTaskSender(EPublicationsWithEmailNotify(uid=uid)).send()
+                IPloneTaskSender(EPublicationsWithErrorEmailNotify(uid=uid)).send()

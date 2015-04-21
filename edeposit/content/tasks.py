@@ -115,7 +115,7 @@ class EnsureProducentsRolesConsistency(namedtuple('EnsureProducentsRolesConsiste
 class IEPublicationsWithErrorEmailNotify(IPloneTask):
     uid = schema.ASCIILine()
 
-class EPublicationsWithErrorNotify(namedtuple('EPublicationsWithEmailNotify',['uid'])):
+class EPublicationsWithErrorEmailNotify(namedtuple('EPublicationsWithEmailNotify',['uid'])):
     implements(IEPublicationsWithErrorEmailNotify)
 
 class IEPublicationsWithErrorEmailNotifyForAllProducents(IPloneTask):
