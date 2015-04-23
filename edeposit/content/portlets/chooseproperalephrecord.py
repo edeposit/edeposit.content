@@ -65,6 +65,7 @@ class ChooseProperAlephRecordForm(form.SchemaForm):
         if alephRecord:
              intids = getUtility(IIntIds)
              self.context.related_aleph_record = RelationValue(intids.getId(alephRecord))
+             self.context.manuallyChoosenSysNumber = alephRecord.aleph_sys_number
              modified(self.context)
              wft = api.portal.get_tool('portal_workflow')
              wft.doActionFor(self.context, 'toAcquisitionPreparing')

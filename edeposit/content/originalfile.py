@@ -163,6 +163,12 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
         required = False
     )
 
+    manuallyChoosenSysNumber = schema.ASCIILine (
+        title = u"Systémové číslo přiděleného záznamu"
+        require = False,
+    )
+
+
 @form.default_value(field=IOriginalFile['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
     member = api.user.get_current()
