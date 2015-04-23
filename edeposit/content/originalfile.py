@@ -157,14 +157,14 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
                                            required = False,
                                            source = availableOriginalFiles)
                             
-    isWellFormedForLTP = schema.Bool(
+    isWellFormedForLTP = schema.Bool (
         title = u"Originál je ve formátu vhodném pro LTP",
         default = False,
         required = False
     )
 
     manuallyChoosenSysNumber = schema.ASCIILine (
-        title = u"Systémové číslo přiděleného záznamu"
+        title = u"Systémové číslo přiděleného záznamu",
         require = False,
     )
 
