@@ -165,7 +165,7 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
 
     manuallyChoosenSysNumber = schema.ASCIILine (
         title = u"Systémové číslo přiděleného záznamu",
-        require = False,
+        required = False,
     )
 
 
