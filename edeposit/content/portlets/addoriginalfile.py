@@ -24,7 +24,10 @@ import sys
 from z3c.form.interfaces import WidgetActionExecutionError, ActionExecutionError, IObjectFactory
 from zope.lifecycleevent import modified
 from zope.interface import invariant, Invalid
+
+from edeposit.content.utils import loadFromAlephByISBN
 from edeposit.content.utils import is_valid_isbn
+from edeposit.content.utils import getISBNCount
 
 def urlCodeIsValid(value):
     return True
@@ -84,7 +87,7 @@ class AddOriginalFileForm(form.SchemaForm):
             raise ActionExecutionError(Invalid(u"ISBN není validní!"))
 
         try:
-            appearedAtAleph = data['isbn'] and edeposit.amqp.aleph.aleph.getISBNCount(data['isbn'])
+            appearedAtAleph = data['isbn'] and getISBNCount(data['isbn'])
         except:
             print sys.exc_info()
             raise ActionExecutionError(Invalid(u"Objevila se nějaká chyby při volání Aleph služby! (%s)" % (str(sys.exc_info()),)))
