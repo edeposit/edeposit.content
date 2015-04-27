@@ -97,6 +97,10 @@ class AddOriginalFileForm(form.SchemaForm):
 
         context = self.context.portal_type == 'edeposit.content.originalfile' and  aq_parent(aq_inner(self.context)) or self.context
         data['title'] = "%s (%s)" % (context.title, data['file'] and data['file'].filename or "")
+
+        member = api.user.get_current()
+        data['zpracovatel_zaznamu'] =  member.fullname or member.id
+
         newOriginalFile = createContentInContainer(context, 'edeposit.content.originalfile', **data)
         wft = api.portal.get_tool('portal_workflow')
         if newOriginalFile.file:

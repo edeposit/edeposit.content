@@ -355,6 +355,7 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
         authors = map(lambda aa: Author(lastName = aa.fullname, firstName="", title = ""), epublication.authors.results())
         epublicationRecord =  EPublication (
             ISBN = originalFile.isbn or "",
+            invalid_ISBN = "",
             nazev = epublication.title or "",
             podnazev = epublication.podnazev or "",
             vazba = "online",
