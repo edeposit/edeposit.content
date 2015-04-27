@@ -353,6 +353,10 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
         originalFile = self.context
         epublication = aq_parent(aq_inner(originalFile))
         authors = map(lambda aa: Author(lastName = aa.fullname, firstName="", title = ""), epublication.authors.results())
+        owners = map(lambda mm: mm.fullname or mm.id, 
+                     map(api.user.get, 
+                         [ii[0] for ii in originalFile.get_local_roles() if 'Owner' in ii[1]]))
+        
         epublicationRecord =  EPublication (
             ISBN = originalFile.isbn or "",
             invalid_ISBN = "",
@@ -365,7 +369,7 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
             nakladatelVydavatel = epublication.nakladatel_vydavatel or "",
             datumVydani = str(epublication.rok_vydani),
             poradiVydani = epublication.poradi_vydani or "",
-            zpracovatelZaznamu = originalFile.zpracovatel_zaznamu or "",
+            zpracovatelZaznamu = originalFile.zpracovatel_zaznamu or (owners and owners[0]) or "",
             format = IFormat(originalFile).format or "",
             url = originalFile.url or "",
             mistoVydani = epublication.misto_vydani,
