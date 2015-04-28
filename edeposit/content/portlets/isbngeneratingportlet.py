@@ -21,7 +21,10 @@ from plone import api
 import sys
 from Acquisition import aq_inner, aq_parent
 from zope.security import checkPermission
+
+from edeposit.content.utils import loadFromAlephByISBN
 from edeposit.content.utils import is_valid_isbn
+from edeposit.content.utils import getISBNCount
 
 class IISBNGeneration(form.Schema):
     isbn = schema.ASCIILine(
@@ -55,7 +58,7 @@ class ISBNGenerationForm(form.SchemaForm):
             raise ActionExecutionError(Invalid(u"ISBN není validní!"))
 
         try:
-            appearedAtAleph = edeposit.amqp.aleph.aleph.getISBNCount(data['isbn'])
+            appearedAtAleph = getISBNCount(data['isbn'])
         except:
             print sys.exc_info()
             raise ActionExecutionError(Invalid(u"Objevila se nějaká chyby při volání Aleph služby! (%s)" % (str(sys.exc_info()),)))
