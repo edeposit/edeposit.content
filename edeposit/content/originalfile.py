@@ -441,11 +441,11 @@ class OriginalFile(Container):
         internal_url = self.makeInternalURL()
 
         def startsWithProperURL(url):
-            import pdb; pdb.set_trace()
             result = absolute_url in url or internal_url in url
             return result
-            
-        return reduce(__and__, map(startWithProperURL, aleph_record.internal_urls), True)
+
+        result = reduce(__and__, map(startsWithProperURL, aleph_record.internal_urls), True)
+        return result
 
     def updateAlephRelatedData(self):
         # try to choose related_aleph_record
@@ -460,9 +460,17 @@ class OriginalFile(Container):
             self.related_aleph_record = RelationValue(intids.getId(alephRecords[0]))
 
         if len(alephRecords) > 1:
-            refersToThisOriginalFile = filter(partial(refersToThisOriginalFile,self), alephRecords)
-            if len(refersToThisOriginalFile) == 1:
-                self.related_aleph_record = RelationValue(intids.getId(refersToThisOriginalFile))
+            recordsThatRefersToThis = filter(lambda rr: self.refersToThisOriginalFile(rr), alephRecords)
+            if len(recordsThatRefersToThis) == 1:
+                self.related_aleph_record = RelationValue(intids.getId(recordsThatRefersToThis[0]))
+            else:
+                isClosedRecords = filter(lambda rr: rr.isClosed, recordsThatRefersToThis)
+                if len(isClosedRecords) == 1:
+                    self.related_aleph_record = RelationValue(intids.getId(isClosedRecords[0]))
+
+                summaryRecords = filter(lambda rr: rr.isSummaryRecord, recordsThatRefersToThis)
+                if len(summaryRecords) == 1:
+                    self.summary_aleph_record = RelationValue(intids.getId(summaryRecords[0]))
 
             # isClosedRecords = filter(lambda rr: rr.isClosed, alephRecords)
             # if len(isClosedRecords) == 1:
