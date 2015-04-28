@@ -352,7 +352,8 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
         print "-> ISBN Export To Aleph Request for: ", str(self.context)
         originalFile = self.context
         epublication = aq_parent(aq_inner(originalFile))
-        authors = map(lambda aa: Author(lastName = aa.fullname, firstName="", title = ""), epublication.authors.results())
+        authors = map(lambda aa: Author(lastName = aa.fullname, firstName="", title = ""), 
+                      epublication.authors.results())
         epublicationRecord =  EPublication (
             ISBN = originalFile.isbn or "",
             nazev = epublication.title or "",
@@ -371,7 +372,7 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
             ISBNSouboruPublikaci = epublication.isbn_souboru_publikaci or "",
             autori = map(lambda author: author.lastName, filter(lambda author: author.lastName, authors)),
             originaly = [],
-            internal_url = originalFile.absolute_url() or "",
+            internal_url = originalFile.makeInternalURL() or ""
         )
         request = ExportRequest(epublication=epublicationRecord)
         producer = getUtility(IProducer, name="amqp.aleph-export-request")
@@ -757,8 +758,8 @@ class OriginalFileAlephSearchResultHandler(namedtuple('AlephSearchtResult',['con
                 internal_url = getattr(epublication,'internal_url',None)
                 internal_urls = getattr(epublication,'internal_urls', None) \
                                 or (internal_url and [internal_url]) or []
-                if record.docNumber in ['000003035','000003043']:
-                    internal_urls = [ api.portal.getSite().portal_url() + '/producents/nakladatelstvi-gama/epublications/pasivni-domy-2013/pd2013_sbornik.pdf', 'some url', ]
+                # if record.docNumber in ['000003035','000003043']:
+                #     internal_urls = [ api.portal.getSite().portal_url() + '/producents/nakladatelstvi-gama/epublications/pasivni-domy-2013/pd2013_sbornik.pdf', 'some url', ]
 
                 dataForFactory = {
                     'title': "".join([u"Záznam v Alephu: ",
@@ -822,8 +823,8 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
                 internal_urls = getattr(epublication,'internal_urls', None) \
                                 or (internal_url and [internal_url]) or []
 
-                if record.docNumber in ['000003035','000003043']:
-                    internal_urls = [ api.portal.getSite().portal_url() + '/producents/nakladatelstvi-gama/epublications/pasivni-domy-2013/pd2013_sbornik.pdf', 'some url', ]
+                # if record.docNumber in ['000003035','000003043']:
+                #     internal_urls = [ api.portal.getSite().portal_url() + '/producents/nakladatelstvi-gama/epublications/pasivni-domy-2013/pd2013_sbornik.pdf', 'some url', ]
                 
                 dataForFactory = {
                     'title': "".join([u"Záznam v Alephu: ",
