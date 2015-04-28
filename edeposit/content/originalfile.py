@@ -164,8 +164,8 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
     )
 
     manuallyChoosenSysNumber = schema.ASCIILine (
-        title = u"Systémové číslo přiděleného záznamu"
-        require = False,
+        title = u"Systémové číslo přiděleného záznamu",
+        required = False,
     )
 
 
@@ -263,6 +263,10 @@ class OriginalFile(Container):
             return response.isWellFormedEPub2
 
         return False
+
+    def makeInternalURL(self):
+        internal_url = "/".join([api.portal.get().absolute_url(), '@@redirect-to-uuid', self.UID()])
+        return internal_url
 
     @property
     def isWellFormedForLTP(self):
@@ -409,8 +413,8 @@ class OriginalFile(Container):
             record = getattr(self.related_aleph_record, 'to_object',None)
             if record:
                 isbn_from_record = record.isbn
-                if record.aleph_sys_number == '000003043':
-                    isbn_from_record = '978-80-904739-3-5'
+                # if record.aleph_sys_number == '000003043':
+                #     isbn_from_record = '978-80-904739-3-5'
 
                 isbn_from_original = self.isbn
 
@@ -429,9 +433,24 @@ class OriginalFile(Container):
                 return record.isClosed
         return False
 
+    def refersToThisOriginalFile(self,aleph_record):
+        # older records can have
+        # absolute_url as internal url
+        from operator import __and__
+        absolute_url = self.absolute_url() 
+        internal_url = self.makeInternalURL()
+
+        def startsWithProperURL(url):
+            import pdb; pdb.set_trace()
+            result = absolute_url in url or internal_url in url
+            return result
+            
+        return reduce(__and__, map(startWithProperURL, aleph_record.internal_urls), True)
+
     def updateAlephRelatedData(self):
         # try to choose related_aleph_record
         alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+
         self.related_aleph_record = None
         self.summary_aleph_record = None
         self.primary_originalfile = None
@@ -441,33 +460,35 @@ class OriginalFile(Container):
             self.related_aleph_record = RelationValue(intids.getId(alephRecords[0]))
 
         if len(alephRecords) > 1:
-            isClosedRecords = filter(lambda rr: rr.isClosed, alephRecords)
-            if len(isClosedRecords) == 1:
-                self.related_aleph_record = RelationValue(intids.getId(isClosedRecords[0]))
+            refersToThisOriginalFile = filter(partial(refersToThisOriginalFile,self), alephRecords)
+            if len(refersToThisOriginalFile) == 1:
+                self.related_aleph_record = RelationValue(intids.getId(refersToThisOriginalFile))
 
-            summaryRecords = filter(lambda item: item.isSummaryRecord, alephRecords)
-            if summaryRecords:
-                self.summary_aleph_record = RelationValue(intids.getId(summaryRecords[0]))
-                # TODO
-                # doplnil zarazeni primary_originalfile
+            # isClosedRecords = filter(lambda rr: rr.isClosed, alephRecords)
+            # if len(isClosedRecords) == 1:
+            #     self.related_aleph_record = RelationValue(intids.getId(isClosedRecords[0]))
 
+            # summaryRecords = filter(lambda item: item.isSummaryRecord, alephRecords)
+            # if summaryRecords:
+            #     self.summary_aleph_record = RelationValue(intids.getId(summaryRecords[0]))
+            #     # TODO
+            #     # doplnil zarazeni primary_originalfile
+                
     def properAlephRecordsChoosen(self):
         # the method says that there is no need to manualy choose
         # related_aleph_record and summary_aleph_record
-        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
-        if len(alephRecords) == 1:
-            return bool(self.related_aleph_record)
-        else:
-            isClosedRecords = filter(lambda item: item.isClosed, alephRecords)
-            summaryRecords = filter(lambda item: item.isSummaryRecord, alephRecords)
-            if isClosedRecords:
-                if summaryRecords:
-                    return bool(self.related_aleph_record) and bool(self.summary_aleph_record)
-                else:
-                    return bool(self.related_aleph_record)
-
+        # alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        # if len(alephRecords) == 1:
+        #     return bool(self.related_aleph_record)
+        # else:
+        #     isClosedRecords = filter(lambda item: item.isClosed, alephRecords)
+        #     summaryRecords = filter(lambda item: item.isSummaryRecord, alephRecords)
+        #     if isClosedRecords:
+        #         if summaryRecords:
+        #             return bool(self.related_aleph_record) and bool(self.summary_aleph_record)
+        #         else:
+        #             return bool(self.related_aleph_record)
         return bool(self.related_aleph_record)
-
 
     def dataForContributionPDF(self):
         keys = [ii for ii in IOriginalFile.names() if ii not in ('file','thumbnail')]
@@ -477,12 +498,7 @@ class OriginalFile(Container):
         """ remove aleph records that does not refer to this original file """
         alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
 
-        def refersToThisOriginalFile(aleph_record):
-            absolute_url = self.absolute_url()
-            internal_urls = aleph_record.internal_urls
-            return (absolute_url in internal_urls)
-
-        toBeRemoved = [rec for rec in alephRecords if not refersToThisOriginalFile(rec)]
+        toBeRemoved = [rec for rec in alephRecords if not self.refersToThisOriginalFile(rec)]
         for record in toBeRemoved:
             api.content.delete(obj=record)
         pass
