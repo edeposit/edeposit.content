@@ -811,6 +811,7 @@ class OriginalFileAlephSearchResultHandler(namedtuple('AlephSearchtResult',['con
                     producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
                 pass
 
+            IPloneTaskSender(CheckUpdates(uid=self.context.UID())).send()
         pass
 
 class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'result'])):
@@ -825,9 +826,8 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
             for record in self.result.records:
                 epublication = record.epublication
 
-                internal_url = getattr(epublication,'internal_url',None)
-                internal_urls = getattr(epublication,'internal_urls', None) \
-                                or (internal_url and [internal_url]) or []
+                internal_url = getattr(epublication,'internal_url',None) # this is a list of urls
+                internal_urls = getattr(epublication,'internal_urls', None) or internal_url or []
 
                 # if record.docNumber in ['000003035','000003043']:
                 #     internal_urls = [ api.portal.getSite().portal_url() + '/producents/nakladatelstvi-gama/epublications/pasivni-domy-2013/pd2013_sbornik.pdf', 'some url', ]
@@ -864,15 +864,11 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
                 self.context.findAndLoadChanges(dataForFactory)
 
                 if not self.result.records:
-                    # drop context
+                    # drop context - no appropriate record at Aleph exists
                     api.content.delete(obj=self.context)
                     
             originalfile = aq_parent(aq_inner(self.context))
-            for ii in range(20):
-                wasNextState=INextStep(originalfile).doActionFor()
-                if not wasNextState:
-                    break
-
+            IPloneTaskSender(CheckUpdates(uid=originalfile.UID())).send()
         pass
 
 # class OriginalFileAlephSearchDocumentResultHandler(namedtuple('AlephSearchDocumentResult',
