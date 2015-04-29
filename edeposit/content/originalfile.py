@@ -49,6 +49,7 @@ import simplejson as json
 from edeposit.content.behaviors import IFormat, ICalibreFormat
 from operator import __or__
 from urlparse import urlparse
+from plone.app.content.interfaces import INameFromTitle
 
 from .tasks import (
     IPloneTaskSender,
@@ -649,12 +650,16 @@ class ChangeSourceView(form.SchemaForm):
             return
 
         self.context.file = data['file']
-        wft = api.portal.get_tool('portal_workflow')
+        newId = INameFromTitle(self.context).title
+        api.content.rename(obj=self.context, new_id = str(newId), safe_id=True)
+        newTitle = "%s (%s)" % (self.context.getParentTitle(), self.context.file and self.context.file.filename or "")
+        self.context.title = newTitle
         if self.context.file:
             # If originalfile has aleph records and ISBN is at Aleph Records
             # skip ISBN validation
             # remove thumbnail
             self.context.thumbnail = None
+            wft = api.portal.get_tool('portal_workflow')
             wft.doActionFor(self.context, (self.context.isbn and (\
                         self.context.isbnAppearsAtRelatedAlephRecord and 'submitDeclarationSkipISBNValidation' or
                         'submitDeclarationToISBNValidation')) or ('submitDeclarationToAntivirus'))
