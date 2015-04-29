@@ -142,7 +142,8 @@ def handleAlephResponse(message, event):
     headers = message.header_frame.headers
     (context, session_data) = parse_headers(headers)
     if not context:
-        print "no context at headers"
+        print "... no context at headers"
+        print "... headers:", headers
         print message.body
         message.ack()
         return

@@ -824,7 +824,6 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
             print "num of records: ", len(self.result.records)
             for record in self.result.records:
                 epublication = record.epublication
-
                 internal_url = getattr(epublication,'internal_url',None) # this is a list of urls
                 internal_urls = getattr(epublication,'internal_urls', None) or internal_url or []
 

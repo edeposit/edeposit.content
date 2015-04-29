@@ -47,6 +47,8 @@ from .changes import IChanges, IApplicableChange
 from Acquisition import aq_inner, aq_parent
 import simplejson as json
 from edeposit.content.behaviors import IFormat, ICalibreFormat
+from operator import __or__
+from urlparse import urlparse
 
 from .tasks import (
     IPloneTaskSender,
@@ -436,15 +438,15 @@ class OriginalFile(Container):
     def refersToThisOriginalFile(self,aleph_record):
         # older records can have
         # absolute_url as internal url
-        from operator import __and__
-        absolute_url = self.absolute_url() 
-        internal_url = self.makeInternalURL()
+        absolute_path = urlparse(self.absolute_url()).path
+        internal_path = urlparse(self.makeInternalURL()).path
 
         def startsWithProperURL(url):
-            result = absolute_url in url or internal_url in url
+            path = urlparse(url).path
+            result = absolute_path in path or internal_path in path
             return result
 
-        result = reduce(__and__, map(startsWithProperURL, aleph_record.internal_urls), True)
+        result = reduce(__or__, map(startsWithProperURL, aleph_record.internal_urls), False)
         return result
 
     def updateAlephRelatedData(self):

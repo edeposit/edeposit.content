@@ -49,9 +49,8 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
     def nextstep_for_waitingForAleph(self,*args,**kwargs):
         alephRecords = self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
-        alephRecordsThatRefersToThis = filter(lambda rr: self.context.refersToThisOriginalFile(rr), alephRecords)
-
-        if not alephRecordsThatRefersToThis:
+        #alephRecordsThatRefersToThis = filter(lambda rr: self.context.refersToThisOriginalFile(rr), alephRecords)
+        if not alephRecords:
             comment = u"v Alephu není žádný záznam.  ISBN: %s" % (self.context.isbn, )
             self.wft.doActionFor(self.context,'noAlephRecordLoaded')
             return False
