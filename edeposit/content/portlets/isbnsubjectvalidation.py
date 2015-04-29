@@ -40,6 +40,9 @@ class Assignment(base.Assignment):
 
 class Renderer(base.Renderer):
     render = ViewPageTemplateFile('isbnsubjectvalidation.pt')
+    @property
+    def available(self):
+         return self.context.portal_type != 'edeposit.content.originalfile'
 
 
 # NOTE: If this portlet does not have any configurable parameters, you can

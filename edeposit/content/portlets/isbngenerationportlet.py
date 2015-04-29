@@ -7,7 +7,7 @@ from plone.portlets.interfaces import IPortletDataProvider
 from zope import schema
 from zope.formlib import form
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-
+from Acquisition import aq_inner
 from edeposit.content import MessageFactory as _
 
 class IISBNGenerationPortlet(IPortletDataProvider):
@@ -46,6 +46,10 @@ class Renderer(base.Renderer):
     """
 
     render = ViewPageTemplateFile('isbngenerationportlet.pt')
+
+    @property
+    def available(self):
+         return self.context.portal_type != 'edeposit.content.originalfile'
 
 
 # NOTE: If this portlet does not have any configurable parameters, you can

@@ -174,6 +174,10 @@ class Renderer(base.Renderer):
         view.form_instance = form
         return view
 
+    @property
+    def available(self):
+        return ('E-Deposit: ISBN Agency Member' not in api.user.get_roles(obj=self.context))
+
     # @property
     # def available(self):
     #     context = aq_inner(self.context)

@@ -62,6 +62,10 @@ class Renderer(base.Renderer):
         links = map(partial(linkFactory,plone_utils=api.portal.get_tool('plone_utils')), 
                     originalFiles)
         return links
+
+    @property
+    def available(self):
+        return ('E-Deposit: ISBN Agency Member' not in api.user.get_roles(obj=self.context))
                                                 
 class AddForm(base.AddForm):
     """Portlet add form.
