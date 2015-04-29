@@ -762,8 +762,7 @@ class OriginalFileAlephSearchResultHandler(namedtuple('AlephSearchtResult',['con
             for record in self.result.records:
                 epublication = record.epublication
                 internal_url = getattr(epublication,'internal_url',None)
-                internal_urls = getattr(epublication,'internal_urls', None) \
-                                or (internal_url and [internal_url]) or []
+                internal_urls = getattr(epublication,'internal_urls', None)  or internal_url or []
                 # if record.docNumber in ['000003035','000003043']:
                 #     internal_urls = [ api.portal.getSite().portal_url() + '/producents/nakladatelstvi-gama/epublications/pasivni-domy-2013/pd2013_sbornik.pdf', 'some url', ]
 
