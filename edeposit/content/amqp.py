@@ -9,6 +9,7 @@ from base64 import b64encode, b64decode
 from plone.dexterity.utils import createContentInContainer, addContentToContainer, createContent
 import transaction
 import simplejson as json
+from Products.CMFCore.WorkflowCore import WorkflowException
 
 from functools import partial
 from edeposit.content.behaviors import IFormat, ICalibreFormat
@@ -981,11 +982,13 @@ class AlephRecordExceptionHandler(namedtuple('ExceptionHandler',['context', 'res
         wft = api.portal.get_tool('portal_workflow')
         with api.env.adopt_user(username="system"):
             originalfile = aq_parent(aq_inner(self.context))
-            wft.doActionFor(originalfile,'amqpError', comment=str(self.result.payload))
             if self.result.exception_name == 'DocumentNotFoundException':
                 print "... remove aleph record: ", self.context
                 api.content.delete(self.context)
+                wft.doActionFor(originalfile,'amqpWarning', comment=str(self.result.payload))
                 IPloneTaskSender(CheckUpdates(uid=originalfile.UID())).send()
+            else:
+                wft.doActionFor(originalfile,'amqpError', comment=str(self.result.payload))                
         pass
 
 class AgreementGenerationRequestSender(namedtuple('AgreementGeneration',['context'])):
@@ -1195,7 +1198,12 @@ class DoActionForTaskHandler(namedtuple('DoActionForTaskHandler',
         with api.env.adopt_user(username="system"):
             wft = api.portal.get_tool('portal_workflow')
             obj = api.content.get(UID = self.result.uid)
-            wft.doActionFor(obj,self.result.transition)
+            try:
+                wft.doActionFor(obj,self.result.transition)
+            except WorkflowException:
+                comment = u"akce: '%s' neni ve stavu '%s' povolena" %( self.result.transition, api.content.get_state(obj=obj))
+                print "... amqp error", comment
+                wft.doActionFor(obj,'amqpError',comment=comment)
 
 
 class SendEmailWithUserWorklistTaskHandler(namedtuple('SendEmailWithUserWorklistTaskHandler',
