@@ -79,19 +79,20 @@ import os.path
 # is_valid_isbn = partial(edeposit.content.mock.is_valid_isbn,result=True)
 # getISBNCount = partial(edeposit.content.mock.getISBNCount,result=0)
 
+librariesAccessingChoices = [
+    ['zadna knihovna nema pristup',u"Pouze archivace"],
+    ['vsechny knihovny maji pristup', u"Všechny oprávněné knihovny mohou zpřístupňovat na místě"],
+    ['vybrane knihovny maji pristup',u"Vybrané oprávněné knihovny mohou zpřístupňovat na místě"],
+    ]
+
 @grok.provider(IContextSourceBinder)
 def librariesAccessing(context):
-    choices = [
-        ['zadna knihovna nema pristup',u"Pouze archivace"],
-        ['vsechny knihovny maji pristup', u"Všechny oprávněné knihovny mohou zpřístupňovat na místě"],
-        ['vybrane knihovny maji pristup',u"Vybrané oprávněné knihovny mohou zpřístupňovat na místě"],
-    ]
 
     def getTerm(item):
         title = item[1].encode('utf-8')
         return SimpleVocabulary.createTerm(item[0], item[0], title)
 
-    return SimpleVocabulary(map(getTerm, choices))
+    return SimpleVocabulary(map(getTerm, librariesAccessingChoices))
 
 @grok.provider(IContextSourceBinder)
 def availableLibraries(context):

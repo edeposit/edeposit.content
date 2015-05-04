@@ -646,7 +646,8 @@ class OriginalFilePDFBoxValidationResultHandler(namedtuple('PDFBoxValidationResu
         context = self.context
         with api.env.adopt_user(username="system"):
             context.updateOrAddPDFBoxResponse(result.xml)
-            wft.doActionFor(context, 'pdfboxResponse')
+            #wft.doActionFor(context, 'pdfboxResponse')
+            IPloneTaskSender(DoActionFor(transition='pdfboxResponse', uid=context.UID())).send()
         pass
 
 class OriginalFileEPubCheckValidationResultHandler(namedtuple('EPubCheckValidationResult',
@@ -1062,7 +1063,16 @@ class VoucherGenerationRequestSender(namedtuple('VoucherGeneration',['context'])
 
         autori = [aa.fullname for aa in epublication.authors.results()]
         (autor1, autor2, autor3) = (autori + [None, None, None])[:3]
-        libraries_accessing = epublication.libraries_accessing
+
+        from edeposit.content.epublication import (   librariesAccessingChoices,
+                                                      availableLibraries
+                                                      )
+        #vocab = availableLibraries(self.context)
+        def accessingTranslate(token):
+            results = [aa for aa in librariesAccessingChoices if aa[0] == token]
+            return results and results[0][1] or ""
+
+        libraries_accessing = accessingTranslate(epublication.libraries_accessing)
         #libraries_by_value = dict([(aa.id,aa.Title) for aa in self.availableLibraries()])
         libraries_that_can_access = [ dict( id = aa.to_object.id, title=aa.to_object.Title())
                                       for aa in (epublication.libraries_that_can_access or [])]
