@@ -706,8 +706,8 @@ class IAddAtOnceForm(form.Schema):
         description = u"Stanovíte, zda lze ePublikaci zpřístupňovat v oprávněné knihovně na terminálu (viz dále).",
         required = False,
         readonly = False,
-        default = None,
-        missing_value = None,
+        default = 'zadna knihovna nema pristup',
+        missing_value = 'zadna knihovna nema pristup',
         source = librariesAccessing,
         #vocabulary = 'edeposit.content.librariesAccessingChoices'
     )

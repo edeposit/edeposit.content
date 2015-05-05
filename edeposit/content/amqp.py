@@ -986,6 +986,7 @@ class AlephRecordExceptionHandler(namedtuple('ExceptionHandler',['context', 'res
             if self.result.exception_name == 'DocumentNotFoundException':
                 print "... remove aleph record: ", self.context
                 api.content.delete(self.context)
+                print "... state: ", api.content.get_state(originalfile)
                 wft.doActionFor(originalfile,'amqpWarning', comment=str(self.result.payload))
                 IPloneTaskSender(CheckUpdates(uid=originalfile.UID())).send()
             else:
@@ -1072,7 +1073,7 @@ class VoucherGenerationRequestSender(namedtuple('VoucherGeneration',['context'])
             results = [aa for aa in librariesAccessingChoices if aa[0] == token]
             return results and results[0][1] or ""
 
-        libraries_accessing = accessingTranslate(epublication.libraries_accessing)
+        libraries_accessing = accessingTranslate(epublication.libraries_accessing or librariesAccessingChoices[0][0])
         #libraries_by_value = dict([(aa.id,aa.Title) for aa in self.availableLibraries()])
         libraries_that_can_access = [ dict( id = aa.to_object.id, title=aa.to_object.Title())
                                       for aa in (epublication.libraries_that_can_access or [])]
