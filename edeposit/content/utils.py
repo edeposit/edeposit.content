@@ -1,6 +1,9 @@
 from edeposit.amqp import aleph
 from functools import partial
 import isbn_validator
+import re
+
+# nosier "/usr/bin/python utils.py"
 
 def loadFromAlephByISBN(isbn):
     result = aleph.reactToAMQPMessage(aleph.SearchRequest(aleph.ISBNQuery(isbn, base='nkc')),'UUID')
@@ -13,3 +16,26 @@ def is_valid_isbn(isbn):
 def getISBNCount(isbn, base='nkc'):
     return aleph.aleph.getISBNCount(isbn, base='nkc')
 
+
+def normalizeISBN(isbn):
+    """
+    >>> normalizeISBN('978800105473-4')
+    '978-80-01-05473-4'
+
+    >>> normalizeISBN('80978800105473-4')
+    '80978800105473-4'
+    """
+
+    def normalize(isbn):
+        result = re.search(r'^(...)(..)(..)(.....)(.)', isbn)
+        return "-".join(result.groups())
+
+    withoutDash = isbn.replace('-','')
+    isbnLenght = len(withoutDash)
+    isAtStandardForm = isbnLenght == 13 and withoutDash.startswith('97880')
+    formatedISBN = isAtStandardForm and normalize(withoutDash) or isbn
+    return formatedISBN
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
