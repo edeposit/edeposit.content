@@ -24,16 +24,12 @@ def normalizeISBN(isbn):
 
     >>> normalizeISBN('80978800105473-4')
     '80978800105473-4'
+
+    >>> normalizeISBN('988800105473-4')
+    '988800105473-4'
     """
-
-    def normalize(isbn):
-        result = re.search(r'^(...)(..)(..)(.....)(.)', isbn)
-        return "-".join(result.groups())
-
-    withoutDash = isbn.replace('-','')
-    isbnLenght = len(withoutDash)
-    isAtStandardForm = isbnLenght == 13 and withoutDash.startswith('97880')
-    formatedISBN = isAtStandardForm and normalize(withoutDash) or isbn
+    result =  re.search(r'^(978)(80)(..)(.....)(.)$', isbn.replace('-',''))
+    formatedISBN = (result and "-".join(result.groups())) or isbn
     return formatedISBN
 
 if __name__ == "__main__":
