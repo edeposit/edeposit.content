@@ -809,6 +809,10 @@ def nakladatelDefaultValue(data):
         return producent.title or producent.id
     return ""
 
+@form.default_value(field=IAddAtOnceForm['libraries_accessing'])
+def librariesAccessingDefaultValue(data):
+    return librariesAccessingChoices[0][0]
+
 # Martin Heideger
 # soucasna doba prekonala vsechny vzdalenosti, 
 # ale neprinesla zadnou blizkost 
