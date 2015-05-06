@@ -20,6 +20,8 @@ from edeposit.content.amqp_interfaces import (
     IEmailSender
 )
 
+from edeposit.content.utils import normalizeISBN
+
 # (occur-1 "class " nil (list (current-buffer)) "*amqp: class*")
 # (occur-1 "def " nil (list(current-buffer)) "*amqp: def*")
 
@@ -361,7 +363,7 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
                          [ii[0] for ii in originalFile.get_local_roles() if 'Owner' in ii[1]]))
 
         epublicationRecord =  EPublication (
-            ISBN = originalFile.isbn or "",
+            ISBN = normalizeISBN(originalFile.isbn or ""),
             invalid_ISBN = "",
             nazev = epublication.title or "",
             podnazev = epublication.podnazev or "",
@@ -376,7 +378,7 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
             format = IFormat(originalFile).format or "",
             url = originalFile.url or "",
             mistoVydani = epublication.misto_vydani,
-            ISBNSouboruPublikaci = epublication.isbn_souboru_publikaci or "",
+            ISBNSouboruPublikaci = normalizeISBN(epublication.isbn_souboru_publikaci or ""),
             autori = map(lambda author: author.lastName, filter(lambda author: author.lastName, authors)),
             originaly = [],
             internal_url = originalFile.makeInternalURL() or ""
