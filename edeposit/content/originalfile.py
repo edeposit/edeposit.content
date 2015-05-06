@@ -276,6 +276,17 @@ class OriginalFile(Container):
         result = self.isValidEPub2() or self.isValidPDFA()
         return result
 
+    @property
+    def hasResultsFromValidationForLTP(self):
+        """
+        """
+        responses = [ii[1] for ii in self.items() 
+                     if ii[1].portal_type == 'edeposit.content.pdfboxvalidationresponse'
+                     or ii[1].portal_type == 'edeposit.content.epubcheckvalidationresponse'
+                     ]
+        return bool(responses)
+
+
     def submitValidationsForLTP(self):
         format = IFormat(self).format or ""
         if format == 'PDF':

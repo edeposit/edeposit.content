@@ -4,9 +4,14 @@
      tal:condition="ploneview/showEditableBorder"
      >
 
-    <tal:block define="isWellFormedForLTP context/isWellFormedForLTP">
-      <span class="" tal:condition="isWellFormedForLTP">vyhovuje požadavkům LTP</span>
-      <span class="" tal:condition="not: isWellFormedForLTP">dokument neumožňuje dlouhodobou ochranu</span>
+    <tal:block define="isWellFormedForLTP context/isWellFormedForLTP;
+		       hasResultsFromValidationForLTP context/hasResultsFromValidationForLTP;
+		       ">
+      <tal:block tal:condition="hasResultsFromValidationForLTP">
+	<span class="" tal:condition="isWellFormedForLTP">vyhovuje požadavkům LTP</span>
+	<span class="" tal:condition="not: isWellFormedForLTP">dokument neumožňuje dlouhodobou ochranu</span>
+      </tal:block>
+      <span class="" tal:condition="not: hasResultsFromValidationForLTP">Je naplánována validace podle LTP</span>
     </tal:block>
 
 </div>
