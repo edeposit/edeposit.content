@@ -23,7 +23,51 @@ from edeposit.content.eperiodicalfolder import IePeriodicalFolder
 from edeposit.content import MessageFactory as _
 from plone import api
 
-# Interface class; used to define content-type schema.
+"""
+Denně
+1x týdně
+2x týdně
+3x týdně
+1x měsíčně
+2x měsíčně
+1x za 2 týdny
+3x měsíčně
+2x ročně
+3x ročně
+4x ročně
+6x ročně
+10x ročně
+Ročenka
+1x za 2 roky
+1x za 3 roky
+"""
+
+periodicityChoices = [
+    ['denne',u"Denně"],
+    ['1x tydne', u"1x týdně"],
+    ['2x tydne',u"2x týdně"],
+    ['3x tydne',u'3x týdně'],
+    ['1x mesicne',u'1x měsíčně'],
+    ['2x mesicne',u'2x měsíčně'],
+    ['1x za 2 tydny',u'1x za 2 týdny'],
+    ['3x mesicne',u'3x měsíčně'],
+    ['2x rocne',u'2x ročně'],
+    ['3x rocne',u'3x ročně'],
+    ['4x rocne',u'4x ročně'],
+    ['6x rocne',u'6x ročně'],
+    ['10x rocne',u'10x ročně'],
+    ['rocenka',u'Ročenka'],
+    ['1x za 2 roky',u'1x za 2 roky'],
+    ['1x za 3 roky',u'1x za 3 roky'],
+]
+
+@grok.provider(IContextSourceBinder)
+def periodicityChoicesSource(context):
+    def getTerm(item):
+        title = item[1].encode('utf-8')
+        return SimpleVocabulary.createTerm(item[0], item[0], title)
+
+    return SimpleVocabulary(map(getTerm, periodicityChoices))
 
 class IePeriodical(form.Schema, IImageScaleTraversable):
     """
@@ -36,12 +80,13 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
 
     issn = schema.ASCIILine (
         title = u"ISSN",
-        required = True,
+        required = False,
     )
 
-    cetnost_vydani = schema.TextLine (
+    cetnost_vydani = schema.Choice (
         title = u"Četnost (periodicita) vydání",
         required = True,
+        source = periodicityChoicesSource,
     )
 
     misto_vydani = schema.TextLine (
@@ -90,7 +135,7 @@ class AddAtOnceForm(form.SchemaForm):
     grok.context(IePeriodicalFolder)
     schema = IePeriodical
     ignoreContext = True
-    label = u"Oznámení vydávání periodického tisku"
+    label = u"Oznámení vydávání ePeriodika"
     enable_form_tabbing = False
     autoGroups = False
     
