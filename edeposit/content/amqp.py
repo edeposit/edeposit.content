@@ -289,8 +289,13 @@ class OriginalFileThumbnailRequestSender(namedtuple('ThumbnailGeneratingRequest'
         originalfile = self.context
         fileName = originalfile.file.filename
 
-        inputFormat = ICalibreFormat(self.context).format
-        request = ConversionRequest(inputFormat, "pdf", base64.b64encode(originalfile.file.data))
+        inputFormat = ICalibreFormat(self.context).format.lower()
+        fileNameExt = fileName.split(".")[-1].lower()
+        from edeposit.amqp.calibre.structures import INPUT_FORMATS
+        supportedFormat = fileName and ((inputFormat in INPUT_FORMATS and inputFormat)
+                                        or
+                                        (fileNameExt in INPUT_FORMATS and fileNameExt))
+        request = ConversionRequest(supportedFormat, "pdf", base64.b64encode(originalfile.file.data))
         producer = getUtility(IProducer, name="amqp.calibre-convert-request")
         msg = ""
         session_data =  { 'isbn': str(self.context.isbn),
