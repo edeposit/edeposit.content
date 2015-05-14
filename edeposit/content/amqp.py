@@ -289,8 +289,13 @@ class OriginalFileThumbnailRequestSender(namedtuple('ThumbnailGeneratingRequest'
         originalfile = self.context
         fileName = originalfile.file.filename
 
-        inputFormat = ICalibreFormat(self.context).format
-        request = ConversionRequest(inputFormat, "pdf", base64.b64encode(originalfile.file.data))
+        inputFormat = ICalibreFormat(self.context).format.lower()
+        fileNameExt = fileName.split(".")[-1].lower()
+        from edeposit.amqp.calibre.structures import INPUT_FORMATS
+        supportedFormat = fileName and ((inputFormat in INPUT_FORMATS and inputFormat)
+                                        or
+                                        (fileNameExt in INPUT_FORMATS and fileNameExt))
+        request = ConversionRequest(supportedFormat, "pdf", base64.b64encode(originalfile.file.data))
         producer = getUtility(IProducer, name="amqp.calibre-convert-request")
         msg = ""
         session_data =  { 'isbn': str(self.context.isbn),
@@ -1259,12 +1264,15 @@ class SendEmailWithUserWorklistTaskHandler(namedtuple('SendEmailWithUserWorklist
             
             for member in api.user.get_users(groupname=groupname):
                 username = member.id
-                producentsFolder.recreateUserCollectionIfEmpty(username, indexName, state, readerGroup)
+                #producentsFolder.recreateUserCollectionIfEmpty(username, indexName, state, readerGroup)
                 email = member.getProperty('email')
-                view_name = 'worklist-waiting-for-user'
+                #view_name = 'worklist-waiting-for-user'
+                view_name = 'worklist-by-state-waiting-for-user'
                 subject = title + " pro: " + username
                 request = self.context.REQUEST
                 request['userid']=username
+                request['review_state']=state
+                request['assigned_person_index'] = indexName
                 view = api.content.get_view(name=view_name,
                                             context = producentsFolder,
                                             request = request)

@@ -440,6 +440,12 @@ class OriginalFile(Container):
         return False
 
     @property
+    def sysNumber(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object', None)
+            return record and record.aleph_sys_number or ""
+            
+    @property
     def isClosed(self):
         if self.related_aleph_record:
             record = getattr(self.related_aleph_record, 'to_object',None)
@@ -470,31 +476,41 @@ class OriginalFile(Container):
         self.primary_originalfile = None
 
         intids = getUtility(IIntIds)
-        if len(alephRecords) == 1:
-            self.related_aleph_record = RelationValue(intids.getId(alephRecords[0]))
+        recordsThatRefersToThis = filter(lambda rr: self.refersToThisOriginalFile(rr), alephRecords)
+        if len(recordsThatRefersToThis) == 1:
+            related_aleph_record = recordsThatRefersToThis[0]
+            self.related_aleph_record = RelationValue(intids.getId(related_aleph_record))
+        
+        # if related_aleph_record and related_aleph_record.isClosed:
+        #     # doplnime souborny zaznam
+        #     #import pdb; pdb.set_trace()
+        #     related_aleph_record.summary_record_info
+            
+        # if len(alephRecords) == 1:
+        #     self.related_aleph_record = RelationValue(intids.getId(alephRecords[0]))
 
-        if len(alephRecords) > 1:
-            recordsThatRefersToThis = filter(lambda rr: self.refersToThisOriginalFile(rr), alephRecords)
-            if len(recordsThatRefersToThis) == 1:
-                self.related_aleph_record = RelationValue(intids.getId(recordsThatRefersToThis[0]))
-            else:
-                isClosedRecords = filter(lambda rr: rr.isClosed, recordsThatRefersToThis)
-                if len(isClosedRecords) == 1:
-                    self.related_aleph_record = RelationValue(intids.getId(isClosedRecords[0]))
+        # if len(alephRecords) > 1:
+        #     recordsThatRefersToThis = filter(lambda rr: self.refersToThisOriginalFile(rr), alephRecords)
+        #     if len(recordsThatRefersToThis) == 1:
+        #         self.related_aleph_record = RelationValue(intids.getId(recordsThatRefersToThis[0]))
+        #     else:
+        #         isClosedRecords = filter(lambda rr: rr.isClosed, recordsThatRefersToThis)
+        #         if len(isClosedRecords) == 1:
+        #             self.related_aleph_record = RelationValue(intids.getId(isClosedRecords[0]))
 
-                summaryRecords = filter(lambda rr: rr.isSummaryRecord, recordsThatRefersToThis)
-                if len(summaryRecords) == 1:
-                    self.summary_aleph_record = RelationValue(intids.getId(summaryRecords[0]))
+        #         summaryRecords = filter(lambda rr: rr.isSummaryRecord, recordsThatRefersToThis)
+        #         if len(summaryRecords) == 1:
+        #             self.summary_aleph_record = RelationValue(intids.getId(summaryRecords[0]))
 
-            # isClosedRecords = filter(lambda rr: rr.isClosed, alephRecords)
-            # if len(isClosedRecords) == 1:
-            #     self.related_aleph_record = RelationValue(intids.getId(isClosedRecords[0]))
+        #     # isClosedRecords = filter(lambda rr: rr.isClosed, alephRecords)
+        #     # if len(isClosedRecords) == 1:
+        #     #     self.related_aleph_record = RelationValue(intids.getId(isClosedRecords[0]))
 
-            # summaryRecords = filter(lambda item: item.isSummaryRecord, alephRecords)
-            # if summaryRecords:
-            #     self.summary_aleph_record = RelationValue(intids.getId(summaryRecords[0]))
-            #     # TODO
-            #     # doplnil zarazeni primary_originalfile
+        #     # summaryRecords = filter(lambda item: item.isSummaryRecord, alephRecords)
+        #     # if summaryRecords:
+        #     #     self.summary_aleph_record = RelationValue(intids.getId(summaryRecords[0]))
+        #     #     # TODO
+        #     #     # doplnil zarazeni primary_originalfile
                 
     def properAlephRecordsChoosen(self):
         # the method says that there is no need to manualy choose

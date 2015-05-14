@@ -2,6 +2,7 @@ from edeposit.amqp import aleph
 from functools import partial
 import isbn_validator
 import re
+import isbnlib
 
 # nosier "/usr/bin/python utils.py"
 
@@ -27,10 +28,19 @@ def normalizeISBN(isbn):
 
     >>> normalizeISBN('988800105473-4')
     '988800105473-4'
+
+    >>> normalizeISBN('978-80-254-94677')
+    '978-80-254-9467-7'
     """
-    result =  re.search(r'^(978)(80)(..)(.....)(.)$', isbn.replace('-',''))
-    formatedISBN = (result and "-".join(result.groups())) or isbn
-    return formatedISBN
+    try:
+        return isbnlib.mask(isbnlib.canonical(isbn))
+    except isbnlib.NotValidISBNError:
+        return isbn
+
+    #result =  re.search(r'^(978)(80)(.{7})(.)$', isbn.replace('-',''))
+    #formatedISBN = (result and "-".join(result.groups())) or isbn
+    #return formatedISBN
+    #return isbn
 
 if __name__ == "__main__":
     import doctest
