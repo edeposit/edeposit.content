@@ -94,6 +94,21 @@ class SendEmailWithUserWorklist(namedtuple('SendEmailWithUserWorklist',
     implements(ISendEmailWithUserWorklist)
     pass
 
+class ISendEmailWithUserAndStateWorklist(IPloneTask):
+    title = schema.TextLine()
+    groupname = schema.ASCIILine()
+    state = schema.ASCIILine()
+    assigned_person_index = schema.ASCIILine()
+    additionalEmails = schema.List(
+        value_type = schema.ASCIILine()
+    )
+class SendEmailWithUserAndStateWorklist(namedtuple('SendEmailWithUserAndStateWorklist',
+                                                   ['title','groupname',
+                                                    'assigned_person_index',
+                                                    'state','additionalEmails'])):
+    implements(ISendEmailWithUserAndStateWorklist)
+    pass
+
 class ICheckUpdates(IPloneTask):
     uid = schema.ASCIILine()
 

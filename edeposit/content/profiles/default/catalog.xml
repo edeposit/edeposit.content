@@ -7,6 +7,7 @@
   <column value="getCast"/> 
   <column value="getNazevCasti"/> 
   <column value="hasVoucher"/>
+  <column value="sysNumber"/>
   <column value="getAssignedSubjectCataloguer"/>
   <column value="getAssignedSubjectCataloguingReviewer"/>
   <column value="getAssignedDescriptiveCataloguer"/>
