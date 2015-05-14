@@ -803,6 +803,7 @@ class OriginalFileAlephSearchResultHandler(namedtuple('AlephSearchtResult',['con
                     'internal_urls': internal_urls,
                     'isSummaryRecord': record.semantic_info.isSummaryRecord or False,
                     'xml': NamedBlobFile(record.xml, filename=u"marc21.xml"),
+                    'id_number': getattr(epublication,'id_number',None),
                     }
                 self.context.updateOrAddAlephRecord(dataForFactory)
 
@@ -867,6 +868,7 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
                     'internal_urls': internal_urls,
                     'isSummaryRecord': record.semantic_info.isSummaryRecord or False,
                     'xml': NamedBlobFile(record.xml, filename=u"marc21.xml"),
+                    'id_number': getattr(epublication,'id_number',None),
                     }
                 self.context.findAndLoadChanges(dataForFactory)
 
