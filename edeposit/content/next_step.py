@@ -60,7 +60,14 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         
         self.wft.doActionFor(self.context, 'alephRecordsLoaded')
         return True
-        
+
+    def nextstep_for_chooseProperAlephRecord(self, *args, **kwargs):
+        if not self.context.properAlephRecordsChoosen():
+            return False
+
+        self.wft.doActionFor(self.context,'properAlephRecordChoosen')
+        return True
+
     def nextstep_for_descriptiveCataloguingPreparing(self, *args, **kwargs):
         if self.context.getAssignedDescriptiveCataloguer():
             self.wft.doActionFor(self.context,'submitDescriptiveCataloguingPreparing')

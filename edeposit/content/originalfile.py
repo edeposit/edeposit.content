@@ -469,6 +469,7 @@ class OriginalFile(Container):
 
     def updateAlephRelatedData(self):
         # try to choose related_aleph_record
+        print "... update Aleph Related Data"
         alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
 
         self.related_aleph_record = None
@@ -480,7 +481,18 @@ class OriginalFile(Container):
         if len(recordsThatRefersToThis) == 1:
             related_aleph_record = recordsThatRefersToThis[0]
             self.related_aleph_record = RelationValue(intids.getId(related_aleph_record))
-        
+            return
+
+        closedAlephRecords = filter(lambda rr: rr.isClosed, recordsThatRefersToThis)
+        if len(closedAlephRecords) == 1:
+            related_aleph_record = closedAlephRecords[0]
+            self.related_aleph_record = RelationValue(intids.getId(related_aleph_record))
+
+        summaryAlephRecords = filter(lambda rr: rr.isSummaryRecord, recordsThatRefersToThis)
+        if len(summaryAlephRecords) == 1:
+            summary_aleph_record = summaryAlephRecords[0]
+            self.summary_aleph_record = RelationValue(intids.getId(summary_aleph_record))
+
         # if related_aleph_record and related_aleph_record.isClosed:
         #     # doplnime souborny zaznam
         #     #import pdb; pdb.set_trace()
