@@ -450,9 +450,15 @@ class OriginalFile(Container):
     def isClosed(self):
         if self.related_aleph_record:
             record = getattr(self.related_aleph_record, 'to_object',None)
-            if record:
-                return record.isClosed
+            return record and record.isClosed
         return False
+
+    @property
+    def summary_record_aleph_sys_number(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object',None)
+            return record and record.summary_record_aleph_sys_number
+        return None
 
     def refersToThisOriginalFile(self,aleph_record):
         # older records can have
