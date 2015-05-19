@@ -387,7 +387,8 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
             autori = map(lambda author: author.lastName, filter(lambda author: author.lastName, authors)),
             originaly = [],
             internal_url = originalFile.makeInternalURL() or "",
-            id_number = getattr(originalFile,'id_number',None)
+            id_number = getattr(originalFile,'id_number',None),
+            anotace = getattr(originalFile,'anotace',None),
         )
         request = ExportRequest(epublication=epublicationRecord)
         producer = getUtility(IProducer, name="amqp.aleph-export-request")
