@@ -50,6 +50,7 @@ from edeposit.content.behaviors import IFormat, ICalibreFormat
 from operator import __or__
 from urlparse import urlparse
 from plone.app.content.interfaces import INameFromTitle
+import re
 
 from .tasks import (
     IPloneTaskSender,
@@ -469,18 +470,35 @@ class OriginalFile(Container):
 
     def updateAlephRelatedData(self):
         # try to choose related_aleph_record
+        print "... update Aleph Related Data"
         alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
 
         self.related_aleph_record = None
         self.summary_aleph_record = None
         self.primary_originalfile = None
+        
+        related_aleph_record = None
 
         intids = getUtility(IIntIds)
         recordsThatRefersToThis = filter(lambda rr: self.refersToThisOriginalFile(rr), alephRecords)
         if len(recordsThatRefersToThis) == 1:
             related_aleph_record = recordsThatRefersToThis[0]
             self.related_aleph_record = RelationValue(intids.getId(related_aleph_record))
-        
+        else:
+            closedAlephRecords = filter(lambda rr: rr.isClosed, recordsThatRefersToThis)
+            if len(closedAlephRecords) == 1:
+                related_aleph_record = closedAlephRecords[0]
+                self.related_aleph_record = RelationValue(intids.getId(related_aleph_record))
+
+        if related_aleph_record and related_aleph_record.isClosed:
+            reference = related_aleph_record.summary_record_aleph_sys_number
+            refersTo = lambda rr,reference: rr.id_number == reference or re.sub(r'^0+','',rr.aleph_sys_number) in reference
+            properSummaryRecords = [rr for rr in alephRecords if refersTo(rr,reference)]
+            if len(properSummaryRecords) == 1:
+                summary_aleph_record = properSummaryRecords[0]
+                self.summary_aleph_record = RelationValue(intids.getId(summary_aleph_record))
+            pass
+
         # if related_aleph_record and related_aleph_record.isClosed:
         #     # doplnime souborny zaznam
         #     #import pdb; pdb.set_trace()

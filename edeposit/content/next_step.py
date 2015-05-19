@@ -60,7 +60,14 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         
         self.wft.doActionFor(self.context, 'alephRecordsLoaded')
         return True
-        
+
+    def nextstep_for_chooseProperAlephRecord(self, *args, **kwargs):
+        if not self.context.properAlephRecordsChoosen():
+            return False
+
+        self.wft.doActionFor(self.context,'properAlephRecordChoosen')
+        return True
+
     def nextstep_for_descriptiveCataloguingPreparing(self, *args, **kwargs):
         if self.context.getAssignedDescriptiveCataloguer():
             self.wft.doActionFor(self.context,'submitDescriptiveCataloguingPreparing')
@@ -92,7 +99,8 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         return False
 
     def nextstep_for_closedDescriptiveCataloguingReviewPreparing(self, *args, **kwargs):
-        if self.context.getAssignedDescriptiveCataloguingReviewer():
+        summary_aleph_record =  self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
+        if summary_aleph_record and summary_aleph_record.hasDescriptiveCataloguingReviewFields:
             self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguingReviewPreparing')
             return True
 
@@ -106,7 +114,8 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         return False
 
     def nextstep_for_closedSubjectCataloguingReviewPreparing(self, *args, **kwargs):
-        if self.context.getAssignedSubjectCataloguingReviewer():
+        summary_aleph_record =  self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
+        if summary_aleph_record and summary_aleph_record.hasSubjectCataloguingReviewFields:
             self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingReviewPreparing')
             return True
 
@@ -121,7 +130,8 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         return False
 
     def nextstep_for_closedSubjectCataloguingPreparing(self, *args, **kwargs):
-        if self.context.getAssignedSubjectCataloguer():
+        summary_aleph_record = self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
+        if summary_aleph_record and summary_aleph_record.hasSubjectCataloguingFields:
             self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingPreparing')
             return True
 
@@ -131,6 +141,13 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         aleph_record = self.context.related_aleph_record and getattr(self.context.related_aleph_record,'to_object',None)
         if aleph_record and aleph_record.hasDescriptiveCataloguingReviewFields:
             self.wft.doActionFor(self.context,'submitDescriptiveCataloguingReview')
+            return True
+        return False
+
+    def nextstep_for_closedDescriptiveCataloguingReview(self,*args,**kwargs):
+        summary_aleph_record = self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
+        if summary_aleph_record and summary_aleph_record.hasDescriptiveCataloguingReviewFields:
+            self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguingReview')
             return True
         return False
 
@@ -156,8 +173,8 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         return False
 
     def nextstep_for_closedSubjectCataloguingReview(self,*args,**kwargs):
-        aleph_record = self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
-        if aleph_record and aleph_record.hasSubjectCataloguingReviewFields:
+        summary_aleph_record =  self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
+        if summary_aleph_record and summary_aleph_record.hasSubjectCataloguingReviewFields:
             self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingReview')
             return True
         return False

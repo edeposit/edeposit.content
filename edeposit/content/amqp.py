@@ -386,7 +386,9 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
             ISBNSouboruPublikaci = normalizeISBN(epublication.isbn_souboru_publikaci or ""),
             autori = map(lambda author: author.lastName, filter(lambda author: author.lastName, authors)),
             originaly = [],
-            internal_url = originalFile.makeInternalURL() or ""
+            internal_url = originalFile.makeInternalURL() or "",
+            id_number = getattr(originalFile,'id_number',None),
+            anotace = getattr(originalFile,'anotace',None),
         )
         request = ExportRequest(epublication=epublicationRecord)
         producer = getUtility(IProducer, name="amqp.aleph-export-request")
@@ -803,6 +805,7 @@ class OriginalFileAlephSearchResultHandler(namedtuple('AlephSearchtResult',['con
                     'internal_urls': internal_urls,
                     'isSummaryRecord': record.semantic_info.isSummaryRecord or False,
                     'xml': NamedBlobFile(record.xml, filename=u"marc21.xml"),
+                    'id_number': getattr(epublication,'id_number',None),
                     }
                 self.context.updateOrAddAlephRecord(dataForFactory)
 
@@ -867,6 +870,7 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
                     'internal_urls': internal_urls,
                     'isSummaryRecord': record.semantic_info.isSummaryRecord or False,
                     'xml': NamedBlobFile(record.xml, filename=u"marc21.xml"),
+                    'id_number': getattr(epublication,'id_number',None),
                     }
                 self.context.findAndLoadChanges(dataForFactory)
 

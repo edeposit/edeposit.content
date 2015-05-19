@@ -143,7 +143,10 @@ class IAlephRecord(form.Schema, IImageScaleTraversable):
         title=_(u"XML file with MARC21"),
         required = False,
     )
-
+    id_number = schema.ASCIILine(
+        title = u"Interní číslo",
+        required = False
+        )
 
 # Custom content-type class; objects created for this content type will
 # be instances of this class. Use this class to add content-type specific
