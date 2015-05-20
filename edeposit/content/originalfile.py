@@ -172,7 +172,18 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
         required = False,
     )
 
-
+    shouldBeFullyCatalogized = schema.Bool (
+        title = u"Tento dokument musí projít celou katalogizační linkou",
+        default = False,
+        required = False
+    )
+    
+    anotace = schema.Text(
+        title=u"Anotace",
+        required=False,
+        missing_value=u'',
+    )
+    
 @form.default_value(field=IOriginalFile['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
     member = api.user.get_current()
@@ -287,6 +298,16 @@ class OriginalFile(Container):
                      ]
         return bool(responses)
 
+    @property
+    def latestValidationResponse(self):
+        responses = [ii[1] for ii in self.items() 
+                     if ii[1].portal_type == 'edeposit.content.pdfboxvalidationresponse'
+                     or ii[1].portal_type == 'edeposit.content.epubcheckvalidationresponse'
+        ]
+        #aa.created()
+        #import pdb; pdb.set_trace()
+        #responses.sort(index=lambda item: item.created())
+        return responses and responses[0]
 
     def submitValidationsForLTP(self):
         format = IFormat(self).format or ""
@@ -445,14 +466,32 @@ class OriginalFile(Container):
         if self.related_aleph_record:
             record = getattr(self.related_aleph_record, 'to_object', None)
             return record and record.aleph_sys_number or ""
-            
+        return None
+
     @property
     def isClosed(self):
         if self.related_aleph_record:
             record = getattr(self.related_aleph_record, 'to_object',None)
-            if record:
-                return record.isClosed
+            return record and record.isClosed
         return False
+
+    @property
+    def summary_record_aleph_sys_number(self):
+        if self.summary_aleph_record:
+            record = getattr(self.summary_aleph_record, 'to_object',None)
+            return record and record.aleph_sys_number
+        return None
+
+    @property
+    def fully_catalogized_closed_originalfile_exists(self):
+        summary_record_aleph_sys_number = self.summary_record_aleph_sys_number
+        pcatalog = self.portal_catalog
+        brains = pcatalog(portal_type='edeposit.content.originalfile',
+                          shouldBeFullyCatalogized=True,
+                          summary_record_aleph_sys_number = summary_record_aleph_sys_number,
+                          isClosed=True,
+                      )
+        return bool(brains)
 
     def refersToThisOriginalFile(self,aleph_record):
         # older records can have

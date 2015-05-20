@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from five import grok
 
+import z3c.form
 from z3c.form import group, field
 from zope import schema
 from zope.interface import invariant, Invalid
@@ -14,7 +15,7 @@ from plone.app.textfield import RichText
 from plone.namedfile.field import NamedImage, NamedFile
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
 from plone.namedfile.interfaces import IImageScaleTraversable
-
+from lxml import etree
 
 from edeposit.content import MessageFactory as _
 
@@ -35,8 +36,17 @@ class IEPubCheckValidationResponse(form.Schema, IImageScaleTraversable):
         default = False,
         required = False
     )
+
+    form.widget(messages=z3c.form.browser.multi.multiFieldWidgetFactory)
+    messages = schema.List (
+        title = u"Poznámky k validaci",
+        required = False,
+        value_type = schema.TextLine(required=False)
+    )
+
     xml = NamedBlobFile (
         title=_(u"XML file with full response"),
+        description = u"Úplná odpověď z validace",
         required = True,
     )
 
@@ -48,6 +58,13 @@ class IEPubCheckValidationResponse(form.Schema, IImageScaleTraversable):
 
 class EPubCheckValidationResponse(Item):
     grok.implements(IEPubCheckValidationResponse)
+
+    @property
+    def messages(self):
+        if not self.xml:
+            return []
+        elements = etree.fromstring(self.xml.data).xpath("/repInfo/messages/message")
+        return map(lambda el: el.text, elements)
 
     # Add your class methods and properties here
     pass
