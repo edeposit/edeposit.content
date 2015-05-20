@@ -451,7 +451,8 @@ class OriginalFile(Container):
         if self.related_aleph_record:
             record = getattr(self.related_aleph_record, 'to_object', None)
             return record and record.aleph_sys_number or ""
-            
+        return None
+
     @property
     def isClosed(self):
         if self.related_aleph_record:
@@ -461,10 +462,21 @@ class OriginalFile(Container):
 
     @property
     def summary_record_aleph_sys_number(self):
-        if self.related_aleph_record:
-            record = getattr(self.related_aleph_record, 'to_object',None)
-            return record and record.summary_record_aleph_sys_number
+        if self.summary_aleph_record:
+            record = getattr(self.summary_aleph_record, 'to_object',None)
+            return record and record.aleph_sys_number
         return None
+
+    @property
+    def fully_catalogized_closed_originalfile_exists(self):
+        summary_record_aleph_sys_number = self.summary_record_aleph_sys_number
+        pcatalog = self.portal_catalog
+        brains = pcatalog(portal_type='edeposit.content.originalfile',
+                          shouldBeFullyCatalogized=True,
+                          summary_record_aleph_sys_number = summary_record_aleph_sys_number,
+                          isClosed=True,
+                      )
+        return bool(brains)
 
     def refersToThisOriginalFile(self,aleph_record):
         # older records can have
