@@ -178,6 +178,11 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
         required = False
     )
     
+    anotace = schema.Text(
+        title=u"Anotace",
+        required=False,
+        missing_value=u'',
+    )
 
 @form.default_value(field=IOriginalFile['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):

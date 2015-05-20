@@ -789,6 +789,12 @@ class IAddAtOnceForm(form.Schema):
     #     required = False,
     #     )
 
+    anotace = schema.Text (
+        title = u"Anotace",
+        description = u"Anotace se objeví v Alephu",
+        required = False,
+        )
+
     form.mode(epublication_uid='hidden')
     epublication_uid = schema.ASCIILine(
         required = False,
@@ -851,6 +857,7 @@ class AddAtOnceForm(form.SchemaForm):
             widgets['rok_vydani'].value = get('datumVydani')
             widgets['poradi_vydani'].value = get('poradiVydani')
             widgets['misto_vydani'].value = get('mistoVydani')
+            widgets['anotace'].value = get('anotace')
         pass
 
     def update(self):
@@ -927,13 +934,14 @@ class AddAtOnceForm(form.SchemaForm):
             return originalfile
 
         newOriginalFile = addContentToContainer( newEPublication, withProperMimeType(
-                self.createContentFromData(IOriginalFile,
-                                           'edeposit.content.originalfile', data,
-                                           dict(title=originalFileTitle,
-                                                allow_discussion = True,
-                                                ),
-                                           )
-                ))
+            self.createContentFromData(IOriginalFile,
+                                       'edeposit.content.originalfile', 
+                                       data,
+                                       dict(title=originalFileTitle,
+                                            allow_discussion = True,
+                                        ),
+                                   )
+        ))
         
         # comment = data.get('poznamka',"")
         # if comment:
