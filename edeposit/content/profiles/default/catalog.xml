@@ -30,4 +30,7 @@
   <index name="shouldBeFullyCatalogized"  meta_type="FieldIndex">
     <indexed_attr value="shouldBeFullyCatalogized"/>
   </index>
+  <index name="isClosed"  meta_type="FieldIndex">
+    <indexed_attr value="isClosed"/>
+  </index>
 </object>
