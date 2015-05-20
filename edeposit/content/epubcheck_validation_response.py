@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from five import grok
 
+import z3c.form
 from z3c.form import group, field
 from zope import schema
 from zope.interface import invariant, Invalid
@@ -35,14 +36,18 @@ class IEPubCheckValidationResponse(form.Schema, IImageScaleTraversable):
         default = False,
         required = False
     )
-    xml = NamedBlobFile (
-        title=_(u"XML file with full response"),
-        required = True,
-    )
+
+    form.widget(messages=z3c.form.browser.multi.multiFieldWidgetFactory)
     messages = schema.List (
         title = u"Poznámky k validaci",
         required = False,
-        value_type = schema.TextLine()
+        value_type = schema.TextLine(required=False)
+    )
+
+    xml = NamedBlobFile (
+        title=_(u"XML file with full response"),
+        description = u"Úplná odpověď z validace",
+        required = True,
     )
 
 
