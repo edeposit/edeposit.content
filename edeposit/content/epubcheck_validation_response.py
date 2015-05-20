@@ -56,6 +56,8 @@ class EPubCheckValidationResponse(Item):
 
     @property
     def messages(self):
+        if not self.xml:
+            return []
         elements = etree.fromstring(self.xml.data).xpath("/repInfo/messages/message")
         return map(lambda el: el.text, elements)
 
