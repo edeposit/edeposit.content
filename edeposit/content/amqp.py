@@ -367,28 +367,31 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
                      map(api.user.get, 
                          [ii[0] for ii in originalFile.get_local_roles() if 'Owner' in ii[1]]))
 
+        def normalize(value):
+            return value
+
         epublicationRecord =  EPublication (
             ISBN = normalizeISBN(originalFile.isbn or ""),
             invalid_ISBN = "",
-            nazev = epublication.title or "",
-            podnazev = epublication.podnazev or "",
+            nazev = normalize(epublication.title or ""),
+            podnazev = normalize(epublication.podnazev or ""),
             vazba = "online",
-            cena = str(epublication.cena or ""),
-            castDil = epublication.cast or "",
-            nazevCasti = epublication.nazev_casti or "",
-            nakladatelVydavatel = epublication.nakladatel_vydavatel or "",
-            datumVydani = str(epublication.rok_vydani),
-            poradiVydani = epublication.poradi_vydani or "",
-            zpracovatelZaznamu = originalFile.zpracovatel_zaznamu or (owners and owners[0]) or "",
-            format = IFormat(originalFile).format or "",
-            url = originalFile.url or "",
-            mistoVydani = epublication.misto_vydani,
+            cena = normalize(str(epublication.cena or "")),
+            castDil = normalize(epublication.cast or ""),
+            nazevCasti = normalize(epublication.nazev_casti or ""),
+            nakladatelVydavatel = normalize(epublication.nakladatel_vydavatel or ""),
+            datumVydani = normalize(str(epublication.rok_vydani)),
+            poradiVydani = normalize(epublication.poradi_vydani or ""),
+            zpracovatelZaznamu = normalize(originalFile.zpracovatel_zaznamu or (owners and owners[0]) or ""),
+            format = normalize(IFormat(originalFile).format or ""),
+            url = normalize(originalFile.url or ""),
+            mistoVydani = normalize(epublication.misto_vydani),
             ISBNSouboruPublikaci = normalizeISBN(epublication.isbn_souboru_publikaci or ""),
-            autori = map(lambda author: author.lastName, filter(lambda author: author.lastName, authors)),
+            autori = map(lambda author: normalize(author.lastName), filter(lambda author: author.lastName, authors)),
             originaly = [],
             internal_url = originalFile.makeInternalURL() or "",
             id_number = getattr(originalFile,'id_number',None),
-            anotace = getattr(originalFile,'anotace',None),
+            anotace = normalize(getattr(originalFile,'anotace',"")),
         )
         request = ExportRequest(epublication=epublicationRecord)
         producer = getUtility(IProducer, name="amqp.aleph-export-request")
