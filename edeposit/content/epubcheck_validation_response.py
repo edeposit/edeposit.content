@@ -14,7 +14,7 @@ from plone.app.textfield import RichText
 from plone.namedfile.field import NamedImage, NamedFile
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
 from plone.namedfile.interfaces import IImageScaleTraversable
-
+from lxml import etree
 
 from edeposit.content import MessageFactory as _
 
@@ -39,6 +39,11 @@ class IEPubCheckValidationResponse(form.Schema, IImageScaleTraversable):
         title=_(u"XML file with full response"),
         required = True,
     )
+    messages = schema.List (
+        title = u"Poznámky k validaci",
+        required = False,
+        value_type = schema.TextLine()
+    )
 
 
 # Custom content-type class; objects created for this content type will
@@ -48,6 +53,11 @@ class IEPubCheckValidationResponse(form.Schema, IImageScaleTraversable):
 
 class EPubCheckValidationResponse(Item):
     grok.implements(IEPubCheckValidationResponse)
+
+    @property
+    def messages(self):
+        elements = etree.fromstring(self.xml.data).xpath("/repInfo/messages/message")
+        return map(lambda el: el.text, elements)
 
     # Add your class methods and properties here
     pass
