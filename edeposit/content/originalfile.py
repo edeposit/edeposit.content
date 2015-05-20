@@ -172,6 +172,12 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
         required = False,
     )
 
+    shouldBeFullyCatalogized = schema.Bool (
+        title = u"Tento dokument musí projít celou katalogizační linkou",
+        default = False,
+        required = False
+    )
+    
 
 @form.default_value(field=IOriginalFile['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
