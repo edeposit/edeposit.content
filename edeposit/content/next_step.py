@@ -80,7 +80,12 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         
         if aleph_record and aleph_record.isClosed:
             if aleph_record.hasDescriptiveCataloguingFields:
-                self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguing')
+                # rozezname, jestli existuje nejaky nezamceny zaznam
+                # pokud ne a tento original je prvni pro dany souborny
+                # zaznam, musi projit plnou katalogizaci
+                if not self.context.fully_catalogized_closed_originalfile_exists:
+                    self.context.shouldBeFullyCatalogized = True
+                    self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguing')
                 return True
             else:
                 return False
