@@ -789,6 +789,12 @@ class IAddAtOnceForm(form.Schema):
     #     required = False,
     #     )
 
+    anotace = schema.Text(
+        title = u"Anotace",
+        description = u"Anotace se objeví v Alephu",
+        required = False,
+        )
+
     form.mode(epublication_uid='hidden')
     epublication_uid = schema.ASCIILine(
         required = False,
