@@ -183,7 +183,7 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
         required=False,
         missing_value=u'',
     )
-
+    
 @form.default_value(field=IOriginalFile['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
     member = api.user.get_current()
@@ -298,6 +298,16 @@ class OriginalFile(Container):
                      ]
         return bool(responses)
 
+    @property
+    def latestValidationResponse(self):
+        responses = [ii[1] for ii in self.items() 
+                     if ii[1].portal_type == 'edeposit.content.pdfboxvalidationresponse'
+                     or ii[1].portal_type == 'edeposit.content.epubcheckvalidationresponse'
+        ]
+        #aa.created()
+        #import pdb; pdb.set_trace()
+        #responses.sort(index=lambda item: item.created())
+        return responses and responses[0]
 
     def submitValidationsForLTP(self):
         format = IFormat(self).format or ""
