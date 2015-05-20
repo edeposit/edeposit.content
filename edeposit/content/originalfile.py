@@ -298,14 +298,16 @@ class OriginalFile(Container):
                      ]
         return bool(responses)
 
+    def latestValidationResponseURL(self):
+        response = self.latestValidationResponse
+        return response and response.absolute_url()
+
     @property
     def latestValidationResponse(self):
         responses = [ii[1] for ii in self.items() 
                      if ii[1].portal_type == 'edeposit.content.pdfboxvalidationresponse'
                      or ii[1].portal_type == 'edeposit.content.epubcheckvalidationresponse'
         ]
-        #aa.created()
-        #import pdb; pdb.set_trace()
         #responses.sort(index=lambda item: item.created())
         return responses and responses[0]
 
@@ -482,7 +484,15 @@ class OriginalFile(Container):
             return record and record.aleph_sys_number
         return None
 
-    @property
+    def some_not_closed_originalfile_exists(self):
+        summary_record_aleph_sys_number = self.summary_record_aleph_sys_number
+        pcatalog = self.portal_catalog
+        brains = pcatalog(portal_type='edeposit.content.originalfile',
+                          aleph_sys_number = summary_record_aleph_sys_number,
+                          isClosed=False,
+                      )
+        return bool(brains)
+
     def fully_catalogized_closed_originalfile_exists(self):
         summary_record_aleph_sys_number = self.summary_record_aleph_sys_number
         pcatalog = self.portal_catalog

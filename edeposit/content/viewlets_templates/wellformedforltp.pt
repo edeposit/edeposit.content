@@ -6,13 +6,12 @@
 
     <tal:block define="isWellFormedForLTP context/isWellFormedForLTP;
 		       hasResultsFromValidationForLTP context/hasResultsFromValidationForLTP;
-                       latestValidationResponse context/latestValidationResponse;
 		       ">
       <tal:block tal:condition="hasResultsFromValidationForLTP">
 	<a class="" tal:condition="isWellFormedForLTP" href=""
-           tal:attributes="href latestValidationResponse/absolute_url">vyhovuje požadavkům LTP</a>
+           tal:attributes="href context/latestValidationResponseURL">vyhovuje požadavkům LTP</a>
 	<a class="" tal:condition="not: isWellFormedForLTP" href=""
-           tal:attributes="href latestValidationResponse/absolute_url">dokument neumožňuje dlouhodobou ochranu</a>
+           tal:attributes="href context/latestValidationResponseURL">dokument neumožňuje dlouhodobou ochranu</a>
       </tal:block>
       <span class="" tal:condition="not: hasResultsFromValidationForLTP">Je naplánována validace podle LTP</span>
     </tal:block>

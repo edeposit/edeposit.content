@@ -27,6 +27,12 @@
   <index name="summary_record_aleph_sys_number"  meta_type="FieldIndex">
     <indexed_attr value="summary_record_aleph_sys_number"/>
   </index>
+  <index name="aleph_sys_number"  meta_type="FieldIndex">
+    <indexed_attr value="aleph_sys_number"/>
+  </index>
+  <index name="id_number"  meta_type="FieldIndex">
+    <indexed_attr value="id_number"/>
+  </index>
   <index name="shouldBeFullyCatalogized"  meta_type="FieldIndex">
     <indexed_attr value="shouldBeFullyCatalogized"/>
   </index>
