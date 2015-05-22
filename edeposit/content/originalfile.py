@@ -51,6 +51,8 @@ from operator import __or__
 from urlparse import urlparse
 from plone.app.content.interfaces import INameFromTitle
 import re
+from operator import truth
+from functools import partial
 
 from .tasks import (
     IPloneTaskSender,
@@ -471,6 +473,13 @@ class OriginalFile(Container):
         return None
 
     @property
+    def is_number(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object', None)
+            return record and record.aleph_sys_number or ""
+        return None
+
+    @property
     def isClosed(self):
         if self.related_aleph_record:
             record = getattr(self.related_aleph_record, 'to_object',None)
@@ -484,23 +493,47 @@ class OriginalFile(Container):
             return record and record.aleph_sys_number
         return None
 
+    @property
+    def summary_record_id_number(self):
+        if self.summary_aleph_record:
+            record = getattr(self.summary_aleph_record, 'to_object',None)
+            return record and record.id_number
+        return None
+
+    @property
+    def aleph_sys_number(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object',None)
+            return record and record.aleph_sys_number
+        return None
+
+    @property
+    def id_number(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object',None)
+            return record and record.id_number
+        return None
+
     def some_not_closed_originalfile_exists(self):
-        summary_record_aleph_sys_number = self.summary_record_aleph_sys_number
-        pcatalog = self.portal_catalog
-        brains = pcatalog(portal_type='edeposit.content.originalfile',
-                          aleph_sys_number = summary_record_aleph_sys_number,
-                          isClosed=False,
-                      )
+        getAttr = partial(getattr,self)
+        numbers = filter(truth, map(getAttr,('summary_record_id_number','summary_record_aleph_sys_number')))
+
+        searchNotClosed = partial(self.portal_catalog, portal_type='edeposit.content.originalfile', isClosed=False)
+
+        brains = numbers and (searchNotClosed(id_number = dict(query = numbers)) \
+            + searchNotClosed(aleph_sys_number = dict(query = numbers)))
         return bool(brains)
 
     def fully_catalogized_closed_originalfile_exists(self):
-        summary_record_aleph_sys_number = self.summary_record_aleph_sys_number
-        pcatalog = self.portal_catalog
-        brains = pcatalog(portal_type='edeposit.content.originalfile',
-                          shouldBeFullyCatalogized=True,
-                          summary_record_aleph_sys_number = summary_record_aleph_sys_number,
-                          isClosed=True,
-                      )
+        getAttr = partial(getattr,self)
+        numbers = filter(truth, map(getAttr,['summary_record_aleph_sys_number','summary_record_id_number']))
+
+        searchClosed = partial(self.portal_catalog, portal_type='edeposit.content.originalfile',
+                               shouldBeFullyCatalogized=True,
+                               isClosed=True)
+
+        brains = numbers and (searchClosed(summary_record_aleph_sys_number = dict( query = numbers )) \
+                                  +  searchClosed(summary_record_id = dict( query = numbers )))
         return bool(brains)
 
     def refersToThisOriginalFile(self,aleph_record):
