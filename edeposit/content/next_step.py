@@ -86,7 +86,8 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
                 if not self.context.fully_catalogized_closed_originalfile_exists():
                     if not self.context.some_not_closed_originalfile_exists():
                         self.context.shouldBeFullyCatalogized = True
-                    
+                        self.context.reindexObject(idxs=['shouldBeFullyCatalogized',])
+
                 self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguing')
                 return True
             else:
