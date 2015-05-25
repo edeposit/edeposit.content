@@ -12,6 +12,7 @@ import simplejson as json
 from Products.CMFCore.WorkflowCore import WorkflowException
 
 from functools import partial
+from itertools import product
 from edeposit.content.behaviors import IFormat, ICalibreFormat
 
 from edeposit.content.next_step import INextStep
@@ -1243,16 +1244,16 @@ class SendEmailWithUserWorklistTaskHandler(namedtuple('SendEmailWithUserWorklist
 
     collectionsMap = {
         'Descriptive Cataloguers' :  dict(indexName="getAssignedDescriptiveCataloguer",
-                                          state="descriptiveCataloguing",
+                                          states=["descriptiveCataloguing", "closedDescriptiveCataloguing",],
                                           readerGroup = "Descriptive Cataloguing Administrators"),
         'Descriptive Cataloguing Reviewers' : dict(indexName="getAssignedDescriptiveCataloguingReviewer",
-                                                   state="descriptiveCataloguingReview",
+                                                   states=["descriptiveCataloguingReview","closedDescriptiveCataloguingReview"],
                                                    readerGroup = "Descriptive Cataloguing Administrators"),
         'Subject Cataloguers' : dict( indexName="getAssignedSubjectCataloguer",
-                                      state="subjectCataloguing",
+                                      states=["subjectCataloguing","closedSubjectCataloguing",],
                                       readerGroup = "Subject Cataloguing Administrators"),
         'Subject Cataloguing Reviewers': dict( indexName="getAssignedSubjectCataloguingReviewer",
-                                               state="subjectCataloguingReview",
+                                               states=["subjectCataloguingReview","closedSubjectCataloguingReview",],
                                                readerGroup = "Subject Cataloguing Administrators")
     }
     def handle(self):
@@ -1267,15 +1268,14 @@ class SendEmailWithUserWorklistTaskHandler(namedtuple('SendEmailWithUserWorklist
                 print "... nenasel jsem definici pro vytvoreni kolekci pro skupinu: ", groupname 
                 return
             
-            (indexName, state, readerGroup) = map(item.get, ['indexName','state','readerGroup'])
-            
-            for member in api.user.get_users(groupname=groupname):
+            (indexName, states, readerGroup) = map(item.get, ['indexName','states','readerGroup'])
+            for (member,state) in product(api.user.get_users(groupname=groupname), states):
                 username = member.id
                 #producentsFolder.recreateUserCollectionIfEmpty(username, indexName, state, readerGroup)
                 email = member.getProperty('email')
                 #view_name = 'worklist-waiting-for-user'
                 view_name = 'worklist-by-state-waiting-for-user'
-                subject = title + " pro: " + username
+                subject = ('closed' in state and "Zamcene dokumenty - " or "") + title + " pro: " + username
                 request = self.context.REQUEST
                 request['userid']=username
                 request['review_state']=state
@@ -1288,10 +1288,10 @@ class SendEmailWithUserWorklistTaskHandler(namedtuple('SendEmailWithUserWorklist
                 if view.numOfRows:
                     recipients = frozenset(self.result.additionalEmails + [email,])
                     for recipient in recipients:
-                        print u"... odesilam email pro: " + recipient
+                        print u"... odesilam email pro: " + recipient + " (" + state + ")"
                         api.portal.send_email(recipient=recipient, subject=subject, body=body)
                 else:
-                    print u"... nic neodesilame pro: " + username
+                    print u"... nic neodesilame pro: " + username + " (" + state + ")"
 
 
 
