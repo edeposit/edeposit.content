@@ -22,6 +22,7 @@ from edeposit.content.amqp_interfaces import (
 )
 
 from edeposit.content.utils import normalizeISBN
+from normalize_cz_unicode import normalize
 
 # (occur-1 "class " nil (list (current-buffer)) "*amqp: class*")
 # (occur-1 "def " nil (list(current-buffer)) "*amqp: def*")
@@ -367,9 +368,6 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
         owners = map(lambda mm: mm.fullname or mm.id, 
                      map(api.user.get, 
                          [ii[0] for ii in originalFile.get_local_roles() if 'Owner' in ii[1]]))
-
-        def normalize(value):
-            return value
 
         epublicationRecord =  EPublication (
             ISBN = normalizeISBN(originalFile.isbn or ""),
