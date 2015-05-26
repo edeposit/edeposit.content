@@ -10,6 +10,7 @@ from plone.dexterity.utils import createContentInContainer, addContentToContaine
 import transaction
 from functools import wraps
 from collections import namedtuple
+from functools import wraps
 
 class INextStep(Interface):
     """
@@ -107,10 +108,17 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         return False
 
     def nextstep_for_closedDescriptiveCataloguingReviewPreparing(self, *args, **kwargs):
-        summary_aleph_record =  self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
-        if summary_aleph_record and summary_aleph_record.hasDescriptiveCataloguingReviewFields:
-            self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguingReviewPreparing')
-            return True
+        if self.context.shouldBeFullyCatalogized:
+            if self.context.getAssignedDescriptiveCataloguingReviewer():
+                self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguingReviewPreparing')
+                return True
+        else:
+            summary_aleph_record =  self.context.summary_aleph_record \
+                and getattr(self.context.summary_aleph_record,'to_object',None)
+
+            if summary_aleph_record and summary_aleph_record.hasDescriptiveCataloguingReviewFields:
+                self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguingReviewPreparing')
+                return True
 
         return False
 
@@ -122,10 +130,16 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         return False
 
     def nextstep_for_closedSubjectCataloguingReviewPreparing(self, *args, **kwargs):
-        summary_aleph_record =  self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
-        if summary_aleph_record and summary_aleph_record.hasSubjectCataloguingReviewFields:
-            self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingReviewPreparing')
-            return True
+        if self.context.shouldBeFullyCatalogized:
+            if self.context.getAssignedSubjectCataloguingReviewer():
+                self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingReviewPreparing')
+                return True
+        else:
+            summary_aleph_record =  self.context.summary_aleph_record \
+                and getattr(self.context.summary_aleph_record,'to_object',None)
+            if summary_aleph_record and summary_aleph_record.hasSubjectCataloguingReviewFields:
+                self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingReviewPreparing')
+                return True
 
         return False
         
@@ -138,10 +152,15 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         return False
 
     def nextstep_for_closedSubjectCataloguingPreparing(self, *args, **kwargs):
-        summary_aleph_record = self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
-        if summary_aleph_record and summary_aleph_record.hasSubjectCataloguingFields:
-            self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingPreparing')
-            return True
+        if self.context.shouldBeFullyCatalogized:
+            if self.context.getAssignedSubjectCataloguer():
+                self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingPreparing')
+                return True
+        else:
+            summary_aleph_record = self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
+            if summary_aleph_record and summary_aleph_record.hasSubjectCataloguingFields:
+                self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingPreparing')
+                return True
 
         return False
 
@@ -150,13 +169,21 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         if aleph_record and aleph_record.hasDescriptiveCataloguingReviewFields:
             self.wft.doActionFor(self.context,'submitDescriptiveCataloguingReview')
             return True
+
         return False
 
     def nextstep_for_closedDescriptiveCataloguingReview(self,*args,**kwargs):
-        summary_aleph_record = self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
-        if summary_aleph_record and summary_aleph_record.hasDescriptiveCataloguingReviewFields:
-            self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguingReview')
-            return True
+        if self.context.shouldBeFullyCatalogized:
+            aleph_record = self.context.related_aleph_record and getattr(self.context.related_aleph_record,'to_object',None)
+            if aleph_record and aleph_record.hasDescriptiveCataloguingReviewFields:
+                self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguingReview')
+                return True
+        else:
+            summary_aleph_record = self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
+            if summary_aleph_record and summary_aleph_record.hasDescriptiveCataloguingReviewFields:
+                self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguingReview')
+                return True
+
         return False
 
     def nextstep_for_subjectCataloguing(self,*args,**kwargs):
@@ -167,10 +194,17 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         return False
 
     def nextstep_for_closedSubjectCataloguing(self,*args,**kwargs):
-        aleph_record = self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
-        if aleph_record and aleph_record.hasSubjectCataloguingFields:
-            self.wft.doActionFor(self.context,'submitClosedSubjectCataloguing')
-            return True
+        if self.context.shouldBeFullyCatalogized:
+            aleph_record = self.context.related_aleph_record and getattr(self.context.related_aleph_record,'to_object',None)
+            if aleph_record and aleph_record.hasSubjectCataloguingFields:
+                self.wft.doActionFor(self.context,'submitClosedSubjectCataloguing')
+                return True
+        else:
+            aleph_record = self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
+            if aleph_record and aleph_record.hasSubjectCataloguingFields:
+                self.wft.doActionFor(self.context,'submitClosedSubjectCataloguing')
+                return True
+
         return False
 
     def nextstep_for_subjectCataloguingReview(self,*args,**kwargs):
@@ -181,10 +215,18 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         return False
 
     def nextstep_for_closedSubjectCataloguingReview(self,*args,**kwargs):
-        summary_aleph_record =  self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
-        if summary_aleph_record and summary_aleph_record.hasSubjectCataloguingReviewFields:
-            self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingReview')
-            return True
+        if self.context.shouldBeFullyCatalogized:
+            aleph_record = self.context.related_aleph_record and getattr(self.context.related_aleph_record,'to_object',None)
+            if aleph_record and aleph_record.hasSubjectCataloguingReviewFields:
+                self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingReview')
+                return True
+        else:
+            summary_aleph_record =  self.context.summary_aleph_record \
+                and getattr(self.context.summary_aleph_record,'to_object',None)
+            if summary_aleph_record and summary_aleph_record.hasSubjectCataloguingReviewFields:
+                self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingReview')
+                return True
+
         return False
 
     def nextstep_for_ISBNSubjectValidation(self,*args,**kwargs):
