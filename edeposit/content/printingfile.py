@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from five import grok
 
 from z3c.form import group, field
@@ -23,17 +24,19 @@ class IPrintingFile(form.Schema, IImageScaleTraversable):
     """
     File used for printing of a publication
     """
-    #form.primary('file')
+    form.primary('file')
     file = NamedBlobFile(
         title=_(u"Printing File"),
         description=_(u"Fill in a file that contains of a printing file for a publication"),
         required = True,
-        )
+    )
     
-    format = schema.Choice(
-        title=_(u"Format of a file."),
-        vocabulary="edeposit.content.fileTypes"
-        )
+    can_be_modified = schema.Bool(
+        title = u'Může být upraven pro vnitřní potřeby knihovny?',
+        required = False,
+        default = False,
+        missing_value = False,
+    )
 
 
 # Custom content-type class; objects created for this content type will
