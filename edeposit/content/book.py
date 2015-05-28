@@ -344,7 +344,11 @@ class AddAtOnceForm(form.Form):
         for author in authors:
             createContentInContainer(newBook, 'edeposit.content.author', fullname=author, title=author)
 
+        wft = api.portal.get_tool('portal_workflow')
+        if book.isbn or book.file:
+            wft.doActionFor(newBook, (book.isbn and book.file and 'submitDeclarationToISBNValidation') or\
+                            (book.file and 'submitDeclarationToAntivirus'))
+
         messages = IStatusMessage(self.request)
         messages.addStatusMessage(u"Kniha / tisková předloha byla ohlášena.", type="info")
-        
         self.request.response.redirect(newBook.absolute_url())
