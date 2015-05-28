@@ -176,6 +176,18 @@ class IBook(form.Schema, IImageScaleTraversable):
         required = False,
         )
 
+    file = NamedBlobFile(
+        title=u"Tisková předloha",
+        required = False,
+    )
+    
+    can_be_modified = schema.Bool(
+        title = u'Může být tisková předloha upravena pro vnitřní potřeby knihovny?',
+        required = False,
+        default = False,
+        missing_value = False,
+    )
+
 @form.default_value(field=IBook['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
     member = api.user.get_current()
@@ -218,18 +230,6 @@ class IBookAddAtOnce(form.Schema):
         description = u"Příjmení a jméno oddělené čárkou",
         required = False,
         )
-
-    file = NamedBlobFile(
-        title=u"Připojit tiskovou předlohu",
-        required = False,
-        )
-
-    can_be_modified = schema.Bool(
-        title = u'Může být upravena pro vnitřní potřeby knihovny?',
-        required = False,
-        default = False,
-        missing_value = False,
-    )
 
     # form.mode(book_uid='hidden')
     # book_uid = schema.ASCIILine(
@@ -320,17 +320,7 @@ class AddAtOnceForm(form.Form):
             if not valid:
                 # validity error
                 errors += (getErrorView(isbnWidget, zope.interface.Invalid(u'Chyba v ISBN')),)
-                pass
-            else:
-                try:
-                    appearedAtAleph = getISBNCount(isbn)
-                    if appearedAtAleph:
-                        # duplicity error
-                        errors += (getErrorView(isbnWidget, zope.interface.Invalid(u'ISBN je již použito. Použijte jiné, nebo nahlašte opravu.')),)
-                except:
-                    print "some exception with edeposit.amqp.aleph.aleph.getISBNCount"
-                    pass
-            pass
+
         return (data,errors)
 
     def addBook(self, data):
@@ -339,12 +329,6 @@ class AddAtOnceForm(form.Form):
         book = createContentInContainer(self.context, 'edeposit.content.book', **dataForFactory)
         return book
     
-    def addPrintingFile(self, book, data):
-        theSameKeys = frozenset(IPrintingFile.names()).intersection(data.keys())
-        dataForFactory = dict(zip(theSameKeys, map(data.get, theSameKeys)))
-        printingFile = createContentInContainer(book, 'edeposit.content.printingfile', **dataForFactory)
-        return printingFile
-
     @button.buttonAndHandler(u"Odeslat", name='save')
     def handleAdd(self, action):
         data, errors = self.extractData()
@@ -355,7 +339,6 @@ class AddAtOnceForm(form.Form):
         self.checkISBN(data)
 
         newBook = self.addBook(data)
-        newPrintingFile = self.addPrintingFile(newBook, data)
         
         authors = [data[key] for key in ['author1','author2','author3'] if data[key]]
         for author in authors:
