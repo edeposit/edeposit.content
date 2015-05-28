@@ -340,11 +340,11 @@ class AddAtOnceForm(form.Form):
 
         newBook = self.addBook(data)
         
-        authors = [data[key] for key in ['author1','author2','author3'] if data[key]]
+        authors = filter(bool, map(data.get,['author1','author2','author3']))
         for author in authors:
             createContentInContainer(newBook, 'edeposit.content.author', fullname=author, title=author)
 
         messages = IStatusMessage(self.request)
         messages.addStatusMessage(u"Kniha / tisková předloha byla ohlášena.", type="info")
-
+        
         self.request.response.redirect(newBook.absolute_url())
