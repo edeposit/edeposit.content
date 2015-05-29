@@ -33,7 +33,14 @@
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
-    factory=".amqp.OriginalFileISNBValidateRequestSender"
+    factory=".amqp.ISNBValidateRequestSender"
+    name="isbn-validate"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.ISNBValidateRequestSender"
     name="isbn-validate"
     />
 

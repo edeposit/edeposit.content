@@ -324,7 +324,7 @@ class OriginalFileAntivirusRequestSender(namedtuple('AntivirusRequest',['context
         producer.publish(serialize(request), content_type = 'application/json', headers = headers )
     pass
 
-class OriginalFileISNBValidateRequestSender(namedtuple('ISBNValidateRequest',['context'])):
+class ISNBValidateRequestSender(namedtuple('ISBNValidateRequest',['context'])):
     """ context will be original file """
     implements(IAMQPSender)
     def send(self):
