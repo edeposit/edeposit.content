@@ -19,6 +19,14 @@
       />
 
   <browser:page
+      name="aleph-record-loaded"
+      for="edeposit.content.bookfolder.IBookFolder"
+      class=".contribute.AlephRecordLoaded"
+      template='aleph-record-loaded.pt'
+      permission="zope.Public"
+      />
+
+  <browser:page
       name="ohlasovaci-listek.pdf"
       for="edeposit.content.originalfile.IOriginalFile"
       class=".voucher.VoucherDownload"

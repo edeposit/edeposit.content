@@ -57,6 +57,8 @@ from plone.z3cform.layout import wrap_form, FormWrapper
 from edeposit.content.epublicationfolder import (
     IePublicationFolder,
 )
+from edeposit.content.bookfolder import IBookFolder
+
 import z3c.form.browser
 
 from edeposit.content.utils import loadFromAlephByISBN
@@ -277,3 +279,15 @@ class SubmitAlephRecordForm(form.SchemaForm):
         pass
 
 SubmitAlephRecordView = wrap_form(SubmitAlephRecordForm)
+
+class LoadFromSimilarForBookForm(LoadFromSimilarForm):
+    grok.context(IBookFolder)
+    grok.name('load-from-similar')
+    prefix = 'load-from-similar.'
+
+LoadFromSimilarForBookView = wrap_form(LoadFromSimilarForBookForm)
+
+class LoadFromSimilarForBookSubView(FormWrapper):
+     """ Form view which renders z3c.forms embedded in a portlet.
+     Subclass FormWrapper so that we can use custom frame template. """
+     index = ViewPageTemplateFile("formwrapper.pt")

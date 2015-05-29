@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 from five import grok
 
-from z3c.form import group, field
+from z3c.form import group, field, button
 from zope import schema
 from zope.interface import invariant, Invalid
 from zope.schema.interfaces import IContextSourceBinder
@@ -12,188 +13,342 @@ from plone.app.textfield import RichText
 from plone.namedfile.field import NamedImage, NamedFile
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
 from plone.namedfile.interfaces import IImageScaleTraversable
-
+from edeposit.content.bookfolder import IBookFolder
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from Products.statusmessages.interfaces import IStatusMessage
+from functools import partial
+from plone.dexterity.utils import createContentInContainer, addContentToContainer, createContent
+from edeposit.content.printingfile import IPrintingFile
+from edeposit.content.browser.contribute import (
+    LoadFromSimilarForBookForm,
+    LoadFromSimilarForBookView,
+    LoadFromSimilarForBookSubView,
+)
 
 from edeposit.content import MessageFactory as _
 
+from edeposit.content.utils import loadFromAlephByISBN
+from edeposit.content.utils import is_valid_isbn
+from edeposit.content.utils import getISBNCount
+
+# import edeposit.content.mock
+# getAlephRecord = edeposit.content.mock.getAlephRecord
+# loadFromAlephByISBN = partial(edeposit.content.mock.loadFromAlephByISBN, num_of_records=1)
+# is_valid_isbn = partial(edeposit.content.mock.is_valid_isbn,result=True)
+# getISBNCount = partial(edeposit.content.mock.getISBNCount,result=0)
+
+from .author import IAuthor
+from plone import api
 
 # Interface class; used to define content-type schema.
+
+vazbaChoices = [
+    ['brozovano',u"brožováno"],
+    ['vazano', u"vázáno"],
+    ['mapa',u"mapa"],
+]
+
+@grok.provider(IContextSourceBinder)
+def vazbaSource(context):
+    def getTerm(item):
+        title = item[1].encode('utf-8')
+        return SimpleVocabulary.createTerm(item[0], item[0], title)
+
+    return SimpleVocabulary(map(getTerm, vazbaChoices))
 
 class IBook(form.Schema, IImageScaleTraversable):
     """
     E-Deposit - Book
     """
     
-    book_binding = schema.ASCIILine(
-        title = _(u"Book Binding"),
-        description = _(u"Fill in binding of a book."),
+    nazev = schema.TextLine (
+        title = u"Název",
         required = False,
-        )
-    
-    subtitle = schema.ASCIILine (
-        title = _(u"Subtitle"),
+    )
+
+    podnazev = schema.TextLine (
+        title = u"Podnázev",
         required = False,
-        )
-    form.fieldset('Publishing',
-                  label=_(u"Publishing"),
-                  fields = [ 'publisher',
-                             'date_of_publishing',
-                             'published_with_coedition',
-                             'published_at_order',
-                             'place_of_publishing',
-                             ]
-                  )
-    place_of_publishing = schema.ASCIILine (
-        title = _(u"Place of Publishing"),
+    )
+
+    cast = schema.TextLine (
+        title = u"Část, díl",
+        required = False,
+    )
+
+    nazev_casti = schema.TextLine (
+        title = u"Název části, dílu",
         required = False,
         )
 
-    publisher = schema.ASCIILine (
-        title = _(u"Publisher"),
+    isbn = schema.ASCIILine(
+        title=_("ISBN"),
+        description=_(u"Value of ISBN"),
         required = False,
-        )
-
-    date_of_publishing = schema.Date (
-        title = _(u"Publishing Date"),
-        required = False,
-        )
-    
-    published_with_coedition = schema.ASCIILine(
-        title = _(u'Published with Coedition'),
-        description = _(u'Fill in a coedition of a book'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
-
-    published_at_order = schema.ASCIILine(
-        title = _(u'Published at order'),
-        description = _(u'Fill in an order a book was published at.'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
-    
-
-    form.fieldset('volume',
-                  label=_(u'Volume'),
-                  fields = ['volume','volume_title','volume_number']
-                  )
-    volume = schema.ASCIILine (
-        title = _(u"Volume"), # svazek
-        required = False,
-        )
-    
-    volume_title = schema.ASCIILine (
-        title = _(u"Volume Title"),
-        required = False,
-        )
-    
-    volume_number = schema.ASCIILine (
-        title = _(u"Volume Number"),
-        required = False,
-        )
-
-    price = schema.Decimal(
-        title = _(u"Price"),
-        required = False,
-        )
-
-    currency = schema.Choice(
-        title = _(u'Currency'),
-        description = _(u'Fill in currency of a price.'),
-        vocabulary='edeposit.content.currencies'
-        )
-
-    edition = schema.ASCIILine (
-        title = _(u"Edition"),
-        required = False,
-        )
-
-    edition = schema.ASCIILine (
-        title = _(u"Edition"),
-        required = False,
-        )
-
-    form.fieldset('technical',
-                  label=_('Technical'),
-                  fields = [ 'person_who_processed_this',
-                             'aleph_doc_number',
-                             ]
-                  )
-    person_who_processed_this = schema.ASCIILine(
-        title = _(u'Person who processed this.'),
-        description = _(u'Fill in a name of a person who processed this book.'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
-
-    aleph_doc_number = schema.ASCIILine(
-        title = _(u'Aleph DocNumber'),
-        description = _(u'Internal DocNumber that Aleph refers to metadata of this book'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
+    )
 
     generated_isbn = schema.Bool(
-        title = _(u'Generate ISBN'),
-        description = _(u'Whether ISBN agency should generate ISBN number.'),
+        title = u"Přidělit ISBN agenturou",
         required = False,
-        readonly = False,
+        default = False,
+        missing_value = False,
+    )
+
+    isbn_souboru_publikaci = schema.ASCIILine (
+        title = u"ISBN souboru publikací",
+        description = u"pro vícesvazkové publikace, ISBN celého souboru publikací.",
+        required = False,
+    )
+
+    vazba = schema.Choice(
+        title = u"Vazba",
+        required = True,
+        source = vazbaSource
+    )
+
+    poradi_vydani = schema.TextLine(
+        title = u'Pořadí vydání, verze',
+        description = u"Podle titulní stránky publikace",
+        required = True,
+    )
+
+    misto_vydani = schema.TextLine(
+        title = u'Místo vydání',
+        description = u"Podle titulní stránky publikace",
+        required = True,
+    )
+
+    rok_vydani = schema.Int (
+        title = u"Rok vydání",
+        description = u"Podle titulní stránky publikace",
+        required = True,
+    )
+
+    form.mode(nakladatel_vydavatel='display')
+    nakladatel_vydavatel = schema.TextLine (
+        title = u"Nakladatel",
+        description = u"Vyplněno automaticky podle profilu uživatele.",
+        required = True,
+        )
+
+    vydano_v_koedici_s = schema.TextLine(
+        title = u'Vydáno v koedici s',
+        required = False,
+        )
+
+    cena = schema.Decimal (
+        title = u'Cena v Kč',
+        required = False,
+    )
+
+    form.fieldset('riv',
+                  label=_(u'RIV'),
+                  fields = [
+                      'offer_to_riv',
+                      'category_for_riv',
+                  ])
+
+    offer_to_riv = schema.Bool(
+        title = u'Zpřístupnit pro RIV',
+        required = False,
         default = False,
         missing_value = False,
         )
 
-    form.fieldset('riv',
-                  label=_(u'RIV'),
-                  fields = ['category_for_riv',
-                            ])
-
-    category_for_riv = schema.ASCIILine(
-        title = _(u'RIV category'),
-        description = _(u'Category of a Book for RIV'),
+    category_for_riv = schema.Choice (
+        title = u"Kategorie pro RIV",
+        description = u"Vyberte ze seznamu kategorií pro RIV.",
         required = False,
         readonly = False,
         default = None,
         missing_value = None,
+        vocabulary="edeposit.content.categoriesForRIV",
+    )
+
+    zpracovatel_zaznamu = schema.TextLine(
+        title = u'Zpracovatel záznamu',
+        required = True,
+    )
+
+    anotace = schema.Text(
+        title = u"Anotace",
+        description = u"Anotace se objeví v Alephu",
+        required = False,
         )
+
+    file = NamedBlobFile(
+        title=u"Tisková předloha",
+        required = False,
+    )
     
-    
+    can_be_modified = schema.Bool(
+        title = u'Může být tisková předloha upravena pro vnitřní potřeby knihovny?',
+        required = False,
+        default = False,
+        missing_value = False,
+    )
+
+@form.default_value(field=IBook['zpracovatel_zaznamu'])
+def zpracovatelDefaultValue(data):
+    member = api.user.get_current()
+    return member.fullname or member.id
 
 
-# Custom content-type class; objects created for this content type will
-# be instances of this class. Use this class to add content-type specific
-# methods and properties. Put methods that are mainly useful for rendering
-# in separate view classes.
+@form.default_value(field=IBook['nakladatel_vydavatel'])
+def nakladatelDefaultValue(data):
+    context = (getattr(data,'view',None) and getattr(data.view,'context',None)) or getattr(data,'context',None)
+    if context:
+        producent = context.aq_parent
+        return producent.title or producent.id
+    return ""
+
 
 class Book(Container):
     grok.implements(IBook)
 
-    # Add your class methods and properties here
-
-
-# View class
-# The view will automatically use a similarly named template in
-# book_templates.
-# Template filenames should be all lower case.
-# The view will render when you request a content object with this
-# interface with "/@@sampleview" appended.
-# You may make this the default view for content objects
-# of this type by uncommenting the grok.name line below or by
-# changing the view class name and template filename to View / view.pt.
-
 class SampleView(grok.View):
     """ sample view class """
-
     grok.context(IBook)
     grok.require('zope2.View')
 
-    # grok.name('view')
 
-    # Add view methods here
+class IBookAddAtOnce(form.Schema):
+    author1 = schema.TextLine(
+        title=u"Autor (příjmení, rodné jméno)",
+        description = u"Příjmení a jméno oddělené čárkou",
+        required = False,
+        )
+    
+    author2 = schema.TextLine(
+        title=u"Autor 2",
+        description = u"Příjmení a jméno oddělené čárkou",
+        required = False,
+        )
+    
+    author3 = schema.TextLine(
+        title=u"Autor 3",
+        description = u"Příjmení a jméno oddělené čárkou",
+        required = False,
+        )
+
+    # form.mode(book_uid='hidden')
+    # book_uid = schema.ASCIILine(
+    #     required = False,
+    # )
+
+class AddAtOnceForm(form.Form):
+    grok.name('add-at-once')
+    grok.require('edeposit.AddEPublication')
+    grok.context(IBookFolder)
+
+    fields = field.Fields(IBook) + field.Fields(IBookAddAtOnce)
+
+    ignoreContext = True
+    label = u"Ohlásit knihu / tiskovou předlohu"
+    enable_form_tabbing = False
+    autoGroups = False
+    template = ViewPageTemplateFile('book_templates/addatonce.pt')
+
+    def checkISBN(self, data):
+        if (not data['isbn'] and not data['generated_isbn']) or \
+           (data['isbn'] and data['generated_isbn']):
+            raise ActionExecutionError(Invalid(u"Buď zadejte ISBN, nebo vyberte \"Přiřadit ISBN agenturou\""))
+
+    def loadValuesFromAlephRecord(self, record):
+        epublication = record.epublication
+        if epublication:
+            widgets = self.widgets
+            theSameNames = (frozenset(widgets.keys()) & frozenset(epublication._fields)) - frozenset(['format'])
+            for name in theSameNames:
+                widgets[name].value = getattr(epublication,name)
+
+            # authors
+            for author,index in zip(epublication.autori, range(1,4)):
+                name = "author%d" % (index,)
+                getter = partial(getattr, author)
+                value = " ".join(filter(lambda value: value, map(getter,['title','firstName','lastName'])))
+                widgets[name].value = value
+                
+            get = partial(getattr,epublication)
+            widgets['cast'].value = get('castDil')
+            widgets['nazev_casti'].value = get('nazevCasti')
+            widgets['isbn_souboru_publikaci'].value = get('ISBNSouboruPublikaci') and get('ISBNSouboruPublikaci')[0] or None
+            widgets['isbn'].value = get('ISBN') and get('ISBN')[0] or None
+            widgets['poradi_vydani'].value = get('poradiVydani')
+            widgets['rok_vydani'].value = get('datumVydani')
+            widgets['poradi_vydani'].value = get('poradiVydani')
+            widgets['misto_vydani'].value = get('mistoVydani')
+            widgets['anotace'].value = get('anotace')
+        pass
+
+    def update(self):
+        form = LoadFromSimilarForBookForm(self.context, self.request)
+        view = LoadFromSimilarForBookSubView(self.context, self.request)
+        view = view.__of__(self.context)
+        view.form_instance = form
+        self.loadsimilarform = view
+        form.parent_form = self
+        super(AddAtOnceForm,self).update()
+        sdm = self.context.session_data_manager
+        session = sdm.getSessionData(create=True)
+        proper_record = session.get('proper_record',None)
+        # proper_record = getAlephRecord()
+        if proper_record:
+            messages = IStatusMessage(self.request)
+            messages.addStatusMessage(u"Formulář je předvyplněn vybraným záznamem z Alephu.", type="info")
+            self.loadValuesFromAlephRecord(proper_record)
+            session.set('proper_record',None)
+
+    def extractData(self):
+        def getErrorView(widget,error):
+            view = zope.component.getMultiAdapter( (error, 
+                                                    self.request, 
+                                                    widget, 
+                                                    widget.field, 
+                                                    widget.form, 
+                                                    self.context), 
+                                                   IErrorViewSnippet)
+            view.update()
+            widget.error = view
+            return view
+
+        data, errors = super(AddAtOnceForm,self).extractData()
+        isbn = data.get('isbn',None)
+        if isbn:
+            isbnWidget = self.widgets.get('isbn',None)
+            valid = is_valid_isbn(isbn)
+            if not valid:
+                # validity error
+                errors += (getErrorView(isbnWidget, zope.interface.Invalid(u'Chyba v ISBN')),)
+
+        return (data,errors)
+
+    def addBook(self, data):
+        theSameKeys = frozenset(IBook.names()).intersection(data.keys())
+        dataForFactory = dict(zip(theSameKeys, map(data.get, theSameKeys)) + [('title', data.get('nazev')),] )
+        book = createContentInContainer(self.context, 'edeposit.content.book', **dataForFactory)
+        return book
+    
+    @button.buttonAndHandler(u"Odeslat", name='save')
+    def handleAdd(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = self.formErrorsMessage
+            return
+
+        self.checkISBN(data)
+
+        newBook = self.addBook(data)
+        
+        authors = filter(bool, map(data.get,['author1','author2','author3']))
+        for author in authors:
+            createContentInContainer(newBook, 'edeposit.content.author', fullname=author, title=author)
+
+        wft = api.portal.get_tool('portal_workflow')
+        if book.isbn or book.file:
+            wft.doActionFor(newBook, (book.isbn and book.file and 'submitDeclarationToISBNValidation') or\
+                            (book.file and 'submitDeclarationToAntivirus'))
+
+        messages = IStatusMessage(self.request)
+        messages.addStatusMessage(u"Kniha / tisková předloha byla ohlášena.", type="info")
+        self.request.response.redirect(newBook.absolute_url())
