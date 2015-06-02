@@ -27,6 +27,7 @@ from plone import api
 from originalfile import IOriginalFile
 from epublication import IePublication, IMainMetadata, MainMetadataForm
 from epublicationfolder import IePublicationFolder
+from edeposit.content.book import IBook
 
 from plone.app.contentmenu import menu
 from plone.app.contentmenu.interfaces import IWorkflowSubMenuItem
@@ -49,7 +50,6 @@ class ContentState(grok.Viewlet):
         super(ContentState,self).update()
         context = aq_inner(self.context)
         plone_utils = api.portal.get_tool('plone_utils')
-
         wft = api.portal.get_tool('portal_workflow')
         state = api.content.get_state(obj=context)
         stateTitle = wft.getTitleForStateOnType(state,context.portal_type)
@@ -71,6 +71,14 @@ class ContentStateForEPublication(ContentState):
     grok.viewletmanager(IContentViews)
     #grok.view(IViewView)
     grok.context(IePublication)
+    grok.template('viewlets_templates/contentstate.pt')
+
+class ContentStateForBook(ContentState):
+    grok.name('edeposit.contentstateforbook')
+    grok.require('zope2.View')
+    grok.viewletmanager(IContentViews)
+    #grok.view(IViewView)
+    grok.context(IBook)
     grok.template('viewlets_templates/contentstate.pt')
 
 class ContentHistory(grok.Viewlet):
