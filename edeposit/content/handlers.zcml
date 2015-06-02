@@ -35,6 +35,14 @@
     />
 
   <adapter
+    for="edeposit.content.book.IBook
+         edeposit.content.amqp.IScanResult
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.BookAntivirusResultHandler"
+    />
+
+  <adapter
     for="edeposit.content.originalfile.IOriginalFile
          edeposit.content.amqp.IPDFBoxResponse
          "
@@ -55,7 +63,15 @@
          edeposit.content.amqp.IISBNValidationResult
          "
     provides="edeposit.content.amqp.IAMQPHandler"
-    factory=".amqp.OriginalFileISBNValidateResultHandler"
+    factory=".amqp.ISBNValidateResultHandler"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook
+         edeposit.content.amqp.IISBNValidationResult
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.ISBNValidateResultHandler"
     />
 
   <adapter
@@ -63,7 +79,15 @@
          edeposit.content.amqp.ICountResult
          "
     provides="edeposit.content.amqp.IAMQPHandler"
-    factory=".amqp.OriginalFileCountResultHandler"
+    factory=".amqp.CountResultHandler"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook
+         edeposit.content.amqp.ICountResult
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.CountResultHandler"
     />
 
   <adapter

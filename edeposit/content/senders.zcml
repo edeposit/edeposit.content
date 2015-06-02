@@ -12,7 +12,14 @@
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
-    factory=".amqp.OriginalFileAntivirusRequestSender"
+    factory=".amqp.AntivirusRequestSender"
+    name="antivirus-check"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.AntivirusRequestSender"
     name="antivirus-check"
     />
 
@@ -33,14 +40,14 @@
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
-    factory=".amqp.ISNBValidateRequestSender"
+    factory=".amqp.ISBNValidateRequestSender"
     name="isbn-validate"
     />
 
   <adapter
     for="edeposit.content.book.IBook"
     provides="edeposit.content.amqp.IAMQPSender"
-    factory=".amqp.ISNBValidateRequestSender"
+    factory=".amqp.ISBNValidateRequestSender"
     name="isbn-validate"
     />
 
@@ -61,7 +68,14 @@
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
-    factory=".amqp.OriginalFileISNBDuplicityCheckRequestSender"
+    factory=".amqp.ISBNDuplicityCheckRequestSender"
+    name="isbn-duplicity-check"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.ISBNDuplicityCheckRequestSender"
     name="isbn-duplicity-check"
     />
 

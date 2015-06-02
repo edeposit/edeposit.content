@@ -308,13 +308,13 @@ class OriginalFileThumbnailRequestSender(namedtuple('ThumbnailGeneratingRequest'
         producer.publish(serialize(request), content_type = 'application/json', headers = headers )
     pass
 
-class OriginalFileAntivirusRequestSender(namedtuple('AntivirusRequest',['context'])):
+class AntivirusRequestSender(namedtuple('AntivirusRequest',['context'])):
     implements(IAMQPSender)
     def send(self):
         print "-> Antivirus Request for: ", str(self.context)
-        originalfile = self.context
-        fileName = originalfile.file.filename
-        request = ScanFile(fileName, base64.b64encode(originalfile.file.data))
+        context = self.context
+        fileName = context.file.filename
+        request = ScanFile(fileName, base64.b64encode(context.file.data))
         producer = getUtility(IProducer, name="amqp.antivirus-request")
         msg = ""
         session_data =  { 'isbn': str(self.context.isbn),
@@ -324,7 +324,7 @@ class OriginalFileAntivirusRequestSender(namedtuple('AntivirusRequest',['context
         producer.publish(serialize(request), content_type = 'application/json', headers = headers )
     pass
 
-class ISNBValidateRequestSender(namedtuple('ISBNValidateRequest',['context'])):
+class ISBNValidateRequestSender(namedtuple('ISBNValidateRequest',['context'])):
     """ context will be original file """
     implements(IAMQPSender)
     def send(self):
@@ -339,7 +339,7 @@ class ISNBValidateRequestSender(namedtuple('ISBNValidateRequest',['context'])):
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
 
-class OriginalFileISNBDuplicityCheckRequestSender(namedtuple('ISBNDuplicityCheckRequest',['context'])):
+class ISBNDuplicityCheckRequestSender(namedtuple('ISBNDuplicityCheckRequest',['context'])):
     """ context will be original file """
     implements(IAMQPSender)
     def send(self):
@@ -697,6 +697,7 @@ class OriginalFileAntivirusResultHandler(namedtuple('AntivirusResult',['context'
             pass
         pass
 
+
 class OriginalFileThumbnailGeneratingResultHandler(namedtuple('ThumbnailGeneratingResult',
                                                               ['context','result'])):
     """ 
@@ -706,7 +707,6 @@ class OriginalFileThumbnailGeneratingResultHandler(namedtuple('ThumbnailGenerati
     def handle(self):
         print "<- Calibre Thumbnail Generating Result for: ", str(self.context)
         wft = api.portal.get_tool('portal_workflow')
-        epublication=aq_parent(aq_inner(self.context))
         with api.env.adopt_user(username="system"):
             bfile = NamedBlobFile(data=b64decode(self.result.b64_data),  filename=u"thumbnail.pdf")
             self.context.thumbnail = bfile
@@ -718,28 +718,26 @@ class OriginalFileThumbnailGeneratingResultHandler(namedtuple('ThumbnailGenerati
         pass
 
 
-class OriginalFileISBNValidateResultHandler(namedtuple('ISBNValidateResult',['context', 'result'])):
+class ISBNValidateResultHandler(namedtuple('ISBNValidateResult',['context', 'result'])):
     """ 
-    context: originalfile
+    context: originalfile or book
     result:  ISBNValidationResult
     """
     def handle(self):
         print "<- ISBN Validation result for: ", str(self.context)
         wft = api.portal.get_tool('portal_workflow')
-        epublication=aq_parent(aq_inner(self.context))
         with api.env.adopt_user(username="system"):
             wft.doActionFor(self.context, self.result.is_valid and 'ISBNIsValid' or 'ISBNIsNotValid')
         pass
 
-class OriginalFileCountResultHandler(namedtuple('ISBNCountResult',['context', 'result'])):
+class CountResultHandler(namedtuple('ISBNCountResult',['context', 'result'])):
     """ 
-    context: originalfile
+    context: originalfile, book
     result:  CountResult
     """
     def handle(self):
         print "<- Aleph Count result for: ", str(self.context)
         wft = api.portal.get_tool('portal_workflow')
-        epublication=aq_parent(aq_inner(self.context))
         is_duplicit = bool(int(self.result.num_of_records))
         with api.env.adopt_user(username="system"):
             wft.doActionFor(self.context, is_duplicit and 'ISBNIsDuplicit' or 'ISBNIsUnique')
@@ -1342,3 +1340,26 @@ class EPublicationsWithErrorEmailNotifyForAllProducents(namedtuple('EPublication
             uids = map(lambda item: item.UID, producents)
             for uid in uids:
                 IPloneTaskSender(EPublicationsWithErrorEmailNotify(uid=uid)).send()
+
+class BookAntivirusResultHandler(namedtuple('BookAntivirusResult',['context', 'result'])):
+    implements(IAMQPHandler)
+    def handle(self):
+        print "<- Antivirus Result for: ", str(self.context)
+        wft = api.portal.get_tool('portal_workflow')
+        result = self.result
+        context = self.context
+        epublication=aq_parent(aq_inner(context))
+        with api.env.adopt_user(username="system"):
+            if result.result: # some virus found
+                comment =u"v souboru %s je virus: %s" % (context.file.filename, str(result.result))
+                wft.doActionFor(context, 'antivirusError', comment=comment)
+            else:
+                transition =  context.needsThumbnailGeneration() and 'antivirusOKThumbnail' \
+                              or (context.isbn and  ( context.hasSomeAlephRecords() and 
+                                                      'antivirusOKSkipExportToAleph' or 'antivirusOKAleph') 
+                                  or 'antivirusOKISBNGeneration')
+                print "transition: %s" % (transition,)
+                wft.doActionFor(context, transition)
+                context.submitValidationsForLTP()
+            pass
+        pass
