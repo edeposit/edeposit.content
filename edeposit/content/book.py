@@ -25,7 +25,12 @@ from edeposit.content.browser.contribute import (
     LoadFromSimilarForBookSubView,
 )
 
+from z3c.relationfield import RelationValue
+from z3c.relationfield.schema import RelationChoice, Relation
+
 from edeposit.content import MessageFactory as _
+
+from plone.formwidget.contenttree import ObjPathSourceBinder, PathSourceBinder
 
 from edeposit.content.utils import loadFromAlephByISBN
 from edeposit.content.utils import is_valid_isbn
@@ -55,6 +60,14 @@ def vazbaSource(context):
         return SimpleVocabulary.createTerm(item[0], item[0], title)
 
     return SimpleVocabulary(map(getTerm, vazbaChoices))
+
+@grok.provider(IContextSourceBinder)
+def availableAlephRecords(context):
+    path = '/'.join(context.getPhysicalPath())
+    query = { "portal_type" : ("edeposit.content.alephrecord",),
+              "path": {'query' :path } 
+             }
+    return ObjPathSourceBinder(navigation_tree_query = query).__call__(context)
 
 class IBook(form.Schema, IImageScaleTraversable):
     """
@@ -118,7 +131,7 @@ class IBook(form.Schema, IImageScaleTraversable):
         required = True,
     )
 
-    rok_vydani = schema.Int (
+    rok_vydani = schema.TextLine (
         title = u"Rok vydání",
         description = u"Podle titulní stránky publikace",
         required = True,
@@ -176,6 +189,7 @@ class IBook(form.Schema, IImageScaleTraversable):
         required = False,
         )
 
+    form.primary('file')
     file = NamedBlobFile(
         title=u"Tisková předloha",
         required = False,
@@ -187,6 +201,21 @@ class IBook(form.Schema, IImageScaleTraversable):
         default = False,
         missing_value = False,
     )
+
+    form.fieldset('internal',
+                  label=_(u'Interní'),
+                  fields = [
+                      'related_aleph_record',
+                      'summary_aleph_record',
+                  ])
+
+    related_aleph_record = RelationChoice( title=u"Odpovídající záznam v Alephu",
+                                           required = False,
+                                           source = availableAlephRecords)
+
+    summary_aleph_record = RelationChoice( title=u"Souborný záznam v Alephu",
+                                           required = False,
+                                           source = availableAlephRecords )
 
 @form.default_value(field=IBook['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
@@ -205,6 +234,31 @@ def nakladatelDefaultValue(data):
 
 class Book(Container):
     grok.implements(IBook)
+
+    @property
+    def isbnAppearsAtRelatedAlephRecord(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object',None)
+            if record:
+                isbn_from_record = record.isbn
+                # if record.aleph_sys_number == '000003043':
+                #     isbn_from_record = '978-80-904739-3-5'
+
+                isbn_from_original = self.isbn
+
+                if isbn_from_original.replace('-','') == isbn_from_record.replace('-',''):
+                    return True
+
+                return False
+
+        return False
+
+    def needsThumbnailGeneration(self):
+        return False
+
+    def hasSomeAlephRecords(self):
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        return len(alephRecords)
 
 class SampleView(grok.View):
     """ sample view class """
@@ -345,9 +399,11 @@ class AddAtOnceForm(form.Form):
             createContentInContainer(newBook, 'edeposit.content.author', fullname=author, title=author)
 
         wft = api.portal.get_tool('portal_workflow')
-        if book.isbn or book.file:
-            wft.doActionFor(newBook, (book.isbn and book.file and 'submitDeclarationToISBNValidation') or\
-                            (book.file and 'submitDeclarationToAntivirus'))
+        if newBook.isbn or newBook.file:
+            transition = (newBook.isbn and 'submitDeclarationToISBNValidation') or \
+                         (newBook.file and 'submitDeclarationToAntivirus')
+            if transition:
+                wft.doActionFor(newBook, transition)
 
         messages = IStatusMessage(self.request)
         messages.addStatusMessage(u"Kniha / tisková předloha byla ohlášena.", type="info")
