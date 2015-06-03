@@ -122,6 +122,13 @@
     />
 
   <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.BookExportToAlephRequestSender"
+    name="export-to-aleph"
+    />
+
+  <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
     factory=".amqp.OriginalFileThumbnailRequestSender"

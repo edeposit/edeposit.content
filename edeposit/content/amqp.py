@@ -14,7 +14,7 @@ from Products.CMFCore.WorkflowCore import WorkflowException
 from functools import partial
 from itertools import product
 from edeposit.content.behaviors import IFormat, ICalibreFormat
-
+from operator import attrgetter,itemgetter, methodcaller
 from edeposit.content.next_step import INextStep
 
 from edeposit.content.amqp_interfaces import (
@@ -1362,4 +1362,57 @@ class BookAntivirusResultHandler(namedtuple('BookAntivirusResult',['context', 'r
                 wft.doActionFor(context, transition)
                 context.submitValidationsForLTP()
             pass
+        pass
+
+class BookExportToAlephRequestSender(namedtuple('ExportToAlephRequest',['context'])):
+    """ context will be original file """
+    implements(IAMQPSender)
+    def send(self):
+        print "-> Export To Aleph Request for: ", str(self.context)
+        obj = self.context
+        authors = map(lambda lastName: Author(lastName = lastName, firstName ="", title=""),
+                      map(attrgetter('fullname'),
+                          map(methodcaller('getObject'),
+                              obj.portal_catalog(portal_type = 'edeposit.content.author',
+                                                 path = {'query': '/'.join(obj.getPhysicalPath()),
+                                                         'depth': 1})
+                          )
+                      )
+                  )
+        owners = map(lambda mm: mm.fullname or mm.id, 
+                     map(api.user.get, 
+                         [ii[0] for ii in obj.get_local_roles() if 'Owner' in ii[1]]))
+        import sys,pdb; pdb.Pdb(stdout=sys.__stdout__).set_trace()
+
+        epublicationRecord =  EPublication (
+            ISBN = normalizeISBN(obj.isbn or ""),
+            invalid_ISBN = "",
+            nazev = normalize(obj.nazev or ""),
+            podnazev = normalize(obj.podnazev or ""),
+            vazba = normalize(obj.vazba or ""),
+            cena = normalize(str(obj.cena or "")),
+            castDil = normalize(obj.cast or ""),
+            nazevCasti = normalize(obj.nazev_casti or ""),
+            nakladatelVydavatel = normalize(obj.nakladatel_vydavatel or ""),
+            datumVydani = normalize(str(obj.rok_vydani)),
+            poradiVydani = normalize(obj.poradi_vydani or ""),
+            zpracovatelZaznamu = normalize(obj.zpracovatel_zaznamu or (owners and owners[0]) or ""),
+            format = normalize(IFormat(obj).format or ""),
+            url = normalize(obj.url or ""),
+            mistoVydani = normalize(obj.misto_vydani),
+            ISBNSouboruPublikaci = normalizeISBN(obj.isbn_souboru_publikaci or ""),
+            autori = map(normalize, filter(bool, map(attrgetter('lastName'), authors))),
+            originaly = [],
+            internal_url = obj.makeInternalURL() or "",
+            id_number = getattr(obj,'id_number',None),
+            anotace = normalize(getattr(obj,'anotace',"")),
+        )
+        request = ExportRequest(epublication=epublicationRecord)
+        producer = getUtility(IProducer, name="amqp.aleph-export-request")
+        msg = ""
+        session_data =  { 'isbn': str(self.context.isbn),
+                          'msg': msg
+        }
+        headers = make_headers(self.context, session_data)
+        producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
