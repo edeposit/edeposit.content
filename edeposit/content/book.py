@@ -260,6 +260,25 @@ class Book(Container):
         alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
         return len(alephRecords)
 
+    def updateOrAddAlephRecord(self, dataForFactory):
+        sysNumber = dataForFactory.get('aleph_sys_number',None)
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+
+        # exist some record with the same sysNumber?
+        arecordWithTheSameSysNumber = filter(lambda arecord: arecord.aleph_sys_number == sysNumber,
+                                             alephRecords)
+        if arecordWithTheSameSysNumber:
+            print "a record with the same sysnumber"
+            # update this record
+            alephRecord = arecordWithTheSameSysNumber[0]
+            changedAttrs = alephRecord.findAndLoadChanges(dataForFactory)
+            if changedAttrs and changedAttrs != ['xml']:
+                IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
+
+        else:
+            createContentInContainer(self, 'edeposit.content.alephrecord', **dataForFactory)
+            IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
+
 class SampleView(grok.View):
     """ sample view class """
     grok.context(IBook)
