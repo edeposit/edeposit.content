@@ -7,7 +7,7 @@
 
     <plone:behavior
         title="Format"
-        description="Give format of a file attribute for Original File"
+        description="Give format of a file attribute"
         provides=".behaviors.IFormat"
         factory=".originalfile_behaviors.Format"
         />
