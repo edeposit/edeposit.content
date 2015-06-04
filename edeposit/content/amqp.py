@@ -821,7 +821,12 @@ class AlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'resu
                     headers = make_headers(self.context, session_data)
                     producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
                 pass
-
+            
+            if api.content.get_state(self.context) == 'tryToFindAtAleph':
+                wft = self.context.portal_workflow
+                wft.doActionFor(len(self.result.records) and 'someRecordsFoundAtAleph' \
+                                or 'noRecordFoundAtAleph')
+                
             IPloneTaskSender(CheckUpdates(uid=self.context.UID())).send()
         pass
 
