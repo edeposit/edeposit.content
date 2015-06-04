@@ -103,7 +103,15 @@
            edeposit.content.amqp.IAlephSearchResult
            "
       provides="edeposit.content.amqp.IAMQPHandler"
-      factory=".amqp.OriginalFileAlephSearchResultHandler"
+      factory=".amqp.AlephSearchResultHandler"
+      />
+
+  <adapter
+      for="edeposit.content.book.IBook
+           edeposit.content.amqp.IAlephSearchResult
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.AlephSearchResultHandler"
       />
 
   <adapter

@@ -761,9 +761,9 @@ class OriginalFileAlephExportResultHandler(namedtuple('AlephResultResult',['cont
             print "\taction for done: ",'exportToAlephOK'
         pass
 
-class OriginalFileAlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'result'])):
+class AlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'result'])):
     """ 
-    context: originalfile
+    context: originalfile, book
     result:  SearchResult
     """
     def handle(self):
@@ -1379,10 +1379,12 @@ class BookExportToAlephRequestSender(namedtuple('ExportToAlephRequest',['context
                           )
                       )
                   )
+
         owners = map(lambda mm: mm.fullname or mm.id, 
                      map(api.user.get, 
-                         [ii[0] for ii in obj.get_local_roles() if 'Owner' in ii[1]]))
-        import sys,pdb; pdb.Pdb(stdout=sys.__stdout__).set_trace()
+                         [ii[0] for ii in obj.get_local_roles() if 'Owner' in ii[1]]
+                     )
+                 )
 
         epublicationRecord =  EPublication (
             ISBN = normalizeISBN(obj.isbn or ""),
