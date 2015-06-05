@@ -9,10 +9,11 @@
         title="Format"
         description="Give format of a file attribute"
         provides=".behaviors.IFormat"
-        factory=".originalfile_behaviors.Format"
+        for="plone.dexterity.interfaces.IDexterityContent"
         />
 
     <adapter factory=".originalfile_behaviors.CalibreFormat"/>
+    <adapter factory=".book_behaviors.CalibreFormat"/>
 
     <plone:behavior
         title="Informing about changes"
