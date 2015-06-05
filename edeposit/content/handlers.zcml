@@ -15,7 +15,15 @@
          edeposit.content.handlers.IAMQPError
          "
     provides="edeposit.content.amqp.IAMQPHandler"
-    factory=".amqp.OriginalFileExceptionHandler"
+    factory=".amqp.ExceptionHandler"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook
+         edeposit.content.handlers.IAMQPError
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.ExceptionHandler"
     />
 
   <adapter
@@ -95,7 +103,15 @@
          edeposit.content.amqp.IAlephExportResult
          "
     provides="edeposit.content.amqp.IAMQPHandler"
-    factory=".amqp.OriginalFileAlephExportResultHandler"
+    factory=".amqp.AlephExportResultHandler"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook
+         edeposit.content.amqp.IAlephExportResult
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.AlephExportResultHandler"
     />
 
   <adapter

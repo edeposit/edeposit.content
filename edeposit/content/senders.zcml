@@ -89,7 +89,14 @@
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
-    factory=".amqp.OriginalFileRenewAlephRecordsRequestSender"
+    factory=".amqp.RenewAlephRecordsRequestSender"
+    name="renew-aleph-records"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.RenewAlephRecordsRequestSender"
     name="renew-aleph-records"
     />
 

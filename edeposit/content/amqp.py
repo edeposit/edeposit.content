@@ -433,7 +433,7 @@ class OriginalFileSearchRequestSender(namedtuple('OriginalFileSearchRequest',['c
         pass
 
 
-class OriginalFileRenewAlephRecordsRequestSender(namedtuple('RenewAlephRecordsRequest',['context'])):
+class RenewAlephRecordsRequestSender(namedtuple('RenewAlephRecordsRequest',['context'])):
     """ context will be original file """
     implements(IAMQPSender)
     def send(self):
@@ -744,17 +744,15 @@ class CountResultHandler(namedtuple('ISBNCountResult',['context', 'result'])):
         pass
 
 
-class OriginalFileAlephExportResultHandler(namedtuple('AlephResultResult',['context', 'result'])):
+class AlephExportResultHandler(namedtuple('AlephResultResult',['context', 'result'])):
     """ 
-    context: originalfile
+    context: originalfile, book
     result:  CountResult
     """
     def handle(self):
         print "<- Aleph Export result for: ", str(self.context)
         wft = api.portal.get_tool('portal_workflow')
-        epublication=aq_parent(aq_inner(self.context))
         with api.env.adopt_user(username="system"):
-            print "\tepublication state: ", api.content.get_state(obj=epublication)
             print "\toriginalfile state: ", api.content.get_state(obj=self.context)
             print "\taction for done: ", 'notifySystemAction'
             wft.doActionFor(self.context, 'exportToAlephOK')
@@ -824,7 +822,7 @@ class AlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'resu
             
             if api.content.get_state(self.context) == 'tryToFindAtAleph':
                 wft = self.context.portal_workflow
-                wft.doActionFor(len(self.result.records) and 'someRecordsFoundAtAleph' \
+                wft.doActionFor(self.context, len(self.result.records) and 'someRecordsFoundAtAleph' \
                                 or 'noRecordFoundAtAleph')
                 
             IPloneTaskSender(CheckUpdates(uid=self.context.UID())).send()
@@ -976,9 +974,9 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
 #         pass
 
 
-class OriginalFileExceptionHandler(namedtuple('ExceptionHandler',['context', 'result'])):
+class ExceptionHandler(namedtuple('ExceptionHandler',['context', 'result'])):
     """ 
-    context: originalfile
+    context: originalfile, book
     result:  AMQPError
     """
     def handle(self):
@@ -1360,8 +1358,9 @@ class BookAntivirusResultHandler(namedtuple('BookAntivirusResult',['context', 'r
                 wft.doActionFor(context, 'antivirusError', comment=comment)
             else:
                 transition =  context.needsThumbnailGeneration() and 'antivirusOKThumbnail' \
-                              or (context.isbn and  ( context.hasSomeAlephRecords() and 
-                                                      'antivirusOKSkipExportToAleph' or 'antivirusOKAleph') 
+                              or (context.isbn and  ( context.hasSomeAlephRecords() and
+                                                      'antivirusOKSkipExportToAleph' \
+                                                      or 'antivirusOKTryToFindAtAleph')
                                   or 'antivirusOKISBNGeneration')
                 print "transition: %s" % (transition,)
                 wft.doActionFor(context, transition)
@@ -1405,7 +1404,7 @@ class BookExportToAlephRequestSender(namedtuple('ExportToAlephRequest',['context
             poradiVydani = normalize(obj.poradi_vydani or ""),
             zpracovatelZaznamu = normalize(obj.zpracovatel_zaznamu or (owners and owners[0]) or ""),
             format = normalize(IFormat(obj).format or ""),
-            url = normalize(obj.url or ""),
+            url = normalize(getattr(obj,'url',None) or ""),
             mistoVydani = normalize(obj.misto_vydani),
             ISBNSouboruPublikaci = normalizeISBN(obj.isbn_souboru_publikaci or ""),
             autori = map(normalize, filter(bool, map(attrgetter('lastName'), authors))),
