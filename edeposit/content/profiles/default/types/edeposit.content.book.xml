@@ -13,8 +13,13 @@
   <property name="filter_content_types">True</property>
   <property name="allowed_content_types">
     <element value="edeposit.content.printingfile"/>
+    <element value="edeposit.content.aleph"/>
     <element value="edeposit.content.author"/>
     <element value="Collection"/>
+    <element value="edeposit.content.alephrecord"/>
+    <element value="edeposit.content.pdfboxvalidationresponse"/>
+    <element value="edeposit.content.epubcheckvalidationresponse"/>
+    <element value="Link"/>
   </property>
   <property name="allow_discussion">False</property>
 
@@ -23,10 +28,12 @@
   <property name="klass">edeposit.content.book.Book</property>
 
   <property name="behaviors">
-     <element value="plone.app.content.interfaces.INameFromTitle" />
-     <element value="plone.app.dexterity.behaviors.metadata.IBasic"/>
-   </property>
-
+    <element value="plone.app.content.interfaces.INameFromTitle" />
+    <element value="plone.app.dexterity.behaviors.metadata.IBasic"/>
+    <element value="edeposit.content.behaviors.IFormat"/>
+    <element value="edeposit.content.behaviors.IChangesInformating"/>
+  </property>
+  
   <!-- View information -->
   <property name="link_target"></property>
   <property name="immediate_view">view</property>
