@@ -13,11 +13,13 @@ from plone.app.textfield import RichText
 from plone.namedfile.field import NamedImage, NamedFile
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
 from plone.namedfile.interfaces import IImageScaleTraversable
-from edeposit.content.bookfolder import IBookFolder
+
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.statusmessages.interfaces import IStatusMessage
 from functools import partial
 from plone.dexterity.utils import createContentInContainer, addContentToContainer, createContent
+from z3c.form.interfaces import WidgetActionExecutionError, ActionExecutionError, IObjectFactory, IValidator, IErrorViewSnippet, INPUT_MODE
+
 from edeposit.content.printingfile import IPrintingFile
 from edeposit.content.browser.contribute import (
     LoadFromSimilarForBookForm,
@@ -31,7 +33,9 @@ from z3c.relationfield.schema import RelationChoice, Relation
 from edeposit.content import MessageFactory as _
 
 from plone.formwidget.contenttree import ObjPathSourceBinder, PathSourceBinder
+from edeposit.content.behaviors import IFormat, ICalibreFormat
 
+from edeposit.content.bookfolder import IBookFolder
 from edeposit.content.utils import loadFromAlephByISBN
 from edeposit.content.utils import is_valid_isbn
 from edeposit.content.utils import getISBNCount
@@ -41,9 +45,13 @@ from edeposit.content.utils import getISBNCount
 # loadFromAlephByISBN = partial(edeposit.content.mock.loadFromAlephByISBN, num_of_records=1)
 # is_valid_isbn = partial(edeposit.content.mock.is_valid_isbn,result=True)
 # getISBNCount = partial(edeposit.content.mock.getISBNCount,result=0)
-
+from urlparse import urlparse
 from .author import IAuthor
 from plone import api
+from edeposit.content.book_states import StatesGenerator
+from operator import methodcaller, attrgetter, __or__
+from zope.component import getUtility
+from zope.app.intid.interfaces import IIntIds
 
 # Interface class; used to define content-type schema.
 
@@ -207,6 +215,7 @@ class IBook(form.Schema, IImageScaleTraversable):
                   fields = [
                       'related_aleph_record',
                       'summary_aleph_record',
+                      'shouldBeFullyCatalogized',
                   ])
 
     related_aleph_record = RelationChoice( title=u"Odpovídající záznam v Alephu",
@@ -216,6 +225,11 @@ class IBook(form.Schema, IImageScaleTraversable):
     summary_aleph_record = RelationChoice( title=u"Souborný záznam v Alephu",
                                            required = False,
                                            source = availableAlephRecords )
+    shouldBeFullyCatalogized = schema.Bool (
+        title = u"Tento dokument musí projít celou katalogizační linkou",
+        default = False,
+        required = False
+    )
 
 @form.default_value(field=IBook['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
@@ -264,8 +278,11 @@ class Book(Container):
         sysNumber = dataForFactory.get('aleph_sys_number',None)
         alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
 
-        # exist some record with the same sysNumber?
-        arecordWithTheSameSysNumber = filter(lambda arecord: arecord.aleph_sys_number == sysNumber, alephRecords)
+        def hasTheSameSysNumber(arecord):
+            return arecord.aleph_sys_number == sysNumber
+
+        arecordWithTheSameSysNumber = filter(hasTheSameSysNumber, alephRecords)
+
         if arecordWithTheSameSysNumber:
             print "a record with the same sysnumber"
             # update this record
@@ -273,11 +290,103 @@ class Book(Container):
             changedAttrs = alephRecord.findAndLoadChanges(dataForFactory)
             # if changedAttrs and changedAttrs != ['xml']:
             #     IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
-
         else:
             createContentInContainer(self, 'edeposit.content.alephrecord', **dataForFactory)
+            #self.reindexObject()
             #IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
 
+    def makeInternalURL(self):
+        internal_url = "/".join([api.portal.get().absolute_url(), '@@redirect-to-uuid', self.UID()])
+        return internal_url
+
+    @property
+    def id_number(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object',None)
+            return record and record.id_number
+        return None
+
+    def submitValidationsForLTP(self):
+        format = IFormat(self).format or ""
+        if format == 'PDF':
+            IPloneTaskSender(DoActionFor(transition='submitPDFBoxValidation', uid=self.UID())).send()
+
+        if format == 'EPub':
+            IPloneTaskSender(DoActionFor(transition='submitEPubCheckValidation', uid=self.UID())).send()
+
+    def refersToThisOriginalFile(self, aleph_record):
+        # older records can have
+        # absolute_url as internal url
+        absolute_path = urlparse(self.absolute_url()).path
+        internal_path = urlparse(self.makeInternalURL()).path
+
+        def startsWithProperURL(url):
+            path = urlparse(url).path
+            result = absolute_path in path or internal_path in path
+            return result
+
+        result = reduce(__or__, map(startsWithProperURL, aleph_record.internal_urls), False)
+        return result
+
+    def updateAlephRelatedData(self):
+        # try to choose related_aleph_record
+        print "... update Aleph Related Data"
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+
+        self.related_aleph_record = None
+        self.summary_aleph_record = None
+        #self.primary_originalfile = None
+        
+        related_aleph_record = None
+
+        intids = getUtility(IIntIds)
+        recordsThatRefersToThis = filter(self.refersToThisOriginalFile, alephRecords)
+        if len(recordsThatRefersToThis) == 1:
+            related_aleph_record = recordsThatRefersToThis[0]
+            self.related_aleph_record = RelationValue(intids.getId(related_aleph_record))
+        else:
+            closedAlephRecords = filter(attrgetter('isClosed'), recordsThatRefersToThis)
+            if len(closedAlephRecords) == 1:
+                related_aleph_record = closedAlephRecords[0]
+                self.related_aleph_record = RelationValue(intids.getId(related_aleph_record))
+
+        if related_aleph_record and related_aleph_record.isClosed:
+            reference = related_aleph_record.summary_record_aleph_sys_number
+            def refersTo(rr):
+                return rr.id_number == reference or re.sub(r'^0+','',rr.aleph_sys_number) in reference
+
+            properSummaryRecords = filter(refersTo, alephRecords)
+            if len(properSummaryRecords) == 1:
+                summary_aleph_record = properSummaryRecords[0]
+                self.summary_aleph_record = RelationValue(intids.getId(summary_aleph_record))
+            pass
+
+        pass
+
+    def checkUpdates(self):
+        """ it tries to decide whether some changes appeared in aleph records. 
+        The function loads the changes from a proper aleph record into its own attributes.
+        The function will plan producent notification.
+        """
+
+        # self.removeInappropriateAlephRecords()
+        self.updateAlephRelatedData()
+
+        # changes = IChanges(self).getChanges()
+        # for change in changes:
+        #     IApplicableChange(change).apply()
+            
+        # if changes:
+        #     getAdapter(self, IEmailSender, name="book-has-been-changed").send()
+        #     #self.informProducentAboutChanges = True
+        
+        last_check_name = StatesGenerator(self)()
+        state = ""
+        if state != api.content.get_state(self):
+            # some movement
+            pass
+        pass
+                
 class SampleView(grok.View):
     """ sample view class """
     grok.context(IBook)
