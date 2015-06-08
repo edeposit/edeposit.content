@@ -19,12 +19,12 @@ def StatesGenerator(obj):
         return
 
     def check_descriptiveCataloguingReviewPreparing():
-        if self.context.getAssignedDescriptiveCataloguingReviewer():
+        if obj.getAssignedDescriptiveCataloguingReviewer():
             return check_descriptiveCataloguingReview
         return
 
     def check_closedDescriptiveCataloguingReviewPreparing():
-        if self.context.getAssignedDescriptiveCataloguingReviewer():
+        if obj.getAssignedDescriptiveCataloguingReviewer():
             return check_closedDescriptiveCataloguingReview
         return
 
@@ -64,17 +64,13 @@ def StatesGenerator(obj):
     
     start_check = check_chooseProperAlephRecord
 
-    def tryNext(last_checked, check):
-        print "... last checked:", last_checked
+    def tryNext(checked, check):
+        print "... checked:", checked
         if not check:
             return None
-        next_state = check()
-        if not next_state:
-            return last_checked
-
-        return tryNext(check.__name__, next_state)
+        return tryNext(check.__name__, check())
 
     def start():
-        return tryNext("", start_check)
+        return tryNext(start_check.__name__, start_check())
 
     return start
