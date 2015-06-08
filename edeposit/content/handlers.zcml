@@ -169,6 +169,12 @@
     />
 
   <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.next_step.INextStep"
+    factory=".next_step.BookNextStep"
+    />
+
+  <adapter
     for="edeposit.user.producent.IProducent
          edeposit.content.handlers.IAMQPError
          "

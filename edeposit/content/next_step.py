@@ -21,6 +21,15 @@ class INextStep(Interface):
         return False
 
 
+def withRelatedAlephRecord(f):
+    @wraps
+    def wrapper(self, *args, **kwargs):
+        related_aleph_record = self.context.related_aleph_record and \
+                               getattr(self.context.related_aleph_record,'to_object',None)
+        return f(self,*args,related_aleph_record=related_aleph_record, **kwargs)
+
+    return wrapper
+
 class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
     def doActionFor(self,*args,**kwargs):
         self.wft = api.portal.get_tool('portal_workflow')
@@ -34,16 +43,16 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         wasNextStep = fun and fun(*args,**kwargs)
         return wasNextStep
 
-    def nextstep_for_acquisition(self,*args,**kwargs):
-        aleph_record = self.context.related_aleph_record and getattr(self.context.related_aleph_record,'to_object',None)
-        if aleph_record and aleph_record.hasAcquisitionFields:
+    @withRelatedAlephRecord
+    def nextstep_for_acquisition(self, related_aleph_record=None, *args, **kwargs):
+        if related_aleph_record and related_aleph_record.hasAcquisitionFields:
             self.wft.doActionFor(self.context,'submitAcquisition')
             return True
         return False
 
-    def nextstep_for_ISBNGeneration(self, *args, **kwargs):
-        aleph_record = self.context.related_aleph_record and getattr(self.context.related_aleph_record,'to_object',None)
-        if aleph_record and aleph_record.hasISBNAgencyFields:
+    @withRelatedAlephRecord
+    def nextstep_for_ISBNGeneration(self, related_aleph_record=None,  *args, **kwargs):
+        if related_aleph_record and related_aleph_record.hasISBNAgencyFields:
             self.wft.doActionFor(self.context,'submitISBNGeneration')
             return True
         return False
@@ -76,10 +85,9 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
         return False
 
-    def nextstep_for_descriptiveCataloguing(self,*args,**kwargs):
-        aleph_record = self.context.related_aleph_record and getattr(self.context.related_aleph_record,'to_object',None)
-        
-        if aleph_record and aleph_record.isClosed:
+    @withRelatedAlephRecord
+    def nextstep_for_descriptiveCataloguing(self, related_aleph_record=None, *args, **kwargs):
+        if related_aleph_record and related_aleph_record.isClosed:
             if aleph_record.hasDescriptiveCataloguingFields:
                 # rozezname, jestli existuje nejaky nezamceny zaznam
                 # pokud ne a tento original je prvni pro dany souborny
@@ -94,7 +102,7 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
             else:
                 return False
 
-        if aleph_record and aleph_record.hasDescriptiveCataloguingFields:
+        if related_aleph_record and related_aleph_record.hasDescriptiveCataloguingFields:
             self.wft.doActionFor(self.context,'submitDescriptiveCataloguing')
             return True
 
@@ -180,24 +188,24 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
         return False
 
-    def nextstep_for_subjectCataloguing(self,*args,**kwargs):
-        aleph_record = self.context.related_aleph_record and getattr(self.context.related_aleph_record,'to_object',None)
-        if aleph_record and aleph_record.hasSubjectCataloguingFields:
+    @withRelatedAlephRecord
+    def nextstep_for_subjectCataloguing(self,related_aleph_record=None, *args, **kwargs):
+        if related_aleph_record and related_aleph_record.hasSubjectCataloguingFields:
             self.wft.doActionFor(self.context,'submitSubjectCataloguing')
             return True
         return False
 
-    def nextstep_for_closedSubjectCataloguing(self,*args,**kwargs):
-        aleph_record = self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
-        if aleph_record and aleph_record.hasSubjectCataloguingFields:
+    @withRelatedAlephRecord
+    def nextstep_for_closedSubjectCataloguing(self, related_aleph_record=None,*args,**kwargs):
+        if related_aleph_record and related_aleph_record.hasSubjectCataloguingFields:
             self.wft.doActionFor(self.context,'submitClosedSubjectCataloguing')
             return True
 
         return False
 
-    def nextstep_for_subjectCataloguingReview(self,*args,**kwargs):
-        aleph_record = self.context.related_aleph_record and getattr(self.context.related_aleph_record,'to_object',None)
-        if aleph_record and aleph_record.hasSubjectCataloguingReviewFields:
+    @withRelatedAlephRecord
+    def nextstep_for_subjectCataloguingReview(self, related_aleph_record=None,*args,**kwargs):
+        if related_aleph_record and related_aleph_record.hasSubjectCataloguingReviewFields:
             self.wft.doActionFor(self.context,'submitSubjectCataloguingReview')
             return True
         return False
@@ -210,9 +218,13 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
         return False
 
-    def nextstep_for_ISBNSubjectValidation(self,*args,**kwargs):
-        aleph_record = self.context.related_aleph_record and getattr(self.context.related_aleph_record,'to_object',None)
-        if aleph_record and aleph_record.hasISBNAgencyFields:
+    @withRelatedAlephRecord
+    def nextstep_for_ISBNSubjectValidation(self,related_aleph_record=None,*args,**kwargs):
+        if related_aleph_record and related_aleph_record.hasISBNAgencyFields:
             self.wft.doActionFor(self.context,'submitISBNSubjectValidation')
             return True
         return False
+
+
+class BookNextStep(OriginalFileNextStep):
+    pass
