@@ -22,11 +22,11 @@ class INextStep(Interface):
 
 
 def withRelatedAlephRecord(f):
-    @wraps
-    def wrapper(self, *args, **kwargs):
+    @wraps(f)
+    def wrapper(self, related_aleph_record=None, *args, **kwargs):
         related_aleph_record = self.context.related_aleph_record and \
                                getattr(self.context.related_aleph_record,'to_object',None)
-        return f(self,*args,related_aleph_record=related_aleph_record, **kwargs)
+        return f(self, related_aleph_record=related_aleph_record, *args, **kwargs)
 
     return wrapper
 
@@ -40,9 +40,10 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         if fun is None:
             print "no action for: %s" % (fname, )
 
-        wasNextStep = fun and fun(*args,**kwargs)
+        
+        wasNextStep = fun and fun(self,*args,**kwargs)
         return wasNextStep
-
+    
     @withRelatedAlephRecord
     def nextstep_for_acquisition(self, related_aleph_record=None, *args, **kwargs):
         if related_aleph_record and related_aleph_record.hasAcquisitionFields:
@@ -57,7 +58,7 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
             return True
         return False
 
-    def nextstep_for_waitingForAleph(self,*args,**kwargs):
+    def nextstep_for_waitingForAleph(self, *args, **kwargs):
         alephRecords = self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
         alephRecordsThatRefersToThis = filter(lambda rr: self.context.refersToThisOriginalFile(rr), alephRecords)
         if not alephRecordsThatRefersToThis:
@@ -219,10 +220,11 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
         return False
 
     @withRelatedAlephRecord
-    def nextstep_for_ISBNSubjectValidation(self,related_aleph_record=None,*args,**kwargs):
+    def nextstep_for_ISBNSubjectValidation(self, related_aleph_record=None, *args, **kwargs):
         if related_aleph_record and related_aleph_record.hasISBNAgencyFields:
             self.wft.doActionFor(self.context,'submitISBNSubjectValidation')
             return True
+
         return False
 
 
