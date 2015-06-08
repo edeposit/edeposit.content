@@ -424,6 +424,16 @@ class Book(Container):
             pass
         pass
                 
+
+from edeposit.content.originalfile import (
+    getAssignedPersonFactory,
+)
+
+Book.getAssignedDescriptiveCataloguer =  getAssignedPersonFactory('E-Deposit: Descriptive Cataloguer')
+Book.getAssignedDescriptiveCataloguingReviewer = getAssignedPersonFactory('E-Deposit: Descriptive Cataloguing Reviewer')
+Book.getAssignedSubjectCataloguer =  getAssignedPersonFactory('E-Deposit: Subject Cataloguer')
+Book.getAssignedSubjectCataloguingReviewer = getAssignedPersonFactory('E-Deposit: Subject Cataloguing Reviewer')
+
 class SampleView(grok.View):
     """ sample view class """
     grok.context(IBook)
