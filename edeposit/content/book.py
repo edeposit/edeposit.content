@@ -279,6 +279,9 @@ def nakladatelDefaultValue(data):
 class Book(Container):
     grok.implements(IBook)
 
+    def hasVoucher(self):
+        return bool(self.voucher)
+
     @property
     def isbnAppearsAtRelatedAlephRecord(self):
         if self.related_aleph_record:
