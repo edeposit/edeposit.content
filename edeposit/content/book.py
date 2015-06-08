@@ -55,6 +55,9 @@ from zope.app.intid.interfaces import IIntIds
 
 # Interface class; used to define content-type schema.
 
+from edeposit.content.originalfile import OriginalFile, VoucherFile
+from edeposit.content.next_step import INextStep
+
 vazbaChoices = [
     ['brozovano',u"brožováno"],
     ['vazano', u"vázáno"],
@@ -203,6 +206,11 @@ class IBook(form.Schema, IImageScaleTraversable):
         required = False,
     )
     
+    voucher = VoucherFile (
+        title = u"Ohlašovací lístek",
+        required = False,
+    )
+
     can_be_modified = schema.Bool(
         title = u'Může být tisková předloha upravena pro vnitřní potřeby knihovny?',
         required = False,
@@ -213,10 +221,19 @@ class IBook(form.Schema, IImageScaleTraversable):
     form.fieldset('internal',
                   label=_(u'Interní'),
                   fields = [
+                      'thumbnail',
                       'related_aleph_record',
                       'summary_aleph_record',
                       'shouldBeFullyCatalogized',
+                      'isWellFormedForLTP',
+                      'isClosed',
                   ])
+
+    thumbnail = NamedBlobFile(
+        title=_(u"PDF kopie"),
+        required = False,
+    )
+    
 
     related_aleph_record = RelationChoice( title=u"Odpovídající záznam v Alephu",
                                            required = False,
@@ -230,6 +247,19 @@ class IBook(form.Schema, IImageScaleTraversable):
         default = False,
         required = False
     )
+    isWellFormedForLTP = schema.Bool (
+        title = u"Originál je ve formátu vhodném pro LTP",
+        default = False,
+        required = False
+    )
+    isClosed= schema.Bool (
+        title = _(u'is closed out by Catalogizators'),
+        description = u"",
+        required = False,
+        default = False,
+    )
+
+
 
 @form.default_value(field=IBook['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
@@ -269,10 +299,6 @@ class Book(Container):
 
     def needsThumbnailGeneration(self):
         return False
-
-    def hasSomeAlephRecords(self):
-        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
-        return len(alephRecords)
 
     def updateOrAddAlephRecord(self, dataForFactory):
         sysNumber = dataForFactory.get('aleph_sys_number',None)
@@ -314,6 +340,9 @@ class Book(Container):
         if format == 'EPub':
             IPloneTaskSender(DoActionFor(transition='submitEPubCheckValidation', uid=self.UID())).send()
 
+    def properAlephRecordsChoosen(self):
+        return bool(self.related_aleph_record)
+
     def refersToThisOriginalFile(self, aleph_record):
         # older records can have
         # absolute_url as internal url
@@ -328,6 +357,10 @@ class Book(Container):
         result = reduce(__or__, map(startsWithProperURL, aleph_record.internal_urls), False)
         return result
 
+    def hasSomeAlephRecords(self):
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        return len(alephRecords)
+
     def updateAlephRelatedData(self):
         # try to choose related_aleph_record
         print "... update Aleph Related Data"
@@ -335,7 +368,6 @@ class Book(Container):
 
         self.related_aleph_record = None
         self.summary_aleph_record = None
-        #self.primary_originalfile = None
         
         related_aleph_record = None
 
@@ -379,7 +411,12 @@ class Book(Container):
         # if changes:
         #     getAdapter(self, IEmailSender, name="book-has-been-changed").send()
         #     #self.informProducentAboutChanges = True
-        
+
+        for ii in range(20):
+            wasNextState=INextStep(self).doActionFor()
+            if not wasNextState:
+                break
+
         last_check_name = StatesGenerator(self)()
         state = ""
         if state != api.content.get_state(self):
