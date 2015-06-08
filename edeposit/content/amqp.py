@@ -775,6 +775,9 @@ class AlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'resu
                 # if record.docNumber in ['000003035','000003043']:
                 #     internal_urls = [ api.portal.getSite().portal_url() + '/producents/nakladatelstvi-gama/epublications/pasivni-domy-2013/pd2013_sbornik.pdf', 'some url', ]
 
+                # if record.docNumber in ['000003099']:
+                #     internal_urls += [ self.context.makeInternalURL() ]
+
                 dataForFactory = {
                     'title': "".join([u"Záznam v Alephu: ",
                                       str(epublication.nazev), 
@@ -845,6 +848,9 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
                 # if record.docNumber in ['000003035','000003043']:
                 #     internal_urls = [ api.portal.getSite().portal_url() + '/producents/nakladatelstvi-gama/epublications/pasivni-domy-2013/pd2013_sbornik.pdf', 'some url', ]
                 
+                # if record.docNumber in ['000003099']:
+                #     internal_urls += [ self.context.makeInternalURL() ]
+
                 dataForFactory = {
                     'title': "".join([u"Záznam v Alephu: ",
                                       str(epublication.nazev), 
