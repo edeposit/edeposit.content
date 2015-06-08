@@ -448,7 +448,7 @@ class RenewAlephRecordsRequestSender(namedtuple('RenewAlephRecordsRequest',['con
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
 
-class OriginalFileRenewAlephRecordsBySysNumberRequestSender(namedtuple('RenewAlephRecordsBySysNumberRequest',['context'])):
+class RenewAlephRecordsBySysNumberRequestSender(namedtuple('RenewAlephRecordsBySysNumberRequest',['context'])):
     """ context will be original file """
     implements(IAMQPSender)
     def send(self):
@@ -473,7 +473,7 @@ class OriginalFileRenewAlephRecordsBySysNumberRequestSender(namedtuple('RenewAle
             headers = make_headers(alephRecord, session_data)
             producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
 
-class OriginalFileRenewAlephRecordsByICZSysNumberRequestSender(namedtuple('RenewAlephRecordsByICZSysNumberRequest',['context'])):
+class RenewAlephRecordsByICZSysNumberRequestSender(namedtuple('RenewAlephRecordsByICZSysNumberRequest',['context'])):
     """ context will be original file """
     implements(IAMQPSender)
     def send(self):
@@ -1351,17 +1351,14 @@ class BookAntivirusResultHandler(namedtuple('BookAntivirusResult',['context', 'r
         wft = api.portal.get_tool('portal_workflow')
         result = self.result
         context = self.context
-        epublication=aq_parent(aq_inner(context))
         with api.env.adopt_user(username="system"):
             if result.result: # some virus found
                 comment =u"v souboru %s je virus: %s" % (context.file.filename, str(result.result))
                 wft.doActionFor(context, 'antivirusError', comment=comment)
             else:
                 transition =  context.needsThumbnailGeneration() and 'antivirusOKThumbnail' \
-                              or (context.isbn and  ( context.hasSomeAlephRecords() and
-                                                      'antivirusOKSkipExportToAleph' \
-                                                      or 'antivirusOKTryToFindAtAleph')
-                                  or 'antivirusOKISBNGeneration')
+                              or (context.isbn and 'antivirusOKTryToFindAtAleph') \
+                              or 'antivirusOKISBNGeneration'
                 print "transition: %s" % (transition,)
                 wft.doActionFor(context, transition)
                 context.submitValidationsForLTP()
