@@ -23,6 +23,8 @@ edeposit/content/amqp_interfaces.py
 edeposit/content/author.py
 edeposit/content/behaviors.py
 edeposit/content/book.py
+edeposit/content/book_behaviors.py
+edeposit/content/book_states.py
 edeposit/content/bookfolder.py
 edeposit/content/catalogization_work_plan.py
 edeposit/content/changes.py
