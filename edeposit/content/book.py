@@ -519,6 +519,18 @@ class AddAtOnceForm(form.Form):
         view.form_instance = form
         self.loadsimilarform = view
         form.parent_form = self
+        hiddenFields = ['related_aleph_record',
+                        'summary_aleph_record',
+                        'isClosed',
+                        'thumbnail',
+                        'shouldBeFullyCatalogized',
+                        'isWellFormedForLTP',
+                        'voucher']
+        
+        for field in hiddenFields:
+            if field in self.fields:
+                del self.fields[field]
+
         super(AddAtOnceForm,self).update()
         sdm = self.context.session_data_manager
         session = sdm.getSessionData(create=True)
