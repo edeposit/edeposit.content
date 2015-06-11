@@ -89,7 +89,7 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
     @withRelatedAlephRecord
     def nextstep_for_descriptiveCataloguing(self, related_aleph_record=None, *args, **kwargs):
         if related_aleph_record and related_aleph_record.isClosed:
-            if aleph_record.hasDescriptiveCataloguingFields:
+            if related_aleph_record.hasDescriptiveCataloguingFields:
                 # rozezname, jestli existuje nejaky nezamceny zaznam
                 # pokud ne a tento original je prvni pro dany souborny
                 # zaznam, musi projit plnou katalogizaci

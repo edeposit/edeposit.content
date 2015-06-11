@@ -47,12 +47,13 @@ from .changes import IChanges, IApplicableChange
 from Acquisition import aq_inner, aq_parent
 import simplejson as json
 from edeposit.content.behaviors import IFormat, ICalibreFormat
-from operator import __or__
+from operator import __or__, attrgetter, methodcaller
 from urlparse import urlparse
 from plone.app.content.interfaces import INameFromTitle
 import re
 from operator import truth
 from functools import partial
+from itertools import product
 
 from .tasks import (
     IPloneTaskSender,
@@ -473,7 +474,7 @@ class OriginalFile(Container):
         return None
 
     @property
-    def is_number(self):
+    def id_number(self):
         if self.related_aleph_record:
             record = getattr(self.related_aleph_record, 'to_object', None)
             return record and record.aleph_sys_number or ""
@@ -515,25 +516,27 @@ class OriginalFile(Container):
         return None
 
     def some_not_closed_originalfile_exists(self):
+        pcatalog = api.portal.get_tool('portal_catalog')
         getAttr = partial(getattr,self)
         numbers = filter(truth, map(getAttr,('summary_record_id_number','summary_record_aleph_sys_number')))
 
-        searchNotClosed = partial(self.portal_catalog, portal_type='edeposit.content.originalfile', isClosed=False)
+        searchNotClosed = partial(pcatalog, portal_type='edeposit.content.originalfile', isClosed=False)
 
         brains = numbers and (searchNotClosed(id_number = dict(query = numbers)) \
-            + searchNotClosed(aleph_sys_number = dict(query = numbers)))
+                                  + searchNotClosed(aleph_sys_number = dict(query = numbers)))
         return bool(brains)
 
     def fully_catalogized_closed_originalfile_exists(self):
         getAttr = partial(getattr,self)
         numbers = filter(truth, map(getAttr,['summary_record_aleph_sys_number','summary_record_id_number']))
 
-        searchClosed = partial(self.portal_catalog, portal_type='edeposit.content.originalfile',
+        pcatalog = api.portal.get_tool('portal_catalog')
+        searchClosed = partial(pcatalog, 
+                               portal_type='edeposit.content.originalfile',
                                shouldBeFullyCatalogized=True,
                                isClosed=True)
-
         brains = numbers and (searchClosed(summary_record_aleph_sys_number = dict( query = numbers )) \
-                                  +  searchClosed(summary_record_id = dict( query = numbers )))
+                                  +  searchClosed(summary_record_id_number = dict( query = numbers )))
         return bool(brains)
 
     def refersToThisOriginalFile(self,aleph_record):
@@ -566,11 +569,13 @@ class OriginalFile(Container):
         if len(recordsThatRefersToThis) == 1:
             related_aleph_record = recordsThatRefersToThis[0]
             self.related_aleph_record = RelationValue(intids.getId(related_aleph_record))
+            self.reindexObject(idxs=['isClosed','id_number'])
         else:
             closedAlephRecords = filter(lambda rr: rr.isClosed, recordsThatRefersToThis)
             if len(closedAlephRecords) == 1:
                 related_aleph_record = closedAlephRecords[0]
                 self.related_aleph_record = RelationValue(intids.getId(related_aleph_record))
+                self.reindexObject(idxs=['isClosed','id_number'])
 
         if related_aleph_record and related_aleph_record.isClosed:
             reference = related_aleph_record.summary_record_aleph_sys_number
@@ -579,6 +584,7 @@ class OriginalFile(Container):
             if len(properSummaryRecords) == 1:
                 summary_aleph_record = properSummaryRecords[0]
                 self.summary_aleph_record = RelationValue(intids.getId(summary_aleph_record))
+                self.reindexObject(idxs=['summary_record_aleph_sys_number','summary_record_id_number'])
             pass
 
         # if related_aleph_record and related_aleph_record.isClosed:
