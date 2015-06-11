@@ -12,6 +12,8 @@
   <column value="getAssignedSubjectCataloguingReviewer"/>
   <column value="getAssignedDescriptiveCataloguer"/>
   <column value="getAssignedDescriptiveCataloguingReviewer"/>
+  <column value="summary_record_aleph_sys_number"/>
+  <column value="summary_record_id_number"/>
   <index name="getAssignedDescriptiveCataloguer" meta_type="FieldIndex">
     <indexed_attr value="getAssignedDescriptiveCataloguer"/>
   </index>
