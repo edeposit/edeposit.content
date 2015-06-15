@@ -59,6 +59,19 @@ class SendEmailWithWorklistToGroup(namedtuple('SendEmailWithWorklistToGroup',
     implements(ISendEmailWithWorklistToGroup)
     pass
 
+class ISendEmailWithCollectionToGroup(IPloneTask):
+    collectionPath = schema.ASCIILine()
+    recipientsGroup = schema.ASCIILine()
+    additionalEmails = schema.List (
+        value_type = schema.ASCIILine()
+    )
+    subject = schema.TextLine()
+
+class SendEmailWithCollectionToGroup(namedtuple('SendEmailWithCollectionToGroup',
+                                              ['collectionPath','recipientsGroup','additionalEmails','subject'])):
+    implements(ISendEmailWithCollectionToGroup)
+    pass
+
 class ILoadSysNumbersFromAleph(IPloneTask):
     pass
 

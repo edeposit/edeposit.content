@@ -208,6 +208,14 @@
 
   <adapter
       for="edeposit.content.amqp_folder.IAMQPFolder
+           edeposit.content.tasks.ISendEmailWithCollectionToGroup
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.SendEmailWithCollectionToGroupTaskHandler"
+      />
+
+  <adapter
+      for="edeposit.content.amqp_folder.IAMQPFolder
            edeposit.content.tasks.ISendEmailWithUserWorklist
            "
       provides="edeposit.content.amqp.IAMQPHandler"
