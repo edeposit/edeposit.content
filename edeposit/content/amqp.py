@@ -24,6 +24,10 @@ from edeposit.content.amqp_interfaces import (
 from edeposit.content.utils import normalizeISBN
 from normalize_cz_unicode import normalize
 
+import lxml
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 # (occur-1 "class " nil (list (current-buffer)) "*amqp: class*")
 # (occur-1 "def " nil (list(current-buffer)) "*amqp: def*")
 
@@ -753,8 +757,7 @@ class AlephExportResultHandler(namedtuple('AlephResultResult',['context', 'resul
         print "<- Aleph Export result for: ", str(self.context)
         wft = api.portal.get_tool('portal_workflow')
         with api.env.adopt_user(username="system"):
-            print "\toriginalfile state: ", api.content.get_state(obj=self.context)
-            print "\taction for done: ", 'notifySystemAction'
+            print "\obj state: ", api.content.get_state(obj=self.context)
             wft.doActionFor(self.context, 'exportToAlephOK')
             print "\taction for done: ",'exportToAlephOK'
         pass
@@ -825,8 +828,9 @@ class AlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'resu
             
             if api.content.get_state(self.context) == 'tryToFindAtAleph':
                 wft = self.context.portal_workflow
-                wft.doActionFor(self.context, len(self.result.records) and 'someRecordsFoundAtAleph' \
-                                or 'noRecordFoundAtAleph')
+                transition = len(self.result.records) and 'someRecordsFoundAtAleph' or 'noRecordFoundAtAleph'
+                print '... transition: ', transition
+                wft.doActionFor(self.context, transition)
                 
             IPloneTaskSender(CheckUpdates(uid=self.context.UID())).send()
         pass
@@ -1162,6 +1166,36 @@ class VoucherGenerationResultHandler(namedtuple('VoucherGenerationResult',['cont
             wft.doActionFor(self.context,'pdfGenerated')
             pass
         pass
+
+class SendEmailWithCollectionToGroupTaskHandler(namedtuple('SendEmailWithCollectionToGroupTaskHandler',
+                                                           ['context','result'])):
+    """
+    context: IAMQPHandler
+    result: ISendEmailWithCollectionToGroup
+    
+    It sends collection as tabular_view in an html email.
+    """
+    def handle(self):
+        path = filter(bool,self.result.collectionPath.split("/"))
+        with api.env.adopt_user(username="system"):
+            collection = reduce(getattr, path, api.portal.getSite())
+            view = api.content.get_view(name='tabular_view',context=collection, request=self.context.REQUEST)
+            htmlRoot = lxml.html.fromstring(view())
+            content = htmlRoot.get_element_by_id('content')
+            body = lxml.html.tostring(content)
+            subject = self.result.subject
+            groupname = self.result.recipientsGroup
+            recipients = self.result.additionalEmails
+            emailsFromGroup = [aa.getProperty('email') for aa in api.user.get_users(groupname=groupname)]
+            recipients = frozenset(emailsFromGroup + recipients)
+            print "... zacneme rozesilat pro: ", "|".join(recipients)
+            msg = MIMEMultipart('alternative')
+            msg.attach(MIMEText(subject,'plain'))
+            msg.attach(MIMEText(body,'html'))
+            for recipient in recipients:
+                print "... poslal jsem email: ", subject, recipient
+                api.portal.send_email(recipient=recipient, subject=subject, body=msg)
+            pass
 
 
 class SendEmailWithWorklistToGroupTaskHandler(namedtuple('SendEmailWithWorklistToGroupTaskHandler',
