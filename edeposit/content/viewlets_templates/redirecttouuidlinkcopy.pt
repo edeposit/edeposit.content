@@ -1,0 +1,29 @@
+<div class="contentActions"
+     i18n:domain="plone"
+     tal:define="ploneview context/@@plone"
+     tal:condition="ploneview/showEditableBorder"
+     >
+
+  <tal:block define="uuid  context/UID;
+                     portal  context/portal_url/getPortalObject;
+                     portal_url portal/absolute_url
+                     ">
+
+    <script type="text/javascript" src="" tal:attributes="src string:${portal_url}/++resource++edeposit.content/zeroclipboard-2.2.0/ZeroClipboard.min.js"></script>
+    <script type="text/javascript">
+        $(function(){
+                var client = new ZeroClipboard($('.uuid-link'),{
+                        moviePath:"http://localhost:8080/Plone/++resources++edeposit.content/zeroclipboard-2.2.0/ZeroClipboard.swf"
+                });
+                client.on("load", function(client){
+                        client.on("complete",function(client, args){
+                                $('.uuid-link').fadeIn();
+                        });
+                });
+        });
+    </script>
+
+    <button class="uuid-link"
+       tal:attributes="data-clipboard-text string:${portal_url}/@@redirect-to-uuid/${uuid}">Copy URL to clipboard</button>
+  </tal:block>
+</div>
