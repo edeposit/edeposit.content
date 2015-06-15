@@ -32,6 +32,7 @@ from edeposit.content.book import IBook
 from plone.app.contentmenu import menu
 from plone.app.contentmenu.interfaces import IWorkflowSubMenuItem
 from plone.z3cform.layout import FormWrapper
+from plone.dexterity.interfaces import IDexterityContent
 
 import plone.app.content
 import plone.app.layout
@@ -119,4 +120,10 @@ class WellFormedForLTP(grok.Viewlet):
     grok.context(IOriginalFile)
     #grok.template('viewlets_template/wellformedforltp.pt')
     
+    
+class RedirectToUUIDLinkCopy(grok.Viewlet):
+    grok.name('edeposit.redirecttouuidlinkcopy')
+    grok.require('zope2.View')
+    grok.viewletmanager(IAboveContentBody)
+    grok.context(IDexterityContent)
     
