@@ -69,7 +69,6 @@ class ContentStateForEPublication(ContentState):
     grok.name('edeposit.contentstateforepublication')
     grok.require('zope2.View')
     grok.viewletmanager(IContentViews)
-    #grok.view(IViewView)
     grok.context(IePublication)
     grok.template('viewlets_templates/contentstate.pt')
 
@@ -77,7 +76,6 @@ class ContentStateForBook(ContentState):
     grok.name('edeposit.contentstateforbook')
     grok.require('zope2.View')
     grok.viewletmanager(IContentViews)
-    #grok.view(IViewView)
     grok.context(IBook)
     grok.template('viewlets_templates/contentstate.pt')
 
@@ -85,8 +83,14 @@ class ContentHistory(grok.Viewlet):
     grok.name('edeposit.contenthistory')
     grok.require('zope2.View')
     grok.viewletmanager(IBelowContent)
-    #grok.view(IViewView)
     grok.context(IOriginalFile)
+
+class ContentHistoryForBook(grok.Viewlet):
+    grok.name('edeposit.contenthistoryforbook')
+    grok.require('zope2.View')
+    grok.viewletmanager(IBelowContent)
+    grok.context(IBook)
+    #grok.template('viewlets_templates/contenthistory.pt')
 
 class MainMetadataFormWrapper(FormWrapper):
     index = ViewPageTemplateFile("viewlets_templates/formwrapper.pt")
