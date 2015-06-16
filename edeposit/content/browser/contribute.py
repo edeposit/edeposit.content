@@ -152,21 +152,20 @@ class LoadFromSimilarForm(form.SchemaForm):
 
         data, errors = super(LoadFromSimilarForm,self).extractData()
         isbn = self.getISBN(data)
-        print "- isbn: ", isbn
+        isbnWidget = self.widgets.get('load_isbn',None)
+        if not isbn:
+            errors += (getErrorView(isbnWidget, Invalid(u'Je potřeba zadat nějaké ISBN')),)
+
         if isbn:
-            isbnWidget = self.widgets.get('load_isbn',None)
             valid = is_valid_isbn(isbn)
             if not valid:
                 # validity error
-                print "isbn is not valid"
                 errors += (getErrorView(isbnWidget, Invalid(u'Chyba v ISBN')),)
                 pass
             else:
                 try:
                     appearedAtAleph = getISBNCount(isbn, base='nkc')
-                    print "- appeared at aleph: ", appearedAtAleph
                     if not appearedAtAleph:
-                        print "isbn does not appeared in Aleph"
                         errors += (getErrorView(isbnWidget, 
                                                 Invalid(u'ISBN v Alephu neexistuje. Použijte jiné.')),)
                 except:
