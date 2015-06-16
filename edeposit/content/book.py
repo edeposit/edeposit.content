@@ -39,7 +39,7 @@ from edeposit.content.bookfolder import IBookFolder
 from edeposit.content.utils import loadFromAlephByISBN
 from edeposit.content.utils import is_valid_isbn
 from edeposit.content.utils import getISBNCount
-
+from edeposit.content.aleph_record import IAlephRecordsContainer
 # import edeposit.content.mock
 # getAlephRecord = edeposit.content.mock.getAlephRecord
 # loadFromAlephByISBN = partial(edeposit.content.mock.loadFromAlephByISBN, num_of_records=1)

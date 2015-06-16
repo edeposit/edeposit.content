@@ -22,7 +22,10 @@ from plone.directives import form
 from zope.formlib import form as formlib
 from z3c.form import group, field, button
 from z3c.relationfield.schema import RelationChoice, Relation
+
 from edeposit.content.originalfile import IOriginalFile
+from edeposit.content.book import IBook
+from edeposit.content.aleph_record import IAlephRecordsContainer
 
 from plone.formwidget.contenttree import ObjPathSourceBinder, PathSourceBinder
 from zope.lifecycleevent import modified
@@ -71,7 +74,6 @@ class ChooseProperAlephRecordForm(form.SchemaForm):
              wft.doActionFor(self.context, 'toAcquisitionPreparing')
              [ ii for ii in range(5) if INextState(self.context).doActionFor() ]
         self.status = u"Hotovo!"
-
 
 class IChooseProperAlephRecord(IPortletDataProvider):
      pass

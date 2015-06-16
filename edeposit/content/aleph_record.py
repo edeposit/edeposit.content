@@ -20,6 +20,12 @@ from edeposit.content import MessageFactory as _
 
 
 # Interface class; used to define content-type schema.
+class IAlephRecordsContainer(form.Schema):
+    """ marker interface for containers that can contain aleph records:
+    IOriginalFile
+    IBook
+    """
+    pass
 
 class IAlephRecord(form.Schema, IImageScaleTraversable):
     """

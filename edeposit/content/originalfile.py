@@ -24,7 +24,7 @@ from z3c.relationfield.schema import RelationChoice, Relation
 from plone.formwidget.contenttree import ObjPathSourceBinder, PathSourceBinder
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
-from edeposit.content.aleph_record import IAlephRecord
+from edeposit.content.aleph_record import IAlephRecord, IAlephRecordsContainer
 from Products.CMFCore.utils import getToolByName
 from zope.schema.vocabulary import SimpleVocabulary
 from plone.dexterity.utils import createContentInContainer
