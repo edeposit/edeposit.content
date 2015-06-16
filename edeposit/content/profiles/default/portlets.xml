@@ -190,6 +190,14 @@
        type="edeposit.content.portlets.ChooseProperAlephRecord"
        />
 
+   <assignment
+       category="content_type"
+       key="edeposit.content.book"
+       manager="plone.rightcolumn"
+       name="chooseproperalephrecordforbook"
+       type="edeposit.content.portlets.ChooseProperAlephRecord"
+       />
+
    <!-- to have your portlet's title and description translated in 
         @@manage-portlets, provide the messageids for the i18n:domain plone
         (see http://dev.plone.org/plone/ticket/9631 or
