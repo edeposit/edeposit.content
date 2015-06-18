@@ -4,7 +4,7 @@
      tal:condition="ploneview/showEditableBorder"
      >
 
-  <tal:block define="uuid  context/UID;
+  <tal:block define="sysNumber  context/aleph_sys_number;
                      portal  context/portal_url/getPortalObject;
                      portal_url portal/absolute_url
                      "
@@ -14,25 +14,23 @@
     <script type="text/javascript" src="" tal:attributes="src string:${portal_url}/++resource++edeposit.content/zeroclipboard-2.2.0/ZeroClipboard.min.js"></script>
     <script type="text/javascript">
         $(function(){
-                var client = new ZeroClipboard($('.uuid-link'),{
+                var client = new ZeroClipboard($('.sysnumber-copy'),{
                         moviePath:"http://localhost:8080/Plone/++resources++edeposit.content/zeroclipboard-2.2.0/ZeroClipboard.swf"
                 });
                 client.on("load", function(client){
                         client.on("complete",function(client, args){
-                                $('.uuid-link').fadeOut();
+                                $('.sysnumber-copy').fadeOut();
                         });
                 });
         });
     </script>
     <style type="text/css">
-    .uuid-link {
+    .sysnumber-copy {
         padding: 0.2em 1em 0.2em 1em;
         float: right;
     }
     </style>
-    <a class="uuid-link ui-state-default ui-corner-all"
-       tal:attributes="data-clipboard-text
-                       string:${portal_url}/@@redirect-to-uuid/${uuid}">
-    Copy URL to clipboard</a>
+    <a class="sysnumber-copy ui-state-default ui-corner-all"
+       tal:attributes="data-clipboard-text string:${sysNumber}">Zkopírovat systémové číslo</a>
   </tal:block>
 </div>

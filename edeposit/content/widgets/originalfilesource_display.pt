@@ -39,7 +39,6 @@
 <script type="text/javascript">
         (function($){
                 $(document).ready(function(){
-                        console.log('ready');
                         $('.originalfile-change-source').prepOverlay({
                                 subtype:'ajax',
                                 filter:common_content_filter,
