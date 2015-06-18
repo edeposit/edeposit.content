@@ -373,7 +373,7 @@ class ePublication(Container):
         return originalFiles and not ofWithoutRelatedAlephRecord
 
     def dataForContributionPDF(self):
-        keysFromEPublication = [ii for ii in (frozenset(IAddAtOnceForm.names())  &  frozenset(IePublication.names()))]
+        keysFromEPublication = [ii for ii in (frozenset(IAddAtOncceForm.names())  &  frozenset(IePublication.names()))]
         def titleFactory(vocab):
             def getter(token):
                 title = vocab.getTermByToken(token).title
@@ -1038,16 +1038,17 @@ class AddAtOnceForm(form.SchemaForm):
 
         self.checkISBN(data)
 
-        newEPublication = data.get('epublication_uid') and api.content.get(UID=data['epublication_uid']) \
-            or self.addEPublication(data)
+        newEPublication = self.addEPublication(data)
+        #data.get('epublication_uid') and api.content.get(UID=data['epublication_uid']) \
+        #    or 
 
         self.widgets['epublication_uid'].value=newEPublication.UID()
-
+        
         newOriginalFile = self.addOriginalFile(newEPublication, data)
-        if not data.get('epublication_uid'):
-            authors = [data[key] for key in ['author1','author2','author3'] if data[key]]
-            for author in authors:
-                createContentInContainer(newEPublication, 'edeposit.content.author', fullname=author, title=author)
+        #if not data.get('epublication_uid'):
+        authors = [data[key] for key in ['author1','author2','author3'] if data[key]]
+        for author in authors:
+            createContentInContainer(newEPublication, 'edeposit.content.author', fullname=author, title=author)
 
         # # set mode display all fields for epublication and authors
         # readOnlyFields = list(frozenset(data.keys()).intersection(frozenset(IePublication.names()))) + \
