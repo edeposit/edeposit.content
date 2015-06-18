@@ -223,6 +223,9 @@ class LoadFromSimilarSubView(FormWrapper):
 class AlephRecordLoaded(BrowserView):
     pass
 
+class EmailSent(BrowserView):
+    pass
+
 class IChooseAlephRecord(form.Schema):
     load_isbn = schema.ASCIILine(
         title = u'ISBN v dotazu',

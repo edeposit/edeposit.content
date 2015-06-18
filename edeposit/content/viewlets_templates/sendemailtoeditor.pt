@@ -1,0 +1,34 @@
+<div class="contentActions"
+     i18n:domain="plone"
+     tal:define="ploneview context/@@plone"
+     tal:condition="ploneview/showEditableBorder"
+     >
+
+  <tal:block define="uuid    context/UID;
+                     portal  context/portal_url/getPortalObject;
+                     portal_url portal/absolute_url"
+  condition="viewlet/available"
+  >
+    <script type="text/javascript">
+      (function($){
+              $(document).ready(function(){
+                      $('.send-email-to-editor').prepOverlay({
+                              subtype:'ajax',
+                              filter:common_content_filter,
+                              formselector:'form#send-email-to-editor',
+                              noform: function(el,pbo){
+                                      return 'reload';
+                              },
+                      });
+              });
+      })(jQuery);
+    </script>
+    <style type="text/css">
+    .send-email-to-editor {
+        padding: 0.2em 1em 0.2em 1em;
+        float:right;
+    }
+    </style>
+    <a class="send-email-to-editor ui-state-default ui-corner-all" href="send-email-to-editor">Poslat email</a>
+  </tal:block>
+</div>

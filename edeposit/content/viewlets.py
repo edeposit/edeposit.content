@@ -125,9 +125,32 @@ class WellFormedForLTP(grok.Viewlet):
     #grok.template('viewlets_template/wellformedforltp.pt')
     
     
+class SendEmailToEditor(grok.Viewlet):
+    grok.name('edeposit.sendemailtoeditor')
+    grok.require('zope2.View')
+    grok.viewletmanager(IContentViews)
+    grok.context(IDexterityContent)
+
 class RedirectToUUIDLinkCopy(grok.Viewlet):
     grok.name('edeposit.redirecttouuidlinkcopy')
     grok.require('zope2.View')
-    grok.viewletmanager(IAboveContentBody)
+    grok.viewletmanager(IContentViews)
+    grok.context(IDexterityContent)
+
+class SysNumberCopy(grok.Viewlet):
+    grok.name('edeposit.sysnumbercopy')
+    grok.require('zope2.View')
+    grok.viewletmanager(IContentViews)
+    grok.context(IDexterityContent)
+
+    def available(self):
+        return getattr(self.context, 'aleph_sys_number',None)
+
+class SummarySysNumberCopy(grok.Viewlet):
+    grok.name('edeposit.summarysysnumbercopy')
+    grok.require('zope2.View')
+    grok.viewletmanager(IContentViews)
     grok.context(IDexterityContent)
     
+    def available(self):
+        return getattr(self.context, 'summary_record_aleph_sys_number',None)

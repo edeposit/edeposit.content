@@ -27,6 +27,14 @@
       />
 
   <browser:page
+      name="email-sent"
+      for="*"
+      class=".contribute.EmailSent"
+      template="email-sent.pt"
+      permission="zope.Public"
+      />
+
+  <browser:page
       name="ohlasovaci-listek.pdf"
       for="edeposit.content.originalfile.IOriginalFile"
       class=".voucher.VoucherDownload"
