@@ -329,6 +329,41 @@ class Book(Container):
         return internal_url
 
     @property
+    def sysNumber(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object', None)
+            return record and record.aleph_sys_number or ""
+        return None
+
+    @property
+    def isClosed(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object',None)
+            return record and record.isClosed
+        return False
+
+    @property
+    def summary_record_aleph_sys_number(self):
+        if self.summary_aleph_record:
+            record = getattr(self.summary_aleph_record, 'to_object',None)
+            return record and record.aleph_sys_number
+        return None
+
+    @property
+    def summary_record_id_number(self):
+        if self.summary_aleph_record:
+            record = getattr(self.summary_aleph_record, 'to_object',None)
+            return record and record.id_number
+        return None
+
+    @property
+    def aleph_sys_number(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object',None)
+            return record and record.aleph_sys_number
+        return None
+
+    @property
     def id_number(self):
         if self.related_aleph_record:
             record = getattr(self.related_aleph_record, 'to_object',None)
