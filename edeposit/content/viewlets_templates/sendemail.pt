@@ -12,10 +12,10 @@
     <script type="text/javascript">
       (function($){
               $(document).ready(function(){
-                      $('.send-email-to-editor').prepOverlay({
+                      $('.send-email').prepOverlay({
                               subtype:'ajax',
                               filter:common_content_filter,
-                              formselector:'form#send-email-to-editor',
+                              formselector:'form#send-email',
                               noform: function(el,pbo){
                                       return 'reload';
                               },
@@ -24,11 +24,11 @@
       })(jQuery);
     </script>
     <style type="text/css">
-    .send-email-to-editor {
+    .send-email {
         padding: 0.2em 1em 0.2em 1em;
         float:right;
     }
     </style>
-    <a class="send-email-to-editor ui-state-default ui-corner-all" href="send-email-to-editor">Poslat email</a>
+    <a class="send-email ui-state-default ui-corner-all" href="send-email">Poslat email</a>
   </tal:block>
 </div>

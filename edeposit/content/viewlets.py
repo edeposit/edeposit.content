@@ -125,8 +125,8 @@ class WellFormedForLTP(grok.Viewlet):
     #grok.template('viewlets_template/wellformedforltp.pt')
     
     
-class SendEmailToEditor(grok.Viewlet):
-    grok.name('edeposit.sendemailtoeditor')
+class SendEmail(grok.Viewlet):
+    grok.name('edeposit.sendemail')
     grok.require('zope2.View')
     grok.viewletmanager(IContentViews)
     grok.context(IDexterityContent)

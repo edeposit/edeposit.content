@@ -28,6 +28,7 @@ from plone.z3cform.layout import FormWrapper
 from edeposit.content.originalfile import IOriginalFile
 from edeposit.content.book import IBook
 import os.path
+from plone.dexterity.interfaces import IDexterityContent
 
 from zope.publisher.interfaces import NotFound
 import json
@@ -39,7 +40,7 @@ from z3c.form import group, button
 from operator import itemgetter
 from Products.statusmessages.interfaces import IStatusMessage
 
-class ISendEmailToEditor(form.Schema):
+class ISendEmail(form.Schema):
     sender = schema.TextLine(
         title = u"From",
         required = True,
@@ -57,18 +58,18 @@ class ISendEmailToEditor(form.Schema):
         required = True
     )
 
-class SendEmailToEditorForm(form.SchemaForm):
-    grok.context(IOriginalFile)
-    grok.name('send-email-to-editor')
+class SendEmailForm(form.SchemaForm):
+    grok.context(IDexterityContent)
+    grok.name('send-email')
     grok.require('zope2.View')
 
     label=u"Email editorovi"
-    schema = ISendEmailToEditor
+    schema = ISendEmail
     ignoreContext = True
-    prefix = "send-email-to-editor."
+    prefix = "send-email."
 
     def updateWidgets(self):
-        super(SendEmailToEditorForm,self).updateWidgets()
+        super(SendEmailForm,self).updateWidgets()
         self.widgets['text'].value = self.context.absolute_url()
 
         owners = map(itemgetter(0), filter(lambda item: 'Owner' in item[1], self.context.get_local_roles()))
@@ -77,6 +78,9 @@ class SendEmailToEditorForm(form.SchemaForm):
 
         self.widgets['sender'].value = api.user.get_current().getProperty('email')
 
+        self.widgets['text'].cols = 80
+        self.widgets['text'].rows = 20
+        
     @button.buttonAndHandler(u"Odeslat", name='send')
     def handleSend(self, action):
         data, errors = self.extractData()
