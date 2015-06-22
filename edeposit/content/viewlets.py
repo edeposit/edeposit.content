@@ -139,7 +139,8 @@ class RedirectToUUIDLinkCopy(grok.Viewlet):
 
 class SysNumberCopy(plone.app.layout.viewlets.common.ContentActionsViewlet):
     def available(self):
-        return getattr(self.context, 'aleph_sys_number',None)
+        result = bool(getattr(self.context, 'related_aleph_record',None))
+        return result
 
     def render(self):
         if not self.available():
@@ -148,7 +149,8 @@ class SysNumberCopy(plone.app.layout.viewlets.common.ContentActionsViewlet):
 
 class SummarySysNumberCopy(plone.app.layout.viewlets.common.ContentActionsViewlet):
     def available(self):
-        return getattr(self.context, 'summary_record_aleph_sys_number',None)
+        result = bool(getattr(self.context, 'summary_aleph_record',None))
+        return result
 
     def render(self):
         if not self.available():

@@ -1,7 +1,7 @@
 <div class="contentActions"
      i18n:domain="plone"
      tal:define="ploneview context/@@plone"
-     tal:condition="viewlet/available"
+     tal:condition="ploneview/showEditableBorder"
      >
 
   <tal:block define="sysNumber  context/aleph_sys_number;

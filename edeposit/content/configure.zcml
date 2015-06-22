@@ -130,6 +130,7 @@
       for="plone.dexterity.interfaces.IDexterityContent"
       manager="plone.app.layout.viewlets.interfaces.IContentViews"
       class=".viewlets.SysNumberCopy"
+      template="viewlets_templates/sysnumbercopy.pt"
       permission="zope2.View"
       />
 
@@ -138,6 +139,7 @@
       for="plone.dexterity.interfaces.IDexterityContent"
       manager="plone.app.layout.viewlets.interfaces.IContentViews"
       class=".viewlets.SummarySysNumberCopy"
+      template="viewlets_templates/summarysysnumbercopy.pt"
       permission="zope2.View"
       />
 
