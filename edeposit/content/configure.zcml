@@ -125,6 +125,22 @@
       permission="zope2.View"
       />
 
+  <browser:viewlet
+      name="edeposit.sysnumbercopy"
+      for="plone.dexterity.interfaces.IDexterityContent"
+      manager="plone.app.layout.viewlets.interfaces.IContentViews"
+      class=".viewlets.SysNumberCopy"
+      permission="zope2.View"
+      />
+
+  <browser:viewlet
+      name="edeposit.summarysysnumbercopy"
+      for="plone.dexterity.interfaces.IDexterityContent"
+      manager="plone.app.layout.viewlets.interfaces.IContentViews"
+      class=".viewlets.SummarySysNumberCopy"
+      permission="zope2.View"
+      />
+
   <browser:page
       name="download"
       for="edeposit.content.originalfile.IOriginalFile"

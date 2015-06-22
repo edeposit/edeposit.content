@@ -137,20 +137,20 @@ class RedirectToUUIDLinkCopy(grok.Viewlet):
     grok.viewletmanager(IContentViews)
     grok.context(IDexterityContent)
 
-class SysNumberCopy(grok.Viewlet):
-    grok.name('edeposit.sysnumbercopy')
-    grok.require('zope2.View')
-    grok.viewletmanager(IContentViews)
-    grok.context(IDexterityContent)
-
+class SysNumberCopy(plone.app.layout.viewlets.common.ContentActionsViewlet):
     def available(self):
         return getattr(self.context, 'aleph_sys_number',None)
 
-class SummarySysNumberCopy(grok.Viewlet):
-    grok.name('edeposit.summarysysnumbercopy')
-    grok.require('zope2.View')
-    grok.viewletmanager(IContentViews)
-    grok.context(IDexterityContent)
-    
+    def render(self):
+        if not self.available():
+            return ""
+        return super(SysNumberCopy,self).render()
+
+class SummarySysNumberCopy(plone.app.layout.viewlets.common.ContentActionsViewlet):
     def available(self):
         return getattr(self.context, 'summary_record_aleph_sys_number',None)
+
+    def render(self):
+        if not self.available():
+            return ""
+        return super(SummarySysNumberCopy,self).render()
