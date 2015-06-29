@@ -91,9 +91,12 @@ def availableOriginalFiles(context):
              }
     return ObjPathSourceBinder(navigation_tree_query = query).__call__(context)
 
+# fields implementations
+
 class IVoucherFileField(INamedBlobFileField):
     pass
 
+# file source
 class IOriginalFileSourceField(INamedBlobFileField):
     pass
 
@@ -102,6 +105,11 @@ class VoucherFile(NamedBlobFile):
 
 class OriginalFileSource(NamedBlobFile):
     implements(IOriginalFileSourceField)
+
+# isbn widget
+class IISBNWidgetField(schema.ASCIILine):
+    pass
+
 
 class IOriginalFile(form.Schema, IImageScaleTraversable):
     """
