@@ -1148,6 +1148,7 @@ class VoucherGenerationRequestSender(namedtuple('VoucherGeneration',['context'])
             author2 = autor2 or "",
             author3 = autor3 or "",
             internal_url = internal_url,
+            anotace = "",
         )
         request = GenerateReview(**itemsForReview)
         #open("/tmp/request-for-pdfgen.json","wb").write(json.dumps(request,ensure_ascii=False))
