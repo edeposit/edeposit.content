@@ -243,7 +243,8 @@ class IePublication(form.Schema, IImageScaleTraversable):
         readonly = False,
         default = None,
         missing_value = None,
-        vocabulary = 'edeposit.content.librariesAccessingChoices'
+        source = librariesAccessing,
+        #vocabulary = 'edeposit.content.librariesAccessingChoices'
     )
 
     #form.widget(libraries_that_can_access=AutocompleteMultiFieldWidget)    

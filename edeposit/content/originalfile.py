@@ -677,6 +677,12 @@ class OriginalFile(Container):
             if not wasNextState:
                 break
 
+    def getAMQPErrors(self):
+        wft = self.portal_workflow
+        review_history=wft.getInfoFor(self, 'review_history')
+        amqpErrors = filter(lambda rh: rh['action'] == 'amqpError', review_history)
+        return amqpErrors
+
 class OriginalFilePrimaryFieldInfo(object):
     implements(IPrimaryFieldInfo)
     adapts(IOriginalFile)
