@@ -295,7 +295,7 @@ class OriginalFileThumbnailRequestSender(namedtuple('ThumbnailGeneratingRequest'
         originalfile = self.context
         fileName = originalfile.file.filename
 
-        inputFormat = ICalibreFormat(self.context).format.lower()
+        inputFormat = getAdapter(self.context,ICalibreFormat).format.lower()
         fileNameExt = fileName.split(".")[-1].lower()
         from edeposit.amqp.calibre.structures import INPUT_FORMATS
         supportedFormat = fileName and ((inputFormat in INPUT_FORMATS and inputFormat)
@@ -386,7 +386,7 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
             datumVydani = normalize(str(epublication.rok_vydani)),
             poradiVydani = normalize(epublication.poradi_vydani or ""),
             zpracovatelZaznamu = normalize(originalFile.zpracovatel_zaznamu or (owners and owners[0]) or ""),
-            format = normalize(IFormat(originalFile).format or ""),
+            format = normalize(getAdapter(originalfile,IFormat).format or ""),
             url = normalize(originalFile.url or ""),
             mistoVydani = normalize(epublication.misto_vydani),
             ISBNSouboruPublikaci = normalizeISBN(epublication.isbn_souboru_publikaci or ""),
@@ -1142,7 +1142,7 @@ class VoucherGenerationRequestSender(namedtuple('VoucherGeneration',['context'])
             libraries_that_can_access = libraries_that_can_access,
             zpracovatel_zaznamu = get('zpracovatel_zaznamu') or "",
             url = get('url') or "",
-            format = IFormat(originalfile).format or "",
+            format = getAdapter(originalfile,IFormat).format or "",
             filename = filename or "",
             author1 = autor1 or "",
             author2 = autor2 or "",
@@ -1450,7 +1450,7 @@ class BookExportToAlephRequestSender(namedtuple('ExportToAlephRequest',['context
             datumVydani = normalize(str(obj.rok_vydani)),
             poradiVydani = normalize(obj.poradi_vydani or ""),
             zpracovatelZaznamu = normalize(obj.zpracovatel_zaznamu or (owners and owners[0]) or ""),
-            format = normalize(IFormat(obj).format or ""),
+            format = normalize(getAdapter(obj,IFormat).format or ""),
             url = normalize(getattr(obj,'url',None) or ""),
             mistoVydani = normalize(obj.misto_vydani),
             ISBNSouboruPublikaci = normalizeISBN(obj.isbn_souboru_publikaci or ""),

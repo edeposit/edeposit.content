@@ -12,8 +12,10 @@
         for="plone.dexterity.interfaces.IDexterityContent"
         />
 
+    <adapter factory=".originalfile_behaviors.Format"/>
     <adapter factory=".originalfile_behaviors.CalibreFormat"/>
     <adapter factory=".book_behaviors.CalibreFormat"/>
+    <adapter factory=".book_behaviors.Format"/>
 
     <plone:behavior
         title="Informing about changes"

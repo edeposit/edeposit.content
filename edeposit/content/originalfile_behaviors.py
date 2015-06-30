@@ -11,12 +11,12 @@ from edeposit.content.behaviors import (
 
 from edeposit.content.originalfile import IOriginalFile
 
-@implementer(IFormat)
-@adapter(IOriginalFile)
 class Format(object):
     """Store format in the Dublin Core metadata Subject field. This makes
     tags easy to search for.
     """
+    implements(IFormat)
+    adapts(IOriginalFile)
 
     def __init__(self, context):
         self.context = context
