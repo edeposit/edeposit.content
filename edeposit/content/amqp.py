@@ -386,7 +386,7 @@ class OriginalFileExportToAlephRequestSender(namedtuple('ExportToAlephRequest',[
             datumVydani = normalize(str(epublication.rok_vydani)),
             poradiVydani = normalize(epublication.poradi_vydani or ""),
             zpracovatelZaznamu = normalize(originalFile.zpracovatel_zaznamu or (owners and owners[0]) or ""),
-            format = normalize(getAdapter(originalfile,IFormat).format or ""),
+            format = normalize(getAdapter(originalFile,IFormat).format or ""),
             url = normalize(originalFile.url or ""),
             mistoVydani = normalize(epublication.misto_vydani),
             ISBNSouboruPublikaci = normalizeISBN(epublication.isbn_souboru_publikaci or ""),

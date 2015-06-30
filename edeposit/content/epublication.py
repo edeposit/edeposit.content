@@ -911,6 +911,15 @@ class AddAtOnceForm(form.SchemaForm):
                     print "some exception with edeposit.amqp.aleph.aleph.getISBNCount"
                     pass
             pass
+
+        if 'vsechny knihovny maji pristup' in data.get('libraries_accessing',""):
+            librariesIDS = [ii.token for ii in availableLibraries(self.context)]
+            data['libraries_that_can_access'] = set(librariesIDS)
+
+        if 'vybrane knihovny maji pristup' in data.get('libraries_accessing',""):
+            data['libraries_that_can_access'] = data.get('libraries_that_can_access',set()) \
+                | set(['narodni-knihovna-ceske-republiky',])
+            
         return (data,errors)
 
     def checkISBN(self, data):
@@ -996,7 +1005,8 @@ class AddAtOnceForm(form.SchemaForm):
                                                  )
 
         newEPublication.libraries_that_can_access = None
-        if data['libraries_accessing'] and 'vybrane knihovny maji pristup' in data['libraries_accessing']:
+        if 'vybrane knihovny maji pristup' in data.get('libraries_accessing',"") or\
+                'vsechny knihovny maji pristup' in data.get('libraries_accessing',""):
             newEPublication.libraries_that_can_access = libraries_that_can_access
 
         return newEPublication
@@ -1010,9 +1020,9 @@ class AddAtOnceForm(form.SchemaForm):
 
         self.checkISBN(data)
 
-        newEPublication = data.get('epublication_uid') and api.content.get(UID=data['epublication_uid']) \
-            or self.addEPublication(data)
-
+        # newEPublication = data.get('epublication_uid') and api.content.get(UID=data['epublication_uid']) \
+        #     or self.addEPublication(data)
+        newEPublication = self.addEPublication(data)
         newOriginalFile = self.addOriginalFile(newEPublication, data)
         
         # poslat zadost na vygenerovani ohlasovaciho listku - je na to
