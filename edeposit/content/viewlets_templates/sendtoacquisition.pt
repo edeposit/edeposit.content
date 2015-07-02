@@ -21,11 +21,8 @@
               $(document).ready(function(){
                       $('.send-to-acquisition').prepOverlay({
                               subtype:'ajax',
-                              filter:common_content_filter,
-                              formselector:'form#form',
-                              noform: function(el,pbo){
-                                      return 'reload';
-                              },
+                              filter:'#content #form',
+                              closeselector: '[name="form.buttons.cancel"]'
                       });
               });
       })(jQuery);
