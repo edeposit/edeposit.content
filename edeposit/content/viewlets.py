@@ -22,6 +22,7 @@ from five import grok
 from plone.app.layout.globals.interfaces import IViewView
 from plone.app.layout.viewlets.interfaces import IContentViews, IBelowContent, IAboveContentBody, IBelowContentBody
 from plone.app.layout.viewlets import ViewletBase
+from Products.CMFCore.permissions import ModifyPortalContent
 
 from plone import api
 from originalfile import IOriginalFile
@@ -156,3 +157,22 @@ class SummarySysNumberCopy(plone.app.layout.viewlets.common.ContentActionsViewle
         if not self.available():
             return ""
         return super(SummarySysNumberCopy,self).render()
+
+class SendToAcquisitionButton(plone.app.layout.viewlets.common.ContentActionsViewlet):
+    def available(self):
+        return (api.content.get_state(self.context) == 'declarationWithError' \
+                and getSecurityManager().checkPermission(ModifyPortalContent, self.context)\
+                and self.context.file
+        )
+
+    def submitDeclarationURL(self):
+        baseUrl = "/".join([self.context.absolute_url(),"content_status_comment"])
+        transition = self.context.isbn and 'submitDeclarationToISBNValidation' \
+                     or "submitDeclarationToAntivirus"
+        return baseUrl + "?workflow_action=" + transition
+
+
+    def render(self):
+        if not self.available():
+            return ""
+        return super(SendToAcquisitionButton,self).render()

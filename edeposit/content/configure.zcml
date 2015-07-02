@@ -143,6 +143,15 @@
       permission="zope2.View"
       />
 
+  <browser:viewlet
+      name="edeposit.sendtoacquisition"
+      for="plone.dexterity.interfaces.IDexterityContent"
+      manager="plone.app.layout.viewlets.interfaces.IContentViews"
+      class=".viewlets.SendToAcquisitionButton"
+      template="viewlets_templates/sendtoacquisition.pt"
+      permission="zope2.View"
+      />
+
   <browser:page
       name="download"
       for="edeposit.content.originalfile.IOriginalFile"
