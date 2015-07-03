@@ -27,6 +27,7 @@ from normalize_cz_unicode import normalize
 import lxml
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from  cz_urnnbn_api import api as urnnbn_api
 
 # (occur-1 "class " nil (list (current-buffer)) "*amqp: class*")
 # (occur-1 "def " nil (list(current-buffer)) "*amqp: def*")
@@ -79,6 +80,11 @@ from edeposit.amqp.pdfgen.structures import (
     GenerateContract,
     GenerateReview,
     PDF
+)
+
+from edeposit.amqp.storage import (    
+    Publication,    
+    SaveRequest,
 )
 
 from edeposit.user.producent import IProducent
@@ -1468,4 +1474,47 @@ class BookExportToAlephRequestSender(namedtuple('ExportToAlephRequest',['context
         }
         headers = make_headers(self.context, session_data)
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
+        pass
+
+class OriginalFileExportToStorageRequestSender(namedtuple('ExportToStorageRequest',['context'])):
+    """ context will be original file """
+    implements(IAMQPSender)
+    def send(self):
+        print "-> Export To Storage Request for: ", str(self.context)
+        if not self.context.urnnbn:
+            self.context.urnnbn = urnnbn_api.register_document_obj(
+                urnnbn_api.MonographComposer(title=self.context.title, 
+                                             author="", 
+                                             format=getAdapter(self.context,IFormat).format or ""))
+
+        publication = Publication(
+            urnnbn = self.context.urnnbn,
+            uuid = self.context.UID(),
+            title = self.context.title,
+            isbn = self.context.isbn,
+            aleph_id = self.context.aleph_sys_number,
+            is_public = self.context.is_public,
+            filename = self.context.file.filename,
+            b64_data = base64.b64encode(self.context.file.data),
+            )
+        
+        request = SaveRequest(pub=publication)
+        producer = getUtility(IProducer, name="amqp.storage-export-request")
+        session_data =  { 'isbn': str(self.context.isbn), }
+        headers = make_headers(self.context, session_data)
+        producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
+        pass
+
+class ExportToStorageResultHandler(namedtuple('ExportToStorageResult',['context', 'result'])):
+    implements(IAMQPHandler)
+    def handle(self):
+        print "<- Export to Storage Result for: ", str(self.context)
+        wft = api.portal.get_tool('portal_workflow')
+        result = self.result
+        context = self.context
+        import pdb; pdb.set_trace()
+        with api.env.adopt_user(username="system"):
+            transition = "exportToStorageOK"
+            wft.doActionFor(context, transition)
+            pass
         pass

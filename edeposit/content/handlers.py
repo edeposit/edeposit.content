@@ -368,6 +368,47 @@ def handlePloneTask(message, event):
         getMultiAdapter((context,result),IAMQPHandler).handle()
         message.ack()
 
+class IStorageResponse(Interface):
+    """Message marker interface"""
+
+class StorageResponseConsumer(Consumer):
+    grok.name('amqp.storage-response-consumer')
+    connection_id = "storage"
+    queue = "plone"
+    serializer = "plain"
+    marker = IStorageResponse
+    pass
+
+@grok.subscribe(IStorageResponse, IMessageArrivedEvent)
+def handleStorageResponse(message, event):
+    headers = message.header_frame.headers or {}
+    (context, session_data) = parse_headers(headers)
+    if not context:
+        # we will attach default context of an amqp message:
+        # amqp folder.
+        print "... no context at headers so try AMQP Folder as default context"
+        pcatalog = api.portal.get_tool('portal_catalog') 
+        context = pcatalog(portal_type="edeposit.content.amqpfolder")[0].getObject()
+        session_data={}
+
+    if "exception" in headers:
+        amqpError = AMQPError(payload=message.body, 
+                              exception_name = headers.get('exception_name'),
+                              exception = headers.get('exception'),
+                              headers = headers)
+        getMultiAdapter((context,amqpError),IAMQPHandler).handle()
+        message.ack()
+    else:
+        if not message.body:
+            wft = context.portal_workflow
+            wft.doActionFor(context, 'exportToStorageOK', comment="")
+            message.ack()
+
+        # result = deserialize(message._serialized_body,globals())
+        # getMultiAdapter((context,result),IAMQPHandler).handle()
+
+        pass
+
 
 # when ePublication is added
 def added(context,event):
@@ -508,6 +549,19 @@ class AlephExportRequestProducent(Producer):
     grok.name('amqp.aleph-export-request')
 
     connection_id = "aleph"
+    exchange = "export"
+    serializer = "text/plain"
+    exchange_type = "topic"
+    exchange_durable = True
+    auto_delete = False
+    durable = True
+    routing_key = "request"
+    pass
+
+class StorageExportRequestProducent(Producer):
+    grok.name('amqp.storage-export-request')
+
+    connection_id = "storage"
     exchange = "export"
     serializer = "text/plain"
     exchange_type = "topic"

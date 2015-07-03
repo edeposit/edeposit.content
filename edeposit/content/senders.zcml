@@ -138,6 +138,20 @@
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.OriginalFileExportToStorageRequestSender"
+    name="export-to-storage"
+    />
+
+  <!-- <adapter -->
+  <!--   for="edeposit.content.book.IBook" -->
+  <!--   provides="edeposit.content.amqp.IAMQPSender" -->
+  <!--   factory=".amqp.BookExportToStorageRequestSender" -->
+  <!--   name="export-to-storage" -->
+  <!--   /> -->
+
+  <adapter
+    for="edeposit.content.originalfile.IOriginalFile"
+    provides="edeposit.content.amqp.IAMQPSender"
     factory=".amqp.OriginalFileExportToAlephRequestSender"
     name="export-to-aleph"
     />

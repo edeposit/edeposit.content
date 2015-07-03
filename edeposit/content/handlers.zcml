@@ -277,5 +277,5 @@
       provides="edeposit.content.amqp.IAMQPHandler"
       factory=".amqp.EPublicationsWithErrorEmailNotifyForAllProducents"
       />
-  
+
 </configure>

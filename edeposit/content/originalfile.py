@@ -194,6 +194,10 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
         required=False,
         missing_value=u'',
     )
+    urnnbn = schema.ASCIILine (
+        title = u"URN:NBN číslo",
+        required = False,
+    )
     
 @form.default_value(field=IOriginalFile['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
@@ -522,6 +526,10 @@ class OriginalFile(Container):
             record = getattr(self.related_aleph_record, 'to_object',None)
             return record and record.id_number
         return None
+
+    @property
+    def is_public(self):
+        return aq_parent(aq_inner(self)).is_public
 
     def some_not_closed_originalfile_exists(self):
         pcatalog = api.portal.get_tool('portal_catalog')
