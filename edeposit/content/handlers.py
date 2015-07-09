@@ -422,7 +422,9 @@ def added(context,event):
                                  {'i': 'path', 
                                   'o': 'plone.app.querystring.operation.string.relativePath', 
                                   'v': '../'}
-                                 ]
+                                 ],
+                          sort_on = 'created',
+                          sort_reversed = False,
                           )
     context.invokeFactory('Collection','original-files', 
                           title="Soubory s originály",
@@ -434,6 +436,8 @@ def added(context,event):
                                   'o': 'plone.app.querystring.operation.string.relativePath', 
                                   'v': '../'}
                                  ],
+                          sort_on = 'created',
+                          sort_reversed = False,
                           )
     pass
 

@@ -184,7 +184,7 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
     @withRelatedAlephRecord
     def nextstep_for_descriptiveCataloguingReview(self,related_aleph_record=None, *args,**kwargs):
-        if related_aleph_record and aleph_record.hasDescriptiveCataloguingReviewFields:
+        if related_aleph_record and related_aleph_record.hasDescriptiveCataloguingReviewFields:
             self.wft.doActionFor(self.context,'submitDescriptiveCataloguingReview')
             return True
 
