@@ -8,7 +8,6 @@
                      portal  context/portal_url/getPortalObject;
                      portal_url portal/absolute_url
                      "
-             condition="viewlet/available"
              >
 
     <script type="text/javascript" src="" tal:attributes="src string:${portal_url}/++resource++edeposit.content/zeroclipboard-2.2.0/ZeroClipboard.min.js"></script>
