@@ -22,7 +22,7 @@ from five import grok
 from plone.app.layout.globals.interfaces import IViewView
 from plone.app.layout.viewlets.interfaces import IContentViews, IBelowContent, IAboveContentBody, IBelowContentBody
 from plone.app.layout.viewlets import ViewletBase
-from Products.CMFCore.permissions import ModifyPortalContent
+from Products.CMFCore.permissions import ModifyPortalContent, ReviewPortalContent
 
 from plone import api
 from originalfile import IOriginalFile
@@ -176,3 +176,29 @@ class SendToAcquisitionButton(plone.app.layout.viewlets.common.ContentActionsVie
         if not self.available():
             return ""
         return super(SendToAcquisitionButton,self).render()
+
+
+class BackToAcquisitionButton(plone.app.layout.viewlets.common.ContentActionsViewlet):
+    def available(self):
+        roles = api.user.get_roles(obj=self.context)
+        """ backend roles: - roles for National Library members. """
+        backendRoles = filter(lambda role: 'E-Deposit: Descriptive' in role, roles) \
+            + filter(lambda role: 'E-Deposit: Subject' in role, roles) \
+            + filter(lambda role: 'E-Deposit: Acquisition' in role, roles) \
+            + filter(lambda role: 'E-Deposit: System' in role, roles) \
+            + filter(lambda role: 'Site Administrator' in role, roles) \
+            + filter(lambda role: 'Manager' in role, roles)
+            
+
+        return getSecurityManager().checkPermission(ReviewPortalContent, self.context) and backendRoles
+
+    def submitDeclarationURL(self):
+        baseUrl = "/".join([self.context.absolute_url(),"content_status_comment"])
+        transition = "unknownError"
+        return baseUrl + "?workflow_action=" + transition
+
+
+    def render(self):
+        if not self.available():
+            return ""
+        return super(BackToAcquisitionButton,self).render()

@@ -152,6 +152,15 @@
       permission="zope2.View"
       />
 
+  <browser:viewlet
+      name="edeposit.backtoacquisition"
+      for="plone.dexterity.interfaces.IDexterityContent"
+      manager="plone.app.layout.viewlets.interfaces.IContentViews"
+      class=".viewlets.BackToAcquisitionButton"
+      template="viewlets_templates/backtoacquisition.pt"
+      permission="zope2.View"
+      />
+
   <browser:page
       name="download"
       for="edeposit.content.originalfile.IOriginalFile"

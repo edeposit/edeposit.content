@@ -1,0 +1,36 @@
+<div class="contentActions"
+     i18n:domain="plone"
+     tal:define="ploneview context/@@plone"
+     tal:condition="ploneview/showEditableBorder"
+     >
+
+  <tal:block define="portal  context/portal_url/getPortalObject;
+                     portal_url portal/absolute_url
+                     "
+             >
+
+    <style type="text/css">
+    .back-to-acquisition {
+        padding: 0.2em 1em 0.2em 1em;
+        float: right;
+    }
+    </style>
+
+    <script type="text/javascript">
+      (function($){
+              $(document).ready(function(){
+                      $('.back-to-acquisition').prepOverlay({
+                              subtype:'ajax',
+                              filter:'#content #form',
+                              closeselector: '[name="form.buttons.cancel"]'
+                      });
+              });
+      })(jQuery);
+    </script>
+    
+    <a class="back-to-acquisition ui-state-default
+              ui-corner-all"
+       tal:attributes="href view/submitDeclarationURL"
+       >Zpět k akvizici</a>
+  </tal:block>
+</div>

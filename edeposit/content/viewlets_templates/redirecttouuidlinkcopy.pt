@@ -32,7 +32,6 @@
     </style>
     <a class="uuid-link ui-state-default ui-corner-all"
        tal:attributes="data-clipboard-text
-                       string:${portal_url}/@@redirect-to-uuid/${uuid}">
-    Copy URL to clipboard</a>
+                       string:${portal_url}/@@redirect-to-uuid/${uuid}">URL</a>
   </tal:block>
 </div>
