@@ -1193,11 +1193,17 @@ class SendEmailWithCollectionToGroupTaskHandler(namedtuple('SendEmailWithCollect
     """
     def handle(self):
         path = filter(bool,self.result.collectionPath.split("/"))
+
         with api.env.adopt_user(username="system"):
             collection = reduce(getattr, path, api.portal.getSite())
             view = api.content.get_view(name='tabular_view',context=collection, request=self.context.REQUEST)
             htmlRoot = lxml.html.fromstring(view())
             content = htmlRoot.get_element_by_id('content')
+
+            if not len(htmlRoot.xpath('//tbody/tr')):
+                print "... je prazdno, nic se odesilat nebude"
+                return
+
             body = lxml.html.tostring(content)
             subject = self.result.subject
             groupname = self.result.recipientsGroup
