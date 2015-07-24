@@ -31,6 +31,6 @@
     </style>
     <a class="summary-sysnumber-copy ui-state-default ui-corner-all"
        tal:attributes="data-clipboard-text
-                       string:${summarySysNumber}">Zkopírovat systémové číslo souborného záznamu</a>
+                       string:${summarySysNumber}">Systémové číslo souborného záznamu</a>
   </tal:block>
 </div>
