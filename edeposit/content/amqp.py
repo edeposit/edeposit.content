@@ -87,6 +87,12 @@ from edeposit.amqp.storage import (
     SaveRequest,
 )
 
+from  edeposit.amqp.ltp import (
+    ExportRequest,
+    TrackingRequest
+)
+
+
 from edeposit.user.producent import IProducent
 
 from collective.zamqp.producer import Producer
@@ -1193,7 +1199,7 @@ class SendEmailWithCollectionToGroupTaskHandler(namedtuple('SendEmailWithCollect
     """
     def handle(self):
         path = filter(bool,self.result.collectionPath.split("/"))
-
+        print "collection with path: ", path
         with api.env.adopt_user(username="system"):
             collection = reduce(getattr, path, api.portal.getSite())
             view = api.content.get_view(name='tabular_view',context=collection, request=self.context.REQUEST)
@@ -1482,7 +1488,7 @@ class BookExportToAlephRequestSender(namedtuple('ExportToAlephRequest',['context
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
 
-class OriginalFileExportToStorageRequestSender(namedtuple('ExportToStorageRequest',['context'])):
+class ExportToStorageRequestSender(namedtuple('ExportToStorageRequest',['context'])):
     """ context will be original file """
     implements(IAMQPSender)
     def send(self):
@@ -1518,9 +1524,93 @@ class ExportToStorageResultHandler(namedtuple('ExportToStorageResult',['context'
         wft = api.portal.get_tool('portal_workflow')
         result = self.result
         context = self.context
-        import pdb; pdb.set_trace()
         with api.env.adopt_user(username="system"):
             transition = "exportToStorageOK"
+            wft.doActionFor(context, transition)
+            pass
+        pass
+
+class ExportToLTPRequestSender(namedtuple('ExportToLTPRequest',['context'])):
+    """ context will be original file, book """
+    implements(IAMQPSender)
+    def send(self):
+        print "-> Export To LTP Request for: ", str(self.context)
+        if not self.context.urnnbn:
+            self.context.urnnbn = urnnbn_api.register_document_obj(
+                urnnbn_api.MonographComposer(title=self.context.title, 
+                                             author="", 
+                                             format=getAdapter(self.context,IFormat).format or ""))
+            
+        aleph_record = getattr(self.context.related_aleph_record,'to_object',None)
+        if not aleph_record:
+            print "... chyba exportu do LTP, chybi related aleph zaznam"
+            return
+        
+        request = ExportRequest (
+            aleph_record = aleph_record.xml.data,
+            book_uuid = self.context.UID(),
+            urn_nbn = self.context.urnnbn,
+            filename = self.context.file.filename,
+            b64_data = base64.b64encode(self.context.file.data),
+            )
+
+        producer = getUtility(IProducer, name="amqp.ltp-export-request")
+        session_data =  { 'isbn': str(self.context.isbn), }
+        headers = make_headers(self.context, session_data)
+        producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
+        pass
+
+class ExportToLTPResultHandler(namedtuple('ExportToLTPResult',['context', 'result'])):
+    implements(IAMQPHandler)
+    def handle(self):
+        print "<- Export to LTP Result for: ", str(self.context)
+        wft = api.portal.get_tool('portal_workflow')
+        result = self.result
+        context = self.context
+        with api.env.adopt_user(username="system"):
+            transition = "exportToLTPOK"
+            wft.doActionFor(context, transition)
+            pass
+        pass
+
+class ExportToKrameriusRequestSender(namedtuple('ExportToKrameriusRequest',['context'])):
+    """ context will be original file, book """
+    implements(IAMQPSender)
+    def send(self):
+        print "-> Export To Kramerius Request for: ", str(self.context)
+        if not self.context.urnnbn:
+            self.context.urnnbn = urnnbn_api.register_document_obj(
+                urnnbn_api.MonographComposer(title=self.context.title, 
+                                             author="", 
+                                             format=getAdapter(self.context,IFormat).format or ""))
+            
+        publication = Publication(
+            urnnbn = self.context.urnnbn,
+            uuid = self.context.UID(),
+            title = self.context.title,
+            isbn = self.context.isbn,
+            aleph_id = self.context.aleph_sys_number,
+            is_public = self.context.is_public,
+            filename = self.context.file.filename,
+            b64_data = base64.b64encode(self.context.file.data),
+            )
+        
+        request = SaveRequest(pub=publication)
+        producer = getUtility(IProducer, name="amqp.kramerius-export-request")
+        session_data =  { 'isbn': str(self.context.isbn), }
+        headers = make_headers(self.context, session_data)
+        producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
+        pass
+
+class ExportToKrameriusResultHandler(namedtuple('ExportToKrameriusResult',['context', 'result'])):
+    implements(IAMQPHandler)
+    def handle(self):
+        print "<- Export to Kramerius Result for: ", str(self.context)
+        wft = api.portal.get_tool('portal_workflow')
+        result = self.result
+        context = self.context
+        with api.env.adopt_user(username="system"):
+            transition = "exportToKrameriusOK"
             wft.doActionFor(context, transition)
             pass
         pass

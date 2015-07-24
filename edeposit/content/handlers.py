@@ -403,11 +403,42 @@ def handleStorageResponse(message, event):
             wft = context.portal_workflow
             wft.doActionFor(context, 'exportToStorageOK', comment="")
             message.ack()
-
-        # result = deserialize(message._serialized_body,globals())
-        # getMultiAdapter((context,result),IAMQPHandler).handle()
-
         pass
+
+class ILTPResponse(Interface):
+    """Message marker interface"""
+
+class LTPResponseConsumer(Consumer):
+    grok.name('amqp.ltp-response-consumer')
+    connection_id = "ltp"
+    queue = "plone"
+    serializer = "plain"
+    marker = ILTPResponse
+    pass
+
+@grok.subscribe(ILTPResponse, IMessageArrivedEvent)
+def handleLTPResponse(message, event):
+    headers = message.header_frame.headers or {}
+    (context, session_data) = parse_headers(headers)
+    if not context:
+        # we will attach default context of an amqp message:
+        # amqp folder.
+        print "... no context at headers so try AMQP Folder as default context"
+        pcatalog = api.portal.get_tool('portal_catalog') 
+        context = pcatalog(portal_type="edeposit.content.amqpfolder")[0].getObject()
+        session_data={}
+
+    if "exception" in headers:
+        amqpError = AMQPError(payload=message.body, 
+                              exception_name = headers.get('exception_name'),
+                              exception = headers.get('exception'),
+                              headers = headers)
+        getMultiAdapter((context,amqpError),IAMQPHandler).handle()
+        message.ack()
+    else:
+        print api.content.get_state(context)
+        context.portal_workflow.doActionFor(context, 'exportToLTPOK', comment="")
+        message.ack()
 
 
 # when ePublication is added
@@ -567,6 +598,20 @@ class StorageExportRequestProducent(Producer):
 
     connection_id = "storage"
     exchange = "export"
+    serializer = "text/plain"
+    exchange_type = "topic"
+    exchange_durable = True
+    auto_delete = False
+    durable = True
+    routing_key = "request"
+    pass
+
+
+class LTPExportRequestProducent(Producer):
+    grok.name('amqp.ltp-export-request')
+
+    connection_id = "ltp"
+    exchange = "ltp"
     serializer = "text/plain"
     exchange_type = "topic"
     exchange_durable = True

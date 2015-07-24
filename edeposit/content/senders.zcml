@@ -138,16 +138,37 @@
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
-    factory=".amqp.OriginalFileExportToStorageRequestSender"
+    factory=".amqp.ExportToStorageRequestSender"
     name="export-to-storage"
     />
 
-  <!-- <adapter -->
-  <!--   for="edeposit.content.book.IBook" -->
-  <!--   provides="edeposit.content.amqp.IAMQPSender" -->
-  <!--   factory=".amqp.BookExportToStorageRequestSender" -->
-  <!--   name="export-to-storage" -->
-  <!--   /> -->
+  <adapter
+    for="edeposit.content.originalfile.IOriginalFile"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.ExportToLTPRequestSender"
+    name="export-to-ltp"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.ExportToLTPRequestSender"
+    name="export-to-ltp"
+    />
+
+  <adapter
+    for="edeposit.content.originalfile.IOriginalFile"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.ExportToKrameriusRequestSender"
+    name="export-to-kramerius"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.ExportToKrameriusRequestSender"
+    name="export-to-kramerius"
+    />
 
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
