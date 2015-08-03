@@ -216,7 +216,7 @@ class OriginalFile(Container):
  <div class="item visualIEFloatFix originalfile_folder_full_view_item">
     <h2 class="headline"> <a href="$href" class="summary url $typeClass $stateClass">$title</a> </h2>
     <div class="documentByLine" id="plone-document-byline">
-        <span class="ObjectStatus">Stav: <span class="$stateClass">$stateTitle</span></span>
+        <span class="ObjectStatus">Stav: <a class="$stateClass" href="$stateCollectionHREF">$stateTitle</a></span>
         <span class="documentModified"> <span>Poslední změna:</span>$lastModified</span> </span>
         <span class="documentAuthor"> Ohlásil: <a href="$authorHref">$authorTitle</a></span>
     </div>
@@ -225,6 +225,21 @@ class OriginalFile(Container):
 
     def hasVoucher(self):
         return bool(self.voucher)
+
+    def getStateCollectionHREF(self,state):
+        prefix = '/producents/prehledy/originaly'
+        stateHREFs = dict(
+            declarationWithError = '/producent/problemy-pri-zpracovani/chyba-v-zadani',
+            fileProblem = '/producent/problemy-pri-zpracovani/problem-s-originalem',
+            wrongISBNError = '/producent/problemy-pri-zpracovani/chyba-v-isbn',
+            onlyCzechISBNAceptedError = '/producent/problemy-pri-zpracovani/jsou-prijimana-pouze-ceska-isbn',
+            isbnAlreadyExistsError = '/producent/problemy-pri-zpracovani/isbn-jiz-existuje',
+            zpracovatelIsRequiredError = '/producent/problemy-pri-zpracovani/zpracovatel-je-povinny',
+            middlewareProblem = '/producent/problemy-pri-zpracovani/chyba-v-systemu',
+            DatumVydaniIsRequired = '/producent/problemy-pri-zpracovani/datum-vydani-je-povinne'
+            )
+        stateHREF = stateHREFs.get(state, "/")
+        return api.portal.get().absolute_url() + prefix + stateHREF
 
     def folder_full_view_item(self):
         state = api.content.get_state(obj=self)
@@ -241,6 +256,7 @@ class OriginalFile(Container):
             typeClass = 'contenttype-' + plone_utils.normalizeString(self.portal_type),
             stateClass = 'state-' + plone_utils.normalizeString(state),
             stateTitle = stateTitle,
+            stateCollectionHREF = self.getStateCollectionHREF(state),
             authorHref = author and mtool.getHomeUrl(author),
             authorTitle = member and member.getProperty('fullname') or member.id,
             lastModified = self.toLocalizedTime(self.ModificationDate(),1),
