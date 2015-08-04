@@ -30,5 +30,15 @@
         authenticated="False"
         inline="False" 
         insert-after=""/>
+    <javascript
+        id="++resource++edeposit.content/js/isbn-widget.js"
+        cacheable="True" 
+        compression="safe" 
+        cookable="True"
+        enabled="True" 
+        expression=""
+        authenticated="False"
+        inline="False" 
+        insert-after=""/>
 </object>
 
