@@ -1,9 +1,16 @@
+# -*- coding: utf-8 -*-
+from five import grok
+from z3c.form import group, field, button
+from zope.interface import implements
+from zope.component import adapts
+from plone.directives import dexterity, form
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+
+from edeposit.content.originalfile import IOriginalFile
+from edeposit.app.fields import ISBNLine
 
 class IChangeISBNForm(form.Schema):
-    file = NamedBlobFile(
-        title=u"Připojit soubor s ePublikací",
-        required = False,
-        )
+    isbn = ISBNLine( title=u"ISBN", required = True)
     
 class ChangeISBNView(form.SchemaForm):
     grok.context(IOriginalFile)

@@ -10,6 +10,8 @@
   <!-- Register components configured using Python directives -->
   <grok:grok package="." />
 
+  <adapter factory=".originalfile_isbn.OriginalFileChangeISBN"/>
+
   <browser:page
       name="aleph-record-loaded"
       for="edeposit.content.epublicationfolder.IePublicationFolder"
