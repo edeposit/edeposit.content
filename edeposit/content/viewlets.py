@@ -167,8 +167,8 @@ class SendToAcquisitionButton(plone.app.layout.viewlets.common.ContentActionsVie
 
     def submitDeclarationURL(self):
         baseUrl = "/".join([self.context.absolute_url(),"content_status_comment"])
-        transition = self.context.isbn and 'submitDeclarationToISBNValidation' \
-                     or "submitDeclarationToAntivirus"
+        transition = (self.context.isbn and (self.context.isbnAppearsAtRelatedAlephRecord and 'submitDeclarationSkipISBNValidation' or 'submitDeclarationToISBNValidation')) or ('submitDeclarationToAntivirus')
+        #transition = self.context.isbn and 'submitDeclarationToISBNValidation'  or "submitDeclarationToAntivirus"
         return baseUrl + "?workflow_action=" + transition
 
 
