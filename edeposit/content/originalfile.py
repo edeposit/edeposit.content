@@ -106,16 +106,13 @@ class VoucherFile(NamedBlobFile):
 class OriginalFileSource(NamedBlobFile):
     implements(IOriginalFileSourceField)
 
-# isbn widget
-class IISBNWidgetField(schema.ASCIILine):
-    pass
-
+from edeposit.app.fields import ISBNLine
 
 class IOriginalFile(form.Schema, IImageScaleTraversable):
     """
     E-Deposit Original File
     """
-    isbn = schema.ASCIILine(
+    isbn = ISBNLine ( #schema.ASCIILine(
         title=_("ISBN"),
         required = False,
         )
@@ -832,8 +829,8 @@ class ChangeSourceView(form.SchemaForm):
             self.context.thumbnail = None
             wft = api.portal.get_tool('portal_workflow')
             wft.doActionFor(self.context, (self.context.isbn and (\
-                        self.context.isbnAppearsAtRelatedAlephRecord and 'submitDeclarationSkipISBNValidation' or
-                        'submitDeclarationToISBNValidation')) or ('submitDeclarationToAntivirus'))
+                self.context.isbnAppearsAtRelatedAlephRecord and 'submitDeclarationSkipISBNValidation' or
+                'submitDeclarationToISBNValidation')) or ('submitDeclarationToAntivirus'))
 
         self.request.response.redirect(self.context.absolute_url())
 
