@@ -33,7 +33,7 @@ import json
 from five import grok
 from lxml import html
 
-class OriginalFileDisplayForm(form.SchemaForm):
+class OriginalFileEditForm(form.SchemaForm):
     schema = IOriginalFile
     ignoreContext = False
     mode = 'edit'
