@@ -195,6 +195,10 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
         title = u"URN:NBN číslo",
         required = False,
     )
+    storage_download_url = schema.ASCIILine (
+        title = u"Linka do úložiště",
+        required = False,
+    )
     
 @form.default_value(field=IOriginalFile['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
