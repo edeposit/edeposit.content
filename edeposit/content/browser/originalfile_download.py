@@ -12,9 +12,8 @@ from .voucher import OriginalFileDisplayForm, OriginalFileFormView
 class FileDownload(BrowserView):
     def __call__(self):
         if not self.context.file:
-            raise NotFound(self, 'ohlasovaci-listek.pdf', self.request)
-        file
-        set_headers(self.context.file, self.request.response, filename="ohlasovaci-listek.pdf")
+            raise NotFound(self, 'original.pdf', self.request)
+        set_headers(self.context.file, self.request.response, filename=self.context.file.filename)
         return stream_data(self.context.file)
 
 class DownloadFileFromStorage(BrowserView):

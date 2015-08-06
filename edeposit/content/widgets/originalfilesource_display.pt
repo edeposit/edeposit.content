@@ -29,9 +29,8 @@
         tal:attributes="href view/download_url">Filename</a>
      <span class="discreet" tal:condition="can_download"> &mdash; <span tal:define="sizekb view/file_size" tal:replace="sizekb">100</span> KB</span>
    </span>
-   <span tal:condition="not:exists" class="discreet" i18n:translate="no_file">
-     No file
-   </span>
+   <span tal:condition="not:exists" class="discreet"
+         i18n:translate="no_file">No file</span>
    <span><a class="originalfile-change-source" 
             tal:condition="view/can_change"
             href="" 
