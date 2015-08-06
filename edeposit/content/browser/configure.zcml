@@ -58,6 +58,13 @@
       />
 
   <browser:page
+      name="has-file"
+      for="edeposit.content.originalfile.IOriginalFile"
+      class=".originalfile_download.HasFile"
+      permission="zope2.View"
+      />
+
+  <browser:page
       name="changes-notification-email"
       for="edeposit.content.originalfile.IOriginalFile"
       class=".changes_notification_email.ChangesEmail"
