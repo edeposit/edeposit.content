@@ -19,16 +19,22 @@ class OriginalFileSourceWidget(NamedFileWidget):
         return mtool.checkPermission('Modify portal content', self.context)
 
     @property
+    def is_public(self):
+        return self.context.is_public
+
+    @property
     def can_download(self):
         return self.context.is_public or self.can_change
+        # TODO doplnit rozhodnuti, zda muze stahovat i na vlastnika
+        # tem muze stahovat i kdyz nema opravneni upravovat.
 
     @property
     def storage_download_url(self):
-        return getattr(self.context.storage_download_url,None)
+        return getattr(self.context,'storage_download_url',None)
 
     @property
     def storage_filename(self):
-        return getattr(self.context.storage_download_url,None)
+        return getattr(self.context,'storage_download_url',None)
 
     @property
     def filename(self):

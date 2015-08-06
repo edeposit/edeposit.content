@@ -16,7 +16,10 @@
                       onkeyup view/onkeyup"
         tal:define="value view/value;
                     exists python:value is not None;
-                    can_download view/can_download">
+                    can_download view/can_download;
+                    storage_download_url view/storage_download_url;
+                    is_public view/is_public;
+                    ">
 
    <span tal:define="fieldname view/field/__name__ | nothing;
                      filename view/filename;
@@ -25,12 +28,17 @@
      <a class="originalfile-source-download"
         tal:content="filename"
         tal:omit-tag="not:exists:context/absolute_url"
-        tal:condition="can_download"
         tal:attributes="href view/download_url">Filename</a>
-     <span class="discreet" tal:condition="can_download"> &mdash; <span tal:define="sizekb view/file_size" tal:replace="sizekb">100</span> KB</span>
+     <span class="discreet"> &mdash; <span tal:define="sizekb view/file_size" tal:replace="sizekb">100</span> KB</span>
    </span>
-   <span tal:condition="not:exists" class="discreet"
-         i18n:translate="no_file">No file</span>
+   <tal:block tal:condition="not:exists">
+     <span tal:condition="not:storage_download_url" class="discreet" i18n:translate="no_file">No file</span>
+     <a tal:condition="is_public" class="discreet" href="storage_download_url" 
+        tal:attributes="href storage_download_url">Stáhnout z úložiště</a>
+     <a tal:condition="not:is_public" 
+        class="discreet load-file-from-storage" 
+        href="load-file-from-storage" >Stáhnout z úložiště</a>
+   </tal:block>
    <span><a class="originalfile-change-source" 
             tal:condition="view/can_change"
             href="" 
