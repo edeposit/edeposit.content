@@ -58,6 +58,13 @@
       />
 
   <browser:page
+      name="load-file-from-storage"
+      for="edeposit.content.originalfile.IOriginalFile"
+      class=".originalfile_download.LoadFileFromStorage"
+      permission="zope2.View"
+      />
+
+  <browser:page
       name="has-file"
       for="edeposit.content.originalfile.IOriginalFile"
       class=".originalfile_download.HasFile"

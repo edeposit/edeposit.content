@@ -16,7 +16,7 @@ class FileDownload(BrowserView):
         set_headers(self.context.file, self.request.response, filename=self.context.file.filename)
         return stream_data(self.context.file)
 
-class DownloadFileFromStorage(BrowserView):
+class LoadFileFromStorage(BrowserView):
     def __call__(self):
         with api.env.adopt_user(username="system"):
             wft = api.portal.get_tool('portal_workflow')
