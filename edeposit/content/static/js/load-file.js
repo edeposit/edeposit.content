@@ -31,5 +31,13 @@
 
         $(function(){
                 $(".load-file-from-storage").click(submitLoadFileFromStorage);
+                $('.originalfile-change-source').prepOverlay({
+                        subtype:'ajax',
+                        filter:common_content_filter,
+                        formselector:'form#sourceform',
+                        noform: function(el){
+                                return 'reload'; 
+                        },
+                });
         });
 })(jQuery);
