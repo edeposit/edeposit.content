@@ -344,7 +344,8 @@ class OriginalFile(Container):
         return responses and responses[0]
 
     def submitValidationsForLTP(self):
-        format = IFormat(self).format or ""
+        format = getAdapter(self,IFormat).format or ""
+        print "submit ValidationsForLTP, format:\"%s\"\n" % (format,)
         if format == 'PDF':
             IPloneTaskSender(DoActionFor(transition='submitPDFBoxValidation', uid=self.UID())).send()
 

@@ -710,8 +710,8 @@ class OriginalFileAntivirusResultHandler(namedtuple('AntivirusResult',['context'
                                                       'antivirusOKSkipExportToAleph' or 'antivirusOKAleph') 
                                   or 'antivirusOKISBNGeneration')
                 print "transition: %s" % (transition,)
-                wft.doActionFor(context, transition)
                 context.submitValidationsForLTP()
+                wft.doActionFor(context, transition)
             pass
         pass
 
