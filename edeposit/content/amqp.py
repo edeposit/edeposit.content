@@ -87,10 +87,11 @@ from edeposit.amqp.storage import (
     SaveRequest,
 )
 
-from  edeposit.amqp.ltp import (
-    ExportRequest,
-    TrackingRequest
-)
+import edeposit.amqp.ltp as ltp
+# from  edeposit.amqp.ltp import (
+#     ExportRequest,
+#     TrackingRequest
+# )
 
 
 from edeposit.user.producent import IProducent
@@ -703,13 +704,14 @@ class OriginalFileAntivirusResultHandler(namedtuple('AntivirusResult',['context'
                 comment =u"v souboru %s je virus: %s" % (context.file.filename, str(result.result))
                 wft.doActionFor(context, 'antivirusError', comment=comment)
             else:
+                print "current state: ", api.content.get_state(self.context)
                 transition =  context.needsThumbnailGeneration() and 'antivirusOKThumbnail' \
                               or (context.isbn and  ( context.hasSomeAlephRecords() and 
                                                       'antivirusOKSkipExportToAleph' or 'antivirusOKAleph') 
                                   or 'antivirusOKISBNGeneration')
                 print "transition: %s" % (transition,)
-                wft.doActionFor(context, transition)
                 context.submitValidationsForLTP()
+                wft.doActionFor(context, transition)
             pass
         pass
 
@@ -727,11 +729,14 @@ class OriginalFileThumbnailGeneratingResultHandler(namedtuple('ThumbnailGenerati
             bfile = NamedBlobFile(data=b64decode(self.result.b64_data),  filename=u"thumbnail.pdf")
             self.context.thumbnail = bfile
             transaction.savepoint(optimistic=True)
-            transition = self.context.isbn and (self.context.hasSomeAlephRecords() 
-                                                and 'thumbnailOKSkipExportToAleph'
-                                                or  'thumbnailOKAleph') or 'thumbnailOKISBNGeneration'
-            print "state: %s, do action for: " % (api.content.get_state(self.context), transition)
-            wft.doActionFor(self.context, transition)
+            transition =  self.context.isbn and (self.context.hasSomeAlephRecords() 
+                                                 and 'thumbnailOKSkipExportToAleph'
+                                                 or  'thumbnailOKAleph')  or 'thumbnailOKISBNGeneration'
+            try:
+                wft.doActionFor(self.context,transition)
+            except WorkflowException:
+                comment = u"akce: '%s' neni ve stavu '%s' povolena" %(transition, api.content.get_state(obj=self.context))
+                print "... Thumbnail Generating Result  error", comment
         pass
 
 
@@ -1590,7 +1595,7 @@ class ExportToLTPRequestSender(namedtuple('ExportToLTPRequest',['context'])):
             print "... chyba exportu do LTP, chybi related aleph zaznam"
             return
         
-        request = ExportRequest (
+        request = ltp.ExportRequest (
             aleph_record = aleph_record.xml.data,
             book_uuid = self.context.UID(),
             urn_nbn = self.context.urnnbn,
