@@ -29,11 +29,11 @@ def StatesGenerator(obj):
         return
 
     def check_closedDescriptiveCataloguing():
-        if related_aleph_record.hasDescriptiveCataloguingFields:
+        if related_aleph_record.descriptiveCataloguingFields:
             return check_closedDescriptiveCataloguingReviewPreparing
 
     def check_descriptiveCataloguing():
-        if related_aleph_record.hasDescriptiveCataloguingFields:
+        if related_aleph_record.descriptiveCataloguingFields:
             return check_descriptiveCataloguingReviewPreparing
 
     def check_descriptiveCataloguingPreparing():
@@ -44,11 +44,11 @@ def StatesGenerator(obj):
                 return check_DescriptiveCataloguing
             
     def check_isbnSubjectValidation():
-        if related_aleph_record.hasISBNAgencyFields:
+        if related_aleph_record.ISBNAgencyFields:
             return check_descriptiveCataloguingPreparing
 
     def check_isbnGeneration():
-        if related_aleph_record.hasISBNAgencyFields:
+        if related_aleph_record.ISBNAgencyFields:
             return check_chooseProperAlephRecord
 
     def check_acquisition():

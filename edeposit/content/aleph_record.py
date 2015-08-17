@@ -82,35 +82,40 @@ class IAlephRecord(form.Schema, IImageScaleTraversable):
         required = False,
         default = False,
     )
-    hasISBNAgencyFields= schema.Bool (
-        title = _(u'has ISBN Agency Fields'),
+    ISBNAgencyFields= schema.List (
+        title = _(u'ISBN Agency Fields'),
         description = _(u'This record has ISBN Agency fields'),
         required = False,
-        default = False,
+        default = None,
+        value_type = schema.TextLine(),
     )
-    hasDescriptiveCataloguingFields= schema.Bool (
-        title = _(u'has Descriptive Cataloguing Fields'),
+    descriptiveCataloguingFields= schema.List (
+        title = _(u'Descriptive Cataloguing Fields'),
         description = u"",
         required = False,
-        default = False,
+        default = None,
+        value_type = schema.TextLine(),
     )
-    hasDescriptiveCataloguingReviewFields= schema.Bool (
-        title = _(u'has Descriptive Cataloguing Review Fields'),
+    descriptiveCataloguingReviewFields= schema.List (
+        title = _(u'Descriptive Cataloguing Review Fields'),
         description = u"",
         required = False,
-        default = False,
+        default = None,
+        value_type = schema.TextLine(),
     )
-    hasSubjectCataloguingFields= schema.Bool (
-        title = _(u'has Subject Cataloguing Fields'),
+    subjectCataloguingFields= schema.List (
+        title = _(u'Subject Cataloguing Fields'),
         description = u"",
         required = False,
-        default = False,
+        default = None,
+        value_type = schema.TextLine(),
     )
-    hasSubjectCataloguingReviewFields= schema.Bool (
-        title = _(u'has Subject Cataloguing Review Fields'),
+    subjectCataloguingReviewFields= schema.List (
+        title = _(u'Subject Cataloguing Review Fields'),
         description = u"",
         required = False,
-        default = False,
+        default = None,
+        value_type = schema.TextLine(),
     )
     isClosed= schema.Bool (
         title = _(u'is closed out by Catalogizators'),
