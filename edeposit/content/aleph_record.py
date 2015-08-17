@@ -76,11 +76,12 @@ class IAlephRecord(form.Schema, IImageScaleTraversable):
         description = _(u'Library that Aleph refers to metadata of this ePublication'),
         required = True,
     )
-    hasAcquisitionFields= schema.Bool (
+    acquisitionFields= schema.List (
         title = _(u'has Acquisition Fields'),
         description = _(u'This record has acquisition fields.'),
         required = False,
-        default = False,
+        default = None,
+        value_type = schema.TextLine(),
     )
     ISBNAgencyFields= schema.List (
         title = _(u'ISBN Agency Fields'),

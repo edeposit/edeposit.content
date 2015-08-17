@@ -52,7 +52,7 @@ def StatesGenerator(obj):
             return check_chooseProperAlephRecord
 
     def check_acquisition():
-        if related_aleph_record.hasAcquisitionFields:
+        if related_aleph_record.acquisitionFields:
             if generated_isbn:
                 return check_isbnGeneration
             else:

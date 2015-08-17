@@ -55,7 +55,7 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
     
     @withRelatedAlephRecord
     def nextstep_for_acquisition(self, related_aleph_record=None, *args, **kwargs):
-        if related_aleph_record and related_aleph_record.hasAcquisitionFields:
+        if related_aleph_record and related_aleph_record.acquisitionFields:
             self.wft.doActionFor(self.context,'submitAcquisition')
             return True
         return False
