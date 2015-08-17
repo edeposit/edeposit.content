@@ -27,8 +27,10 @@ from datetime import datetime
 
 from edeposit.amqp.serializers import (
     serialize,
-    deserialize
+    deserialize,
 )
+
+from edeposit.amqp.serializers.serializers import  _deserializeNT
 
 from edeposit.content.amqp import (
     IAMQPHandler,
@@ -156,7 +158,7 @@ def handleAlephResponse(message, event):
         getMultiAdapter((context,amqpError),IAMQPHandler).handle()
         message.ack()
     else:
-        result = deserialize(json.dumps(message.body),globals())
+        result = _deserializeNT(message.body,globals())
         dataKeys = session_data.keys()
         # ResultFactory = None
         # if 'renew-records-for-sysnumber' in dataKeys:
@@ -208,7 +210,7 @@ def handleAntivirusResponse(message, event):
     else:
         # Messages from Antivir has its own deserialization logic. 
         # So we will use it.
-        result = deserialize(json.dumps(message.body),globals())
+        result = _deserializeNT(message.body,globals())
         getMultiAdapter((context,result),IAMQPHandler).handle()
         message.ack()
     pass
@@ -243,7 +245,7 @@ def handleCalibreResponse(message, event):
         getMultiAdapter((context,amqpError),IAMQPHandler).handle()
         message.ack()
     else:
-        result = deserialize(json.dumps(message.body),globals())
+        result = _deserializeNT(message.body,globals())
         getMultiAdapter((context,result),IAMQPHandler).handle()
         message.ack()
 
@@ -277,7 +279,7 @@ def handlePDFGenResponse(message, event):
         getMultiAdapter((context,amqpError),IAMQPHandler).handle()
         message.ack()
     else:
-        result = deserialize(json.dumps(message.body),globals())
+        result = _deserializeNT(message.body,globals())
         getMultiAdapter((context,result),IAMQPHandler).handle()
         message.ack()
 
@@ -364,7 +366,7 @@ def handlePloneTask(message, event):
         getMultiAdapter((context,amqpError),IAMQPHandler).handle()
         message.ack()
     else:
-        result = deserialize(message._serialized_body,globals())
+        result = _deserializeNT(message.body,globals())
         getMultiAdapter((context,result),IAMQPHandler).handle()
         message.ack()
 
