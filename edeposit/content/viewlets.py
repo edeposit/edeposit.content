@@ -160,7 +160,15 @@ class SummarySysNumberCopy(plone.app.layout.viewlets.common.ContentActionsViewle
 
 class SendToAcquisitionButton(plone.app.layout.viewlets.common.ContentActionsViewlet):
     def available(self):
-        return (api.content.get_state(self.context) == 'declarationWithError' \
+        return (api.content.get_state(self.context) in ('declarationWithError',
+                                                        'fileProblem',
+                                                        'onlyCzechISBNAcceptedError',
+                                                        'zpracovatelIsRequiredError',
+                                                        'DatumVydaniIsRequiredError',
+                                                        'isbnAlreadyExistsError',
+                                                        'wrongISBNError',
+                                                        'unknownError',
+                                                    ) \
                 and getSecurityManager().checkPermission(ModifyPortalContent, self.context)\
                 and self.context.file
         )
