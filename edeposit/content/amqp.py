@@ -727,10 +727,11 @@ class OriginalFileThumbnailGeneratingResultHandler(namedtuple('ThumbnailGenerati
             bfile = NamedBlobFile(data=b64decode(self.result.b64_data),  filename=u"thumbnail.pdf")
             self.context.thumbnail = bfile
             transaction.savepoint(optimistic=True)
-            wft.doActionFor(self.context, self.context.isbn and (self.context.hasSomeAlephRecords() 
-                                                                 and 'thumbnailOKSkipExportToAleph'
-                                                                 or  'thumbnailOKAleph')
-                            or 'thumbnailOKISBNGeneration')
+            transition = self.context.isbn and (self.context.hasSomeAlephRecords() 
+                                                and 'thumbnailOKSkipExportToAleph'
+                                                or  'thumbnailOKAleph') or 'thumbnailOKISBNGeneration'
+            print "state: %s, do action for: " % (api.content.get_state(self.context), transition)
+            wft.doActionFor(self.context, transition)
         pass
 
 
@@ -1564,8 +1565,11 @@ class SearchStorageResultHandler(namedtuple('SearchStorageResult',['context', 'r
         wft = api.portal.get_tool('portal_workflow')
         with api.env.adopt_user(username="system"):
             for publication in self.result.publications:
-                raise "Not Implemented yet"
-
+                uuid = publication.uuid
+                originalfile = api.content.get(UID=uuid)
+                if originalfile:
+                    originalfile.applyContentFromStorage(publication)
+                
             wft.doActionFor(self.context, "searchStorageOK")
             pass
         pass

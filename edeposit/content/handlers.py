@@ -236,6 +236,7 @@ def handleCalibreResponse(message, event):
         return
 
     if "exception" in headers:
+        print "exception", headers
         amqpError = AMQPError(payload=message.body, 
                               exception_name = headers.get('exception_name'),
                               exception = headers.get('exception'),

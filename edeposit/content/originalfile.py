@@ -708,6 +708,9 @@ class OriginalFile(Container):
         amqpErrors = filter(lambda rh: rh['action'] == 'amqpError', review_history)
         return amqpErrors
 
+    def applyContentFromStorage(self, storage_publication):
+        raise "Not implemented"
+
 class OriginalFilePrimaryFieldInfo(object):
     implements(IPrimaryFieldInfo)
     adapts(IOriginalFile)

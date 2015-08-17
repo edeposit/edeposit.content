@@ -152,7 +152,7 @@ class IAlephRecord(form.Schema, IImageScaleTraversable):
     id_number = schema.ASCIILine(
         title = u"Interní číslo",
         required = False
-        )
+    )
 
 # Custom content-type class; objects created for this content type will
 # be instances of this class. Use this class to add content-type specific
