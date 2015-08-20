@@ -16,12 +16,13 @@ from itertools import product
 from edeposit.content.behaviors import IFormat, ICalibreFormat
 from operator import attrgetter,itemgetter, methodcaller
 from edeposit.content.next_step import INextStep
+from AccessControl import Unauthorized
 
 from edeposit.content.amqp_interfaces import (
     IEmailSender
 )
 
-from edeposit.content.utils import normalizeISBN
+from edeposit.content.utils import normalizeISBN, readCollection
 from normalize_cz_unicode import normalize
 
 import lxml
@@ -1191,6 +1192,74 @@ class VoucherGenerationResultHandler(namedtuple('VoucherGenerationResult',['cont
             pass
         pass
 
+class SendEmailsWithCollectionToAllProducentsHandler(
+        namedtuple('SendEmailsWithCollectionToAllProducentsHandler',['context','result'])):
+        
+    def handle(self):
+        print "<- Plone AMQP Task: ", str(self.result)
+        with api.env.adopt_user(username="system"):
+            producents = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producent')
+            for producentId in map(attrgetter('id'), producents):
+                path = "/".join(['','producents',producentId])
+                IPloneTaskSender(
+                    SendEmailWithCollectionToProperProducentMembers(
+                        collectionPath = self.result.collectionPath,
+                        producentPath = path,
+                        subject = self.result.subject,
+                        additionalEmails = self.result.additionalEmails)).send()
+                break
+        pass
+
+class SendEmailWithCollectionToProperProducentMembersHandler (
+        namedtuple('SendEmailWithCollectionToProperProducentMembersHandler',['context','result'])):
+
+    def handle(self):
+        print "<- Plone AMQP Task: ", str(self.result)
+
+        collectionPath = filter(bool,self.result.collectionPath.split("/"))
+        producentPath = filter(bool,self.result.producentPath.split("/"))
+
+        collection = reduce(getattr, collectionPath, api.portal.getSite())
+        producent = reduce(getattr, producentPath, api.portal.get())
+
+        producentMembers = producent.getProducentMembers()
+        for username in producentMembers:
+            with api.env.adopt_user(username=username):
+                try:
+                    collData = readCollection(self.context.REQUEST, collection)
+                    if collData['isEmpty']:
+                        print "... empty collection for user: ", username
+                    else:
+                        pass
+
+                except Unauthorized, e:
+                    print "user: %s, is not authorized to read collection: %s" % (username, collection)
+        
+        # with api.env.adopt_user(username="system"):
+        #     view = api.content.get_view(name='tabular_view',context=collection, request=self.context.REQUEST)
+        #     htmlRoot = lxml.html.fromstring(view())
+        #     content = htmlRoot.get_element_by_id('content')
+
+        #     if not len(htmlRoot.xpath('//tbody/tr')):
+        #         print "... je prazdno, nic se odesilat nebude"
+        #         return
+
+        #     body = lxml.html.tostring(content)
+        #     subject = self.result.subject
+        #     groupname = self.result.recipientsGroup
+        #     recipients = self.result.additionalEmails
+        #     emailsFromGroup = [aa.getProperty('email') for aa in api.user.get_users(groupname=groupname)]
+        #     recipients = frozenset(emailsFromGroup + recipients)
+        #     print "... zacneme rozesilat pro: ", "|".join(recipients)
+        #     msg = MIMEMultipart('alternative')
+        #     msg.attach(MIMEText(subject,'plain'))
+        #     msg.attach(MIMEText(body,'html'))
+        #     for recipient in recipients:
+        #         print "... poslal jsem email: ", subject, recipient
+        #         api.portal.send_email(recipient=recipient, subject=subject, body=msg)
+        #     pass
+        
+        
 class SendEmailWithCollectionToGroupTaskHandler(namedtuple('SendEmailWithCollectionToGroupTaskHandler',
                                                            ['context','result'])):
     """
@@ -1400,7 +1469,7 @@ class EnsureProducentsRolesConsistencyTaskHandler(namedtuple('EnsureProducentsRo
                 IPloneTaskSender(DoActionFor(transition='ensureRolesConsistency', uid=uid)).send()
 
 
-class EPublicationsWithErrorEmailNotifyForAllProducents(namedtuple('EPublicationsWithErrorEmailNotifyForAllProducents',
+class EPublicationsWithErrorEmailNotifyForAllProducentsHandler(namedtuple('EPublicationsWithErrorEmailNotifyForAllProducentsHandler',
                                                                     ['context', 'result'])):
     """ 
     context: IAMQPHandler
@@ -1412,7 +1481,7 @@ class EPublicationsWithErrorEmailNotifyForAllProducents(namedtuple('EPublication
             producents = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producent')
             uids = map(lambda item: item.UID, producents)
             for uid in uids:
-                IPloneTaskSender(EPublicationsWithErrorEmailNotify(uid=uid)).send()
+                IPloneTaskSender(EPublicationsWithErrorEmailNotifyo(uid=uid)).send()
 
 class BookAntivirusResultHandler(namedtuple('BookAntivirusResult',['context', 'result'])):
     implements(IAMQPHandler)

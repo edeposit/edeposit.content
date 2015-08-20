@@ -275,7 +275,23 @@
            edeposit.content.tasks.IEPublicationsWithErrorEmailNotifyForAllProducents
            "
       provides="edeposit.content.amqp.IAMQPHandler"
-      factory=".amqp.EPublicationsWithErrorEmailNotifyForAllProducents"
+      factory=".amqp.EPublicationsWithErrorEmailNotifyForAllProducentsHandler"
+      />
+
+  <adapter
+      for="edeposit.content.amqp_folder.IAMQPFolder
+           edeposit.content.tasks.ISendEmailsWithCollectionToAllProducents
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.SendEmailsWithCollectionToAllProducentsHandler"
+      />
+
+  <adapter
+      for="edeposit.content.amqp_folder.IAMQPFolder
+           edeposit.content.tasks.ISendEmailWithCollectionToProperProducentMembers
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.SendEmailWithCollectionToProperProducentMembersHandler"
       />
 
 </configure>
