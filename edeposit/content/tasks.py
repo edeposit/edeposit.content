@@ -72,6 +72,34 @@ class SendEmailWithCollectionToGroup(namedtuple('SendEmailWithCollectionToGroup'
     implements(ISendEmailWithCollectionToGroup)
     pass
 
+
+class ISendEmailsWithCollectionToAllProducents(IPloneTask):
+    collectionPath = schema.ASCIILine()
+    additionalEmails = schema.List (
+        value_type = schema.ASCIILine()
+    )
+    subject = schema.TextLine()
+
+class SendEmailsWithCollectionToAllProducents (
+        namedtuple('SendEmailsWithCollectionToAllProducents',
+                   ['collectionPath','additionalEmails','subject'])):
+    implements(ISendEmailsWithCollectionToAllProducents)
+    pass
+
+class ISendEmailWithCollectionToProperProducentMembers(IPloneTask):
+    collectionPath = schema.ASCIILine()
+    producentPath = schema.ASCIILine()
+    additionalEmails = schema.List (
+        value_type = schema.ASCIILine()
+    )
+    subject = schema.TextLine()
+
+class SendEmailWithCollectionToProperProducentMembers(
+        namedtuple('SendEmailWithCollectionToProperProducentMembers',
+                   ['collectionPath','producentPath','additionalEmails','subject'])):
+    implements(ISendEmailWithCollectionToProperProducentMembers)
+    pass
+
 class ILoadSysNumbersFromAleph(IPloneTask):
     pass
 
