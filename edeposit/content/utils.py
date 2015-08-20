@@ -6,6 +6,12 @@ import isbnlib
 from plone import api
 import lxml
 from AccessControl import Unauthorized
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+import os
+import sh
+import tempfile
 
 # nosier "/usr/bin/python utils.py"
 
@@ -50,10 +56,28 @@ def readCollection(request, collection):
                                 context=collection, 
                                 request=request)
     html = lxml.html.fromstring(view())
-    body = lxml.html.tostring(html.get_element_by_id('content'))
+    body = lxml.html.tostring(html.get_element_by_id('content'),encoding='UTF-8')
     isEmpty = len(lxml.html.fromstring(body).xpath('//tbody/tr')) == 0
     subject = collection.title
     return dict(body=body, subject=subject, isEmpty = isEmpty)
+
+def sendHTMLMultipartEmail(recipients, subject, html):
+    tmpOut = tempfile.NamedTemporaryFile(prefix="send-html-multipart-email-",suffix=".html", delete=False)
+    tmpOut.write(html)
+    tmpOut.close()
+
+    process = sh.w3m('-dump','-cols','120',tmpOut.name)
+    process.wait()
+    text = unicode(process)
+    os.unlink(tmpOut.name)
+
+    msg = MIMEMultipart('alternative')
+    msg.attach(MIMEText(text,'plain','utf-8'))
+    msg.attach(MIMEText(html,'html','utf-8'))
+
+    for recipient in recipients:
+        print "... poslal jsem email: ", subject, recipient
+        api.portal.send_email(recipient=recipient, subject=subject, body=msg)
 
 if __name__ == "__main__":
     import doctest
