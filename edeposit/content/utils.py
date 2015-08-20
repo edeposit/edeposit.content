@@ -3,6 +3,9 @@ from functools import partial
 import isbn_validator
 import re
 import isbnlib
+from plone import api
+import lxml
+from AccessControl import Unauthorized
 
 # nosier "/usr/bin/python utils.py"
 
@@ -42,6 +45,17 @@ def normalizeISBN(isbn):
     #return formatedISBN
     #return isbn
 
+def readCollection(request, collection):
+    view = api.content.get_view(name='tabular_view',
+                                context=collection, 
+                                request=request)
+    html = lxml.html.fromstring(view())
+    body = lxml.html.tostring(html.get_element_by_id('content'))
+    isEmpty = len(lxml.html.fromstring(body).xpath('//tbody/tr')) == 0
+    subject = collection.title
+    return dict(body=body, subject=subject, isEmpty = isEmpty)
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
+    
