@@ -22,7 +22,7 @@ from edeposit.content.amqp_interfaces import (
     IEmailSender
 )
 
-from edeposit.content.utils import normalizeISBN, readCollection
+from edeposit.content.utils import normalizeISBN, readCollection, sendHTMLMultipartEmail
 from normalize_cz_unicode import normalize
 
 import lxml
@@ -1200,6 +1200,7 @@ class SendEmailsWithCollectionToAllProducentsHandler(
         with api.env.adopt_user(username="system"):
             producents = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producent')
             for producentId in map(attrgetter('id'), producents):
+            #for producentId in ['jan-stavel',]:
                 path = "/".join(['','producents',producentId])
                 IPloneTaskSender(
                     SendEmailWithCollectionToProperProducentMembers(
@@ -1207,7 +1208,6 @@ class SendEmailsWithCollectionToAllProducentsHandler(
                         producentPath = path,
                         subject = self.result.subject,
                         additionalEmails = self.result.additionalEmails)).send()
-                break
         pass
 
 class SendEmailWithCollectionToProperProducentMembersHandler (
@@ -1224,41 +1224,22 @@ class SendEmailWithCollectionToProperProducentMembersHandler (
 
         producentMembers = producent.getProducentMembers()
         for username in producentMembers:
+            email = api.user.get(username=username).getProperty('email')
+            if not email:
+                print "... uzivatel: %s nema email. Nic neposilam." % (username,)
+                continue
+
             with api.env.adopt_user(username=username):
                 try:
                     collData = readCollection(self.context.REQUEST, collection)
                     if collData['isEmpty']:
                         print "... empty collection for user: ", username
                     else:
-                        pass
-
+                        sendHTMLMultipartEmail([email] + (self.result.additionalEmails or []),
+                                               self.result.subject or collData['subject'],
+                                               collData['body'])
                 except Unauthorized, e:
                     print "user: %s, is not authorized to read collection: %s" % (username, collection)
-        
-        # with api.env.adopt_user(username="system"):
-        #     view = api.content.get_view(name='tabular_view',context=collection, request=self.context.REQUEST)
-        #     htmlRoot = lxml.html.fromstring(view())
-        #     content = htmlRoot.get_element_by_id('content')
-
-        #     if not len(htmlRoot.xpath('//tbody/tr')):
-        #         print "... je prazdno, nic se odesilat nebude"
-        #         return
-
-        #     body = lxml.html.tostring(content)
-        #     subject = self.result.subject
-        #     groupname = self.result.recipientsGroup
-        #     recipients = self.result.additionalEmails
-        #     emailsFromGroup = [aa.getProperty('email') for aa in api.user.get_users(groupname=groupname)]
-        #     recipients = frozenset(emailsFromGroup + recipients)
-        #     print "... zacneme rozesilat pro: ", "|".join(recipients)
-        #     msg = MIMEMultipart('alternative')
-        #     msg.attach(MIMEText(subject,'plain'))
-        #     msg.attach(MIMEText(body,'html'))
-        #     for recipient in recipients:
-        #         print "... poslal jsem email: ", subject, recipient
-        #         api.portal.send_email(recipient=recipient, subject=subject, body=msg)
-        #     pass
-        
         
 class SendEmailWithCollectionToGroupTaskHandler(namedtuple('SendEmailWithCollectionToGroupTaskHandler',
                                                            ['context','result'])):
