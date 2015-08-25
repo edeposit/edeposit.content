@@ -1640,8 +1640,10 @@ class ExportToLTPRequestSender(namedtuple('ExportToLTPRequest',['context'])):
         if not aleph_record:
             print "... chyba exportu do LTP, chybi related aleph zaznam"
             return
-        
+
+        url = self.context.absolute_url()
         request = ltp.ExportRequest (
+            url = url,
             aleph_record = aleph_record.xml.data,
             book_uuid = self.context.UID(),
             urn_nbn = self.context.urnnbn,

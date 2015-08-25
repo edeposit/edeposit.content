@@ -360,6 +360,7 @@ def handlePloneTask(message, event):
         session_data={}
 
     if "exception" in headers:
+        print "... handle plone task - exception", message.body
         amqpError = AMQPError(payload=message.body, 
                               exception_name = headers.get('exception_name'),
                               exception = headers.get('exception'),
@@ -367,6 +368,7 @@ def handlePloneTask(message, event):
         getMultiAdapter((context,amqpError),IAMQPHandler).handle()
         message.ack()
     else:
+        print "... handle plone task: ", message.body
         result = _deserializeNT(message.body,globals())
         getMultiAdapter((context,result),IAMQPHandler).handle()
         message.ack()
