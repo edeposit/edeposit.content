@@ -227,6 +227,9 @@ class OriginalFile(Container):
     def hasVoucher(self):
         return bool(self.voucher)
 
+    def getCurrentStateCollectionHREF(self):
+        return self.getStateCollectionHREF(api.content.get_state(self))
+
     def getStateCollectionHREF(self,state):
         prefix = '/producents/prehledy/originaly'
         stateHREFs = dict(
