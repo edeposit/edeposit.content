@@ -1254,28 +1254,40 @@ class SendEmailWithCollectionToGroupTaskHandler(namedtuple('SendEmailWithCollect
         print "collection with path: ", path
         with api.env.adopt_user(username="system"):
             collection = reduce(getattr, path, api.portal.getSite())
-            view = api.content.get_view(name='tabular_view',context=collection, request=self.context.REQUEST)
-            htmlRoot = lxml.html.fromstring(view())
-            content = htmlRoot.get_element_by_id('content')
-
-            if not len(htmlRoot.xpath('//tbody/tr')):
+            collData = readCollection(self.context.REQUEST, collection)
+            if collData['isEmpty']:
                 print "... je prazdno, nic se odesilat nebude"
                 return
 
-            body = lxml.html.tostring(content)
-            subject = self.result.subject
             groupname = self.result.recipientsGroup
             recipients = self.result.additionalEmails
             emailsFromGroup = [aa.getProperty('email') for aa in api.user.get_users(groupname=groupname)]
             recipients = frozenset(emailsFromGroup + recipients)
             print "... zacneme rozesilat pro: ", "|".join(recipients)
-            msg = MIMEMultipart('alternative')
-            msg.attach(MIMEText(subject,'plain'))
-            msg.attach(MIMEText(body,'html'))
-            for recipient in recipients:
-                print "... poslal jsem email: ", subject, recipient
-                api.portal.send_email(recipient=recipient, subject=subject, body=msg)
-            pass
+            sendHTMLMultipartEmail(recipients, self.result.subject or collData['subject'], collData['body'])
+
+            # view = api.content.get_view(name='tabular_view',context=collection, request=self.context.REQUEST)
+            # htmlRoot = lxml.html.fromstring(view())
+            # content = htmlRoot.get_element_by_id('content')
+
+            # if not len(htmlRoot.xpath('//tbody/tr')):
+            #     print "... je prazdno, nic se odesilat nebude"
+            #     return
+
+            # body = lxml.html.tostring(content)
+            # subject = self.result.subject
+            # groupname = self.result.recipientsGroup
+            # recipients = self.result.additionalEmails
+            # emailsFromGroup = [aa.getProperty('email') for aa in api.user.get_users(groupname=groupname)]
+            # recipients = frozenset(emailsFromGroup + recipients)
+            # print "... zacneme rozesilat pro: ", "|".join(recipients)
+            # msg = MIMEMultipart('alternative')
+            # msg.attach(MIMEText(subject,'plain'))
+            # msg.attach(MIMEText(body,'html'))
+            # for recipient in recipients:
+            #     print "... poslal jsem email: ", subject, recipient
+            #     api.portal.send_email(recipient=recipient, subject=subject, body=msg)
+            # pass
 
 
 class SendEmailWithWorklistToGroupTaskHandler(namedtuple('SendEmailWithWorklistToGroupTaskHandler',
