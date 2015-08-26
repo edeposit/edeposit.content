@@ -38,10 +38,12 @@
 	    </dl>
           </li>
         </ul>
-	<span class="noMenuAction" tal:condition="not:transitions">
-	  <span> Stav: </span>
-	  <a class="" tal:attributes="href context/getCurrentStateCollectionHREF"><span class="contentstate-title"  tal:content="wf_state/title" i18n:translate="">ISBN Generation</span></a>
-	  <span class="arrowDownAlternative" tal:condition="transitions | nothing">&#9660;</span>
+	<span class="noMenuAction" tal:condition="not:transitions" tal:replace="structure context/state_viewlet">
+	  <!-- <span> Stav: </span> -->
+	  <!-- <a class="" tal:attributes="href context/getCurrentStateCollectionHREF"> -->
+	  <!--   <span class="contentstate-title"  tal:content="wf_state/title" i18n:translate="">ISBN Generation</span> -->
+	  <!-- </a> -->
+	  <!-- <span class="arrowDownAlternative" tal:condition="transitions | nothing">&#9660;</span> -->
 	</span>
     </tal:block>
 </div>

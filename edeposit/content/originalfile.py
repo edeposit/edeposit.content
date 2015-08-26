@@ -224,6 +224,12 @@ class OriginalFile(Container):
 </div>
 """)
 
+    state_view_template = Template(u"""
+    <div class="document-state-viewlet">
+        <span class="ObjectStatus">Stav: <a class="$stateClass" href="$stateCollectionHREF">$stateTitle</a></span>
+    </div>
+""")
+
     def hasVoucher(self):
         return bool(self.voucher)
 
@@ -232,7 +238,11 @@ class OriginalFile(Container):
 
     def getStateCollectionHREF(self,state):
         prefix = '/producents/prehledy/originaly'
+        print "getStateCollectionHREF for: ", state
         stateHREFs = dict(
+            acquisition = '/producents/prehledy/originaly/akvizice/cekaji-na-akvizici',
+            ISBNSubjectValidation = '/producents/prehledy/originaly/isbn-agentura/cekaji-na-vecnou-kontrolu-isbn',
+            chooseProperAlephRecord = '/producents/prehledy/originaly/akvizice/cekaji-na-vyber-spravneho-zaznamu-z-alephu',
             declarationWithError = '/producent/problemy-pri-zpracovani/chyba-v-zadani',
             fileProblem = '/producent/problemy-pri-zpracovani/problem-s-originalem',
             wrongISBNError = '/producent/problemy-pri-zpracovani/chyba-v-isbn',
@@ -267,6 +277,17 @@ class OriginalFile(Container):
             )
         return OriginalFile.folder_full_view_item_template.substitute(data)
 
+    def state_viewlet(self):
+        state = api.content.get_state(obj=self)
+        stateTitle = translate(self.portal_workflow.getTitleForStateOnType(state, self.portal_type),
+                               domain='plone',context = self.REQUEST)
+        data = dict(
+            stateClass = 'state-' + self.plone_utils.normalizeString(state),
+            stateTitle = stateTitle,
+            stateCollectionHREF = self.getStateCollectionHREF(state),
+            )
+        return OriginalFile.state_view_template.substitute(data)
+        
     def updateFormat(self):
         data = self.file and self.file.data
         if data:
