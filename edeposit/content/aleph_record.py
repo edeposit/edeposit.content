@@ -8,7 +8,7 @@ from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
 from plone.dexterity.content import Item
-
+from zope.lifecycleevent import modified
 from plone.directives import dexterity, form
 from plone.app.textfield import RichText
 from plone.namedfile.field import NamedImage, NamedFile
@@ -176,7 +176,19 @@ class AlephRecord(Item):
         # print "changedAttrs", changedAttrs
         for attr in changedAttrs:
             setattr(self, attr, data.get(attr,None) )
+
+        importantAttrs = frozenset(changedAttrs) - frozenset(['xml','aleph_library'])
+        if importantAttrs:
+            modified(self)
+
         return changedAttrs
+
+    def set_new_version(self, comment="new version"):
+        try:
+            self.portal_repository.save(obj=self, comment=comment)
+        except FileTooLargeToVersionError:
+            pass # the on edit save will emit a warning
+
 
 # View class
 # The view will automatically use a similarly named template in

@@ -444,11 +444,13 @@ class OriginalFile(Container):
             #     setattr(alephRecord,attr,dataForFactory.get(attr,None))
 
             changedAttrs = alephRecord.findAndLoadChanges(dataForFactory)
-            if changedAttrs and changedAttrs != ['xml']:
+            importantAttrs = frozenset(changedAttrs) - frozenset(['xml','aleph_library'])
+            if importantAttrs:
+                print "... changed important attrs: ", importantAttrs
                 IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
 
         else:
-            createContentInContainer(self, 'edeposit.content.alephrecord', **dataForFactory)
+            alephRecord = createContentInContainer(self, 'edeposit.content.alephrecord', **dataForFactory)
 
             # if dataForFactory.get('isClosed',False):
             #     self.related_aleph_record = None
@@ -485,12 +487,12 @@ class OriginalFile(Container):
             # print "changedAttrs", changedAttrs
             # for attr in changedAttrs:
             #     setattr(alephRecord,attr,dataForFactory.get(attr,None))
-
-            if changedAttrs and changedAttrs != ['xml']:
+            importantAttrs = frozenset(changedAttrs) - frozenset(['xml','aleph_library'])
+            if importantAttrs:
+                print "... changed important attrs: ", importantAttrs
                 IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
-
         else:
-            createContentInContainer(self, 'edeposit.content.alephrecord', **dataForFactory)
+            alephRecord = createContentInContainer(self, 'edeposit.content.alephrecord', **dataForFactory)
 
             # if dataForFactory.get('isClosed',False):
             #     self.related_aleph_record = None
