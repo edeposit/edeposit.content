@@ -419,6 +419,32 @@ class OriginalFile(Container):
                                  isWellFormedEPub3 = result.isWellFormedEPUB3
         )
 
+        """
+./bin/instance80 debug
+
+of = app['edeposit']['producents']['ostre-nakladatelstvi-c-18']['epublications']['sherlock-holmes-a-pripad-dvou-zmizelych']['sh_a_pripad_dvou_zmizelych_epub.epub']
+
+of.SearchableText()
+
+"""
+
+    def SearchableText(self):
+        texts = filter(bool,(self.title, 
+                             self.getParentTitle(), 
+                             self.isbn, 
+                             self.isbn and self.isbn.replace('-',''),
+                             self.aleph_sys_number,
+                             self.summary_record_aleph_sys_number
+                             )
+                       )
+        return " ".join(texts)
+
+    def lastExportToAlephStartedAt(self):
+        wft = self.portal_workflow
+        workflowHistory = wft.getHistoryOf('edeposit_originalfile_workflow',self)
+        exportToAleph = filter(lambda item: item['review_state']=='exportToAleph', workflowHistory)
+        return exportToAleph and exportToAleph[-1]['time']
+
     # Add your class methods and properties here
     def updateOrAddAlephRecord(self, dataForFactory):
         sysNumber = dataForFactory.get('aleph_sys_number',None)
