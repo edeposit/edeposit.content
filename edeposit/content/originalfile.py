@@ -431,6 +431,7 @@ of.SearchableText()
     def SearchableText(self):
         texts = filter(bool,(self.title, 
                              self.getParentTitle(), 
+                             self.getPodnazev(),
                              self.isbn, 
                              self.isbn and self.isbn.replace('-',''),
                              self.aleph_sys_number,
