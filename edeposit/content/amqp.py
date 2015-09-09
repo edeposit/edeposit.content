@@ -1589,7 +1589,9 @@ class ExportToStorageResultHandler(namedtuple('ExportToStorageResult',['context'
         wft = api.portal.get_tool('portal_workflow')
         self.context.storage_download_url = self.result
         with api.env.adopt_user(username="system"):
-            wft.doActionFor(self.context, "exportToStorageOK")
+            transition = self.context.isWellFormedForLTP and "exportToStorageOKToLTP" \
+                or "exportToStorageOKSkipLTP"
+            wft.doActionFor(self.context, transition)
             pass
         pass
 
