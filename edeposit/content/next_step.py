@@ -55,14 +55,16 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
     
     @withRelatedAlephRecord
     def nextstep_for_acquisition(self, related_aleph_record=None, *args, **kwargs):
-        if related_aleph_record and related_aleph_record.acquisitionFields:
+        lastExportToAleph = self.context.lastExportToAlephStartedAt()
+        if related_aleph_record and related_aleph_record.fieldIsYoungerThan('acquisitionFields',lastExportToAleph):
             self.wft.doActionFor(self.context,'submitAcquisition')
             return True
         return False
 
     @withRelatedAlephRecord
     def nextstep_for_ISBNGeneration(self, related_aleph_record=None,  *args, **kwargs):
-        if related_aleph_record and related_aleph_record.ISBNAgencyFields:
+        lastExportToAleph = self.context.lastExportToAlephStartedAt()
+        if related_aleph_record and related_aleph_record.fieldIsYoungerThan('ISBNAgencyFields',lastExportToAleph):
             self.wft.doActionFor(self.context,'submitISBNGeneration')
             return True
         return False
@@ -97,8 +99,9 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
     @withRelatedAlephRecord
     def nextstep_for_descriptiveCataloguing(self, related_aleph_record=None, *args, **kwargs):
+        lastExportToAleph = self.context.lastExportToAlephStartedAt()
         if related_aleph_record and related_aleph_record.isClosed:
-            if related_aleph_record.descriptiveCataloguingFields:
+            if related_aleph_record.fieldIsYoungerThan('descriptiveCataloguingFields',lastExportToAleph):
                 # rozezname, jestli existuje nejaky nezamceny zaznam
                 # pokud ne a tento original je prvni pro dany souborny
                 # zaznam, musi projit plnou katalogizaci
@@ -112,7 +115,7 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
             else:
                 return False
 
-        if related_aleph_record and related_aleph_record.descriptiveCataloguingFields:
+        if related_aleph_record and related_aleph_record.fieldIsYoungerThan('descriptiveCataloguingFields',lastExportToAleph):
             self.wft.doActionFor(self.context,'submitDescriptiveCataloguing')
             return True
 
@@ -131,10 +134,11 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
                 self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguingReviewPreparing')
                 return True
         else:
+            lastExportToAleph = self.context.lastExportToAlephStartedAt()
             summary_aleph_record =  self.context.summary_aleph_record \
                 and getattr(self.context.summary_aleph_record,'to_object',None)
 
-            if summary_aleph_record and summary_aleph_record.descriptiveCataloguingReviewFields:
+            if summary_aleph_record and summary_aleph_record.fieldIsYoungerThan('descriptiveCataloguingReviewFields',lastExportToAleph):
                 self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguingReviewPreparing')
                 return True
 
@@ -153,9 +157,10 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
                 self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingReviewPreparing')
                 return True
         else:
+            lastExportToAleph = self.context.lastExportToAlephStartedAt()
             summary_aleph_record =  self.context.summary_aleph_record \
                 and getattr(self.context.summary_aleph_record,'to_object',None)
-            if summary_aleph_record and summary_aleph_record.subjectCataloguingReviewFields:
+            if summary_aleph_record and summary_aleph_record.fieldIsYoungerThan('subjectCataloguingReviewFields',lastExportToAleph):
                 self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingReviewPreparing')
                 return True
 
@@ -175,8 +180,9 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
                 self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingPreparing')
                 return True
         else:
+            lastExportToAleph = self.context.lastExportToAlephStartedAt()
             summary_aleph_record = self.context.summary_aleph_record and getattr(self.context.summary_aleph_record,'to_object',None)
-            if summary_aleph_record and summary_aleph_record.subjectCataloguingFields:
+            if summary_aleph_record and summary_aleph_record.fieldIsYoungerThan('subjectCataloguingFields',lastExportToAleph):
                 self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingPreparing')
                 return True
 
@@ -184,7 +190,8 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
     @withRelatedAlephRecord
     def nextstep_for_descriptiveCataloguingReview(self,related_aleph_record=None, *args,**kwargs):
-        if related_aleph_record and related_aleph_record.descriptiveCataloguingReviewFields:
+        lastExportToAleph = self.context.lastExportToAlephStartedAt()
+        if related_aleph_record and related_aleph_record.fieldIsYoungerThan('descriptiveCataloguingReviewFields',lastExportToAleph):
             self.wft.doActionFor(self.context,'submitDescriptiveCataloguingReview')
             return True
 
@@ -192,7 +199,8 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
     @withSummaryAlephRecord
     def nextstep_for_closedDescriptiveCataloguingReview(self,summary_aleph_record=None, *args,**kwargs):
-        if summary_aleph_record and summary_aleph_record.descriptiveCataloguingReviewFields:
+        lastExportToAleph = self.context.lastExportToAlephStartedAt()
+        if summary_aleph_record and summary_aleph_record.fieldIsYoungerThan('descriptiveCataloguingReviewFields',lastExportToAleph):
             self.wft.doActionFor(self.context,'submitClosedDescriptiveCataloguingReview')
             return True
 
@@ -200,14 +208,16 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
     @withRelatedAlephRecord
     def nextstep_for_subjectCataloguing(self,related_aleph_record=None, *args, **kwargs):
-        if related_aleph_record and related_aleph_record.subjectCataloguingFields:
+        lastExportToAleph = self.context.lastExportToAlephStartedAt()
+        if related_aleph_record and related_aleph_record.fieldIsYoungerThan('subjectCataloguingFields',lastExportToAleph):
             self.wft.doActionFor(self.context,'submitSubjectCataloguing')
             return True
         return False
 
     @withSummaryAlephRecord
     def nextstep_for_closedSubjectCataloguing(self, summary_aleph_record=None,*args,**kwargs):
-        if summary_aleph_record and summary_aleph_record.subjectCataloguingFields:
+        lastExportToAleph = self.context.lastExportToAlephStartedAt()
+        if summary_aleph_record and summary_aleph_record.fieldIsYoungerThan('subjectCataloguingFields',lastExportToAleph):
             self.wft.doActionFor(self.context,'submitClosedSubjectCataloguing')
             return True
 
@@ -215,14 +225,16 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
     @withRelatedAlephRecord
     def nextstep_for_subjectCataloguingReview(self, related_aleph_record=None,*args,**kwargs):
-        if related_aleph_record and related_aleph_record.subjectCataloguingReviewFields:
+        lastExportToAleph = self.context.lastExportToAlephStartedAt()
+        if related_aleph_record and related_aleph_record.fieldIsYoungerThan('subjectCataloguingReviewFields',lastExportToAleph):
             self.wft.doActionFor(self.context,'submitSubjectCataloguingReview')
             return True
         return False
 
     @withSummaryAlephRecord
     def nextstep_for_closedSubjectCataloguingReview(self,summary_aleph_record=None, *args,**kwargs):
-        if summary_aleph_record and summary_aleph_record.subjectCataloguingReviewFields:
+        lastExportToAleph = self.context.lastExportToAlephStartedAt()
+        if summary_aleph_record and summary_aleph_record.fieldIsYoungerThan('subjectCataloguingReviewFields',lastExportToAleph):
             self.wft.doActionFor(self.context,'submitClosedSubjectCataloguingReview')
             return True
 
@@ -230,7 +242,8 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
     @withRelatedAlephRecord
     def nextstep_for_ISBNSubjectValidation(self, related_aleph_record=None, *args, **kwargs):
-        if related_aleph_record and related_aleph_record.ISBNAgencyFields:
+        lastExportToAleph = self.context.lastExportToAlephStartedAt()
+        if related_aleph_record and related_aleph_record.fieldIsYoungerThan('ISBNAgencyFields',lastExportToAleph):
             self.wft.doActionFor(self.context,'submitISBNSubjectValidation')
             return True
 

@@ -26,11 +26,11 @@ class ChangeISBNView(form.SchemaForm):
 
     @button.buttonAndHandler(u"Odeslat", name="save")
     def handleAdd(self, action):
+        # validaci na spravnost ISBN si provadi field ISBNLine sam
         data, errors = self.extractData()
         if errors:
             self.status = self.formErrorsMessage
             return
-
         self.context.isbn = data['isbn']
         self.request.response.redirect(self.context.absolute_url())
 

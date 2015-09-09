@@ -14,10 +14,9 @@ from plone.app.textfield import RichText
 from plone.namedfile.field import NamedImage, NamedFile
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
 from plone.namedfile.interfaces import IImageScaleTraversable
-
+from functools import partial
 
 from edeposit.content import MessageFactory as _
-
 
 # Interface class; used to define content-type schema.
 class IAlephRecordsContainer(form.Schema):
@@ -78,49 +77,49 @@ class IAlephRecord(form.Schema, IImageScaleTraversable):
     )
     acquisitionFields= schema.List (
         title = _(u'has Acquisition Fields'),
-        description = _(u'This record has acquisition fields.'),
+        #description = _(u'This record has acquisition fields.'),
         required = False,
         default = None,
         value_type = schema.TextLine(),
     )
     ISBNAgencyFields= schema.List (
         title = _(u'ISBN Agency Fields'),
-        description = _(u'This record has ISBN Agency fields'),
+        #description = _(u'This record has ISBN Agency fields'),
         required = False,
         default = None,
         value_type = schema.TextLine(),
     )
     descriptiveCataloguingFields= schema.List (
         title = _(u'Descriptive Cataloguing Fields'),
-        description = u"",
+        #description = u"",
         required = False,
         default = None,
         value_type = schema.TextLine(),
     )
     descriptiveCataloguingReviewFields= schema.List (
         title = _(u'Descriptive Cataloguing Review Fields'),
-        description = u"",
+        #description = u"",
         required = False,
         default = None,
         value_type = schema.TextLine(),
     )
     subjectCataloguingFields= schema.List (
         title = _(u'Subject Cataloguing Fields'),
-        description = u"",
+        #description = u"",
         required = False,
         default = None,
         value_type = schema.TextLine(),
     )
     subjectCataloguingReviewFields= schema.List (
         title = _(u'Subject Cataloguing Review Fields'),
-        description = u"",
+        #description = u"",
         required = False,
         default = None,
         value_type = schema.TextLine(),
     )
     isClosed= schema.Bool (
         title = _(u'is closed out by Catalogizators'),
-        description = u"",
+        #description = u"",
         required = False,
         default = False,
     )
@@ -168,22 +167,54 @@ class IAlephRecord(form.Schema, IImageScaleTraversable):
 class AlephRecord(Item):
     grok.implements(IAlephRecord)
     
+    def lastChangeOfFields(self, fieldNames):
+        revisions = self.revisionsOfFields(fieldNames)
+        return None
+
+    def fieldIsYoungerThan(self, fieldName,time):
+        fieldValue = getattr(self,fieldName,None)
+        fieldRevisions = self.revisionsOfFields([fieldName])
+        def diff(current, previous):
+            return (bool(current and previous and (current[0] != previous[0])), current[1])
+
+        def isYounger(item):
+            (isDiff, modification_date) = item
+            return (isDiff and modification_date > time)
+        
+        diffs = map(diff, fieldRevisions, fieldRevisions[1:])
+        #if "3363" in self.aleph_sys_number:
+        result = bool(filter(isYounger,diffs))
+        print "... field is younger than", fieldName, time, result
+        return result
+
+        #return fieldValue
+
+    def revisionsOfFields(self, fieldNames):
+        def getFields(vd):
+            getField = partial(getattr, vd.object)
+            return map(getField, fieldNames + ['modification_date',])
+        
+        return map(getFields, self.portal_repository.getHistory(self))
+
     def findAndLoadChanges(self, data):
         def isChanged(attr):
             return getattr(self,attr,None) != data.get(attr,None)
 
         changedAttrs = filter(isChanged, data.keys())
-        # print "changedAttrs", changedAttrs
+        print "... changedAttrs", changedAttrs
+        print "... data", data
         for attr in changedAttrs:
             setattr(self, attr, data.get(attr,None) )
 
         importantAttrs = frozenset(changedAttrs) - frozenset(['xml','aleph_library'])
         if importantAttrs:
+            print "... sent modified event"
             modified(self)
+            #self.set_new_version()
 
         return changedAttrs
 
-    def set_new_version(self, comment="new version"):
+    def set_new_version(self, comment=""):
         try:
             self.portal_repository.save(obj=self, comment=comment)
         except FileTooLargeToVersionError:

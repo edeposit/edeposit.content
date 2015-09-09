@@ -859,7 +859,7 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
     result:  SearchResult
     """
     def handle(self):
-        print "<- Aleph Search result for: ", str(self.context)
+        print "<- Aleph Record Aleph Search result for: ", str(self.context)
         with api.env.adopt_user(username="system"):
             print "num of records: ", len(self.result.records)
             for record in self.result.records:
@@ -902,6 +902,7 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
                     'xml': NamedBlobFile(record.xml, filename=u"marc21.xml"),
                     'id_number': getattr(epublication,'id_number',None),
                     }
+
                 self.context.findAndLoadChanges(dataForFactory)
 
                 if not self.result.records:
