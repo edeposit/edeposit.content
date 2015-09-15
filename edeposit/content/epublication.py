@@ -792,7 +792,7 @@ class IAddAtOnceForm(form.Schema):
 
     anotace = schema.Text(
         title = u"Anotace",
-        description = u"Anotace se objeví v Alephu",
+        description = u"Anotace se objeví v Alephu (max. 500znaků)",
         required = False,
     )
 

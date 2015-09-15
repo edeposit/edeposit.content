@@ -776,7 +776,7 @@ class AlephExportResultHandler(namedtuple('AlephResultResult',['context', 'resul
         print "<- Aleph Export result for: ", str(self.context)
         wft = api.portal.get_tool('portal_workflow')
         with api.env.adopt_user(username="system"):
-            print "\obj state: ", api.content.get_state(obj=self.context)
+            print "\tobj state: ", api.content.get_state(obj=self.context)
             wft.doActionFor(self.context, 'exportToAlephOK')
             print "\taction for done: ",'exportToAlephOK'
         pass

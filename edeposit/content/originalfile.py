@@ -199,6 +199,14 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
         title = u"Linka do úložiště",
         required = False,
     )
+    storage_path = schema.ASCIILine (
+        title = u"Cesta v úložišti",
+        required = False,
+    )
+    lastProcessingStart = schema.Datetime(
+        title = u"Začátek posledního zpracování",
+        required = False,
+        )
     
 @form.default_value(field=IOriginalFile['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
@@ -440,6 +448,20 @@ of.SearchableText()
                        )
         return " ".join(texts)
 
+    @property
+    def lastProcessingStart(self):
+        #if "3316" in self.aleph_sys_number :
+        #    #import pdb; pdb.set_trace()
+        #    pass
+
+        states = ["antivirus", "exportToAleph"]
+        workflowHistory = self.portal_workflow.getHistoryOf('edeposit_originalfile_workflow',self)
+        times = filter(bool,
+                       map(lambda item: item['time'],  
+                           filter(lambda item: item['review_state'] in states, workflowHistory)))
+        return max(times)
+
+        
     def lastExportToAlephStartedAt(self):
         wft = self.portal_workflow
         workflowHistory = wft.getHistoryOf('edeposit_originalfile_workflow',self)
