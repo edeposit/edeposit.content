@@ -54,6 +54,7 @@ import re
 from operator import truth
 from functools import partial
 from itertools import product
+from zope.app.form.browser import DatetimeI18nWidget
 
 from .tasks import (
     IPloneTaskSender,
@@ -107,6 +108,10 @@ class OriginalFileSource(NamedBlobFile):
     implements(IOriginalFileSourceField)
 
 from edeposit.app.fields import ISBNLine
+
+from plone.app.z3cform.widget import DatetimeWidget
+class CustomDatetimeWidget(DatetimeWidget):
+    pass
 
 class IOriginalFile(form.Schema, IImageScaleTraversable):
     """
@@ -203,9 +208,10 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
         title = u"Cesta v úložišti",
         required = False,
     )
-    lastProcessingStart = schema.Datetime(
+    lastProcessingStart = schema.TextLine(
         title = u"Začátek posledního zpracování",
         required = False,
+        readonly=True,
         )
     
 @form.default_value(field=IOriginalFile['zpracovatel_zaznamu'])
@@ -450,20 +456,22 @@ of.SearchableText()
 
     @property
     def lastProcessingStart(self):
-        #if "3316" in self.aleph_sys_number :
-        #    #import pdb; pdb.set_trace()
-        #    pass
+        # if "3368" in self.aleph_sys_number:
+        #     import pdb; pdb.set_trace()
+        #     pass
 
         states = ["antivirus", "exportToAleph"]
-        workflowHistory = self.portal_workflow.getHistoryOf('edeposit_originalfile_workflow',self)
+        wft = api.portal.get_tool('portal_workflow')
+        workflowHistory = wft.getHistoryOf('edeposit_originalfile_workflow',self)
         times = filter(bool,
                        map(lambda item: item['time'],  
                            filter(lambda item: item['review_state'] in states, workflowHistory)))
-        return max(times)
+        result =  max(times)
+        return result
 
         
     def lastExportToAlephStartedAt(self):
-        wft = self.portal_workflow
+        wft = api.portal.get_tool('portal_workflow')
         workflowHistory = wft.getHistoryOf('edeposit_originalfile_workflow',self)
         exportToAleph = filter(lambda item: item['review_state']=='exportToAleph', workflowHistory)
         return exportToAleph and exportToAleph[-1]['time']
