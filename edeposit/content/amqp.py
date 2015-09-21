@@ -84,7 +84,8 @@ from edeposit.amqp.pdfgen.structures import (
 )
 
 from edeposit.amqp.storage import (    
-    Publication,    
+    Publication,
+    Archive,
     SaveRequest,
 )
 
@@ -94,6 +95,11 @@ import edeposit.amqp.ltp as ltp
 #     TrackingRequest
 # )
 
+
+from edeposit.amqp.aleph_link_export import (
+    LinkUpdateRequest,
+    LinkUpdateResponse
+)
 
 from edeposit.user.producent import IProducent
 
@@ -266,6 +272,30 @@ classImplements(ConversionResponse, ICalibreConversionResult)
 class IPDFGenerationResult(Interface):
     b64_content = Attribute("")
 classImplements(PDF, IPDFGenerationResult)
+
+class IStoragePublication(Interface):
+    title = Attribute("")
+    author = Attribute("")
+    pub_year = Attribute("")
+    isbn = Attribute("")
+    urnnbn = Attribute("")
+    uuid = Attribute("")
+    aleph_id = Attribute("")
+    producent_id = Attribute("")
+    is_public = Attribute("")
+    filename = Attribute("")
+    b64_data = Attribute("")
+    url = Attribute("")
+    file_pointer = Attribute("")
+classImplements(Publication,IStoragePublication)
+
+class IStorageArchive(Interface):
+    isbn = Attribute("")
+    uuid = Attribute("")
+    aleph_id = Attribute("")
+    b64_data = Attribute("")
+    dir_pointer = Attribute("")
+classImplements(Archive,IStorageArchive)
 
 class IAMQPSender(Interface):
     """
@@ -1553,6 +1583,31 @@ class BookExportToAlephRequestSender(namedtuple('ExportToAlephRequest',['context
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
 
+# ---
+class LinkUpdateRequestSender(namedtuple('LinkUpdateRequestSender',['context'])):
+    """ context will be original file """
+    implements(IAMQPSender)
+    def send(self):
+        print "-> Update links at Aleph for: ", str(self.context)
+        request = LinkUpdateRequest(
+            uuid = self.context.UID(),
+            doc_number = self.context.aleph_sys_number,
+            document_url = obj.makeInternalURL() or "",
+            kramerius_url = obj.makeAccessingURL() or "",
+            _session_id = self.context.UID(),
+            )
+        producer = getUtility(IProducer, name="amqp.aleph-link-update-request")
+        session_data =  { 'isbn': str(self.context.isbn), }
+        headers = make_headers(self.context, session_data)
+        producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
+        pass
+
+class LinkUpdateResultHandler(namedtuple('LinkUpdateResultHandler',['context', 'result'])):
+    implements(IAMQPHandler)
+    def handle(self):
+        print "<- Update links at Aleph result for: ", str(self.context)
+        pass
+# ----
 class ExportToStorageRequestSender(namedtuple('ExportToStorageRequest',['context'])):
     """ context will be original file """
     implements(IAMQPSender)
@@ -1564,33 +1619,40 @@ class ExportToStorageRequestSender(namedtuple('ExportToStorageRequest',['context
                                              author="", 
                                              format=getAdapter(self.context,IFormat).format or ""))
 
-        publication = Publication(
+        record = Publication(
+            title = self.context.title,
+            author = "",
+            pub_year = "",
+            isbn = self.context.isbn,            
             urnnbn = self.context.urnnbn,
             uuid = self.context.UID(),
-            title = self.context.title,
-            isbn = self.context.isbn,
             aleph_id = self.context.aleph_sys_number,
+            producent_id = "",
             is_public = self.context.is_public,
             filename = self.context.file.filename,
             b64_data = base64.b64encode(self.context.file.data),
+            url = "",
+            file_pointer = "",
             )
         
-        request = SaveRequest(pub=publication)
+        request = SaveRequest(record=record)
         producer = getUtility(IProducer, name="amqp.storage-export-request")
         session_data =  { 'isbn': str(self.context.isbn), }
         headers = make_headers(self.context, session_data)
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
 
-class ExportToStorageResultHandler(namedtuple('ExportToStorageResult',['context', 'result'])):
+class PublicationExportToStorageResultHandler(namedtuple('PublicationExportToStorageResult',['context', 'result'])):
     implements(IAMQPHandler)
     def handle(self):
-        print "<- Export to Storage Result for: ", str(self.context)
-        wft = api.portal.get_tool('portal_workflow')
-        self.context.storage_download_url = self.result
+        print "<- Export of Publication to Storage Result for: ", str(self.context)
+        self.context.storage_download_url = self.result.url
+        self.context.storage_path = self.result.file_pointer
         with api.env.adopt_user(username="system"):
+            wft = api.portal.get_tool('portal_workflow')
             transition = self.context.isWellFormedForLTP and "exportToStorageOKToLTP" \
                 or "exportToStorageOKSkipLTP"
+            print "... transition: ", transition, api.content.get_state(obj=self.context)
             wft.doActionFor(self.context, transition)
             pass
         pass
@@ -1658,10 +1720,10 @@ class ExportToLTPRequestSender(namedtuple('ExportToLTPRequest',['context'])):
 
         url = self.context.absolute_url()
         request = ltp.ExportRequest (
-            url = url,
             aleph_record = aleph_record.xml.data,
             book_uuid = self.context.UID(),
             urn_nbn = self.context.urnnbn,
+            url = url,
             filename = self.context.file.filename,
             b64_data = base64.b64encode(self.context.file.data),
             )
@@ -1696,22 +1758,22 @@ class ExportToKrameriusRequestSender(namedtuple('ExportToKrameriusRequest',['con
                                              author="", 
                                              format=getAdapter(self.context,IFormat).format or ""))
             
-        publication = Publication(
-            urnnbn = self.context.urnnbn,
-            uuid = self.context.UID(),
-            title = self.context.title,
-            isbn = self.context.isbn,
-            aleph_id = self.context.aleph_sys_number,
-            is_public = self.context.is_public,
-            filename = self.context.file.filename,
-            b64_data = base64.b64encode(self.context.file.data),
-            )
+        # publication = Publication(
+        #     urnnbn = self.context.urnnbn,
+        #     uuid = self.context.UID(),
+        #     title = self.context.title,
+        #     isbn = self.context.isbn,
+        #     aleph_id = self.context.aleph_sys_number,
+        #     is_public = self.context.is_public,
+        #     filename = self.context.file.filename,
+        #     b64_data = base64.b64encode(self.context.file.data),
+        #     )
         
-        request = SaveRequest(pub=publication)
-        producer = getUtility(IProducer, name="amqp.kramerius-export-request")
-        session_data =  { 'isbn': str(self.context.isbn), }
-        headers = make_headers(self.context, session_data)
-        producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
+        # request = SaveRequest(pub=publication)
+        # producer = getUtility(IProducer, name="amqp.kramerius-export-request")
+        # session_data =  { 'isbn': str(self.context.isbn), }
+        # headers = make_headers(self.context, session_data)
+        # producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
 
 class ExportToKrameriusResultHandler(namedtuple('ExportToKrameriusResult',['context', 'result'])):

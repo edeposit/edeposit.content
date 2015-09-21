@@ -192,10 +192,16 @@
 
   <adapter
       for="edeposit.content.originalfile.IOriginalFile
-           edeposit.content.amqp.IPDFGenerationResult
-           "
+           edeposit.content.amqp.IPDFGenerationResult"
       provides="edeposit.content.amqp.IAMQPHandler"
       factory=".amqp.VoucherGenerationResultHandler"
+      />
+
+  <adapter
+      for="edeposit.content.originalfile.IOriginalFile
+           edeposit.content.amqp.IStoragePublication"
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.PublicationExportToStorageResultHandler"
       />
 
   <adapter

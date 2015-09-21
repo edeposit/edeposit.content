@@ -84,6 +84,10 @@ from edeposit.amqp.pdfgen.structures import (
     PDF
 )
 
+from edeposit.amqp.storage import (
+    Publication
+)
+
 from edeposit.content.tasks import *
 from edeposit.content.amqp import XML, IXML
 
@@ -405,10 +409,12 @@ def handleStorageResponse(message, event):
         message.ack()
     else:
         if not message.body:
-            wft = context.portal_workflow
-            wft.doActionFor(context, 'exportToStorageOK', comment="")
-            message.ack()
-        pass
+            print "... old style message - without body. Ignoring message"
+        else:
+            result = _deserializeNT(message.body,globals())
+            getMultiAdapter((context,result),IAMQPHandler).handle()
+    
+        message.ack()
 
 class ILTPResponse(Interface):
     """Message marker interface"""
@@ -590,6 +596,19 @@ class AlephExportRequestProducent(Producer):
 
     connection_id = "aleph"
     exchange = "export"
+    serializer = "text/plain"
+    exchange_type = "topic"
+    exchange_durable = True
+    auto_delete = False
+    durable = True
+    routing_key = "request"
+    pass
+
+class AlephLinkUpdateRequestProducent(Producer):
+    grok.name('amqp.aleph-link-update-request')
+
+    connection_id = "aleph"
+    exchange = "aleph_link_update"
     serializer = "text/plain"
     exchange_type = "topic"
     exchange_durable = True
