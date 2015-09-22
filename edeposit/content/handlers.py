@@ -608,7 +608,7 @@ class AlephLinkUpdateRequestProducent(Producer):
     grok.name('amqp.aleph-link-update-request')
 
     connection_id = "aleph"
-    exchange = "aleph_link_update"
+    exchange = "update-links"
     serializer = "text/plain"
     exchange_type = "topic"
     exchange_durable = True

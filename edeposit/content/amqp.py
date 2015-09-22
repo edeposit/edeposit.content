@@ -1591,10 +1591,11 @@ class LinkUpdateRequestSender(namedtuple('LinkUpdateRequestSender',['context']))
         print "-> Update links at Aleph for: ", str(self.context)
         request = LinkUpdateRequest(
             uuid = self.context.UID(),
+            urn_nbn = self.context.getURNNBN(),
             doc_number = self.context.aleph_sys_number,
-            document_url = obj.makeInternalURL() or "",
-            kramerius_url = obj.makeAccessingURL() or "",
-            _session_id = self.context.UID(),
+            document_url = self.context.makeInternalURL() or "",
+            kramerius_url = self.context.makeAccessingURL() or "",
+            session_id = self.context.UID(),
             )
         producer = getUtility(IProducer, name="amqp.aleph-link-update-request")
         session_data =  { 'isbn': str(self.context.isbn), }
@@ -1615,7 +1616,7 @@ class ExportToStorageRequestSender(namedtuple('ExportToStorageRequest',['context
         print "-> Export To Storage Request for: ", str(self.context)
         if not self.context.urnnbn:
             self.context.urnnbn = urnnbn_api.register_document_obj(
-                urnnbn_api.MonographComposer(title=self.context.title, 
+                urnnbn_api.MonographCompobser(title=self.context.title, 
                                              author="", 
                                              format=getAdapter(self.context,IFormat).format or ""))
 

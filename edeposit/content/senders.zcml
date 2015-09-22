@@ -145,6 +145,13 @@
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.LinkUpdateRequestSender"
+    name="update-links-at-aleph"
+    />
+
+  <adapter
+    for="edeposit.content.originalfile.IOriginalFile"
+    provides="edeposit.content.amqp.IAMQPSender"
     factory=".amqp.ExportToLTPRequestSender"
     name="export-to-ltp"
     />

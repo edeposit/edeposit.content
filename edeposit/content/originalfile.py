@@ -74,6 +74,7 @@ from edeposit.content.tasks import (
 )
 
 from edeposit.content.next_step import INextStep
+from cz_urnnbn_api import api as urnnbn_api
 
 @grok.provider(IContextSourceBinder)
 def availableAlephRecords(context):
@@ -353,6 +354,10 @@ class OriginalFile(Container):
         internal_url = "/".join([api.portal.get().absolute_url(), '@@redirect-to-uuid', self.UID()])
         return internal_url
 
+    def makeAccessingURL(self):
+        internal_url = "/".join([api.portal.get().absolute_url(), '@@redirect-to-accessing', self.UID()])
+        return internal_url
+
     @property
     def isWellFormedForLTP(self):
         result = self.isValidEPub2() or self.isValidPDFA()
@@ -404,6 +409,14 @@ class OriginalFile(Container):
 
     def urlToKramerius(self):
         return "some"
+
+    def getURNNBN(self):
+        if not self.urnnbn:
+            self.urnnbn = urnnbn_api.register_document_obj(
+                urnnbn_api.MonographComposer(title=self.title,
+                                             author="", 
+                                             format=getAdapter(self,IFormat).format or ""))
+        return self.urnnbn
 
     def hasSomeAlephRecords(self):
         alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
