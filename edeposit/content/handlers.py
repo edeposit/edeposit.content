@@ -87,12 +87,23 @@ from edeposit.amqp.pdfgen.structures import (
 from edeposit.amqp.storage import (
     Publication
 )
+from edeposit.amqp.aleph_link_export import (
+    LinkUpdateResponse
+)
 
 from edeposit.content.tasks import *
 from edeposit.content.amqp import XML, IXML
 
 # (occur-1 "class " nil (list (current-buffer)) "*handlers: class*")
 # (occur-1 "def " nil (list(current-buffer)) "*handlers: def*")
+
+class IEmptyMessage(Interface):
+    pass
+
+class EmptyMessage(object):
+    implements(IEmptyMessage)
+    pass
+
 
 class IAMQPError(Interface):
     payload = Attribute("")
@@ -148,12 +159,12 @@ def handleAlephResponse(message, event):
     headers = message.header_frame.headers
     (context, session_data) = parse_headers(headers)
     if not context:
-        print "... no context at headers"
+        print "... no context at headers, try use AMQPFolder context"
         print "... headers:", headers
         print message.body
-        message.ack()
-        return
-
+        pcatalog = api.portal.get_tool('portal_catalog') 
+        context = pcatalog(portal_type="edeposit.content.amqpfolder")[0].getObject()
+ 
     if "exception" in headers:
         amqpError = AMQPError(payload=message.body, 
                               exception_name = headers.get('exception_name'),
@@ -162,8 +173,13 @@ def handleAlephResponse(message, event):
         getMultiAdapter((context,amqpError),IAMQPHandler).handle()
         message.ack()
     else:
-        result = _deserializeNT(message.body,globals())
-        dataKeys = session_data.keys()
+        if message.body == []:
+            result = EmptyMessage()
+            pass
+        else:
+            result = _deserializeNT(message.body,globals())
+            #dataKeys = session_data.keys()
+
         # ResultFactory = None
         # if 'renew-records-for-sysnumber' in dataKeys:
         #     ResultFactory = AlephSearchDocumentResult

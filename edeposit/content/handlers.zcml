@@ -153,6 +153,13 @@
   <!--     provides="edeposit.content.amqp.IAMQPHandler" -->
   <!--     factory=".amqp.OriginalFileAlephSearchSummaryRecordResultHandler" -->
   <!--     /> -->
+  <adapter
+      for="edeposit.content.originalfile.IOriginalFile
+           edeposit.content.handlers.IEmptyMessage
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.EmptyResultHandler"
+      />
 
   <adapter
       for="edeposit.content.originalfile.IOriginalFile
@@ -266,6 +273,14 @@
            "
       provides="edeposit.content.amqp.IAMQPHandler"
       factory=".amqp.EnsureProducentsRolesConsistencyTaskHandler"
+      />
+
+  <adapter
+      for="edeposit.content.amqp_folder.IAMQPFolder
+           edeposit.content.amqp.IAlephLinkStatusResponse
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.AlephLinkUpdateResponseHandler"
       />
 
   <adapter

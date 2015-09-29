@@ -297,6 +297,14 @@ class IStorageArchive(Interface):
     dir_pointer = Attribute("")
 classImplements(Archive,IStorageArchive)
 
+class IAlephLinkStatusResponse(Interface):
+    status = Attribute("")
+    session_id = Attribute("")
+
+class AlephLinkStatusResult(namedtuple('AlephLinkStatusResult',[])):
+    pass
+classImplements(LinkUpdateResponse, IAlephLinkStatusResponse)
+
 class IAMQPSender(Interface):
     """
     """
@@ -325,10 +333,14 @@ def parse_headers(headers):
     if not uuid:
         return (None,{})
 
-    data = json.loads(uuid)
-    uid = data.get('context_UID',None)
-    context = uid and api.content.get(UID=uid)
-    return (context, data['session_data'])
+    try:
+        data = json.loads(uuid)
+        uid = data.get('context_UID',None)
+        context = uid and api.content.get(UID=uid)
+        return (context, data['session_data'])
+    except ValueError,e:
+        print "parse headers - error with headers UUID parsing", str(e)
+        return (None,{})
 
 from collections import namedtuple
 
@@ -1492,6 +1504,16 @@ class EnsureProducentsRolesConsistencyTaskHandler(namedtuple('EnsureProducentsRo
             for uid in uids:
                 IPloneTaskSender(DoActionFor(transition='ensureRolesConsistency', uid=uid)).send()
 
+class AlephLinkUpdateResponseHandler(namedtuple('AlephLinkUpdateResponseHandler',['context','result'])):
+    def handle(self):
+        print "<- Aleph Link Update Response: ", str(self.result)
+        with api.env.adopt_user(username="system"):
+            context = api.content.get(UID=self.result.session_id)
+            wft = api.portal.get_tool('portal_workflow')
+            if 'OK' in self.result.status:
+                wft.doActionFor(context, 'alephLinkUpdateResponseOK')
+            else:
+                wft.doActionFor(context, 'alephLinkUpdateResponseError', comment=str(self.result))
 
 class EPublicationsWithErrorEmailNotifyForAllProducentsHandler(namedtuple('EPublicationsWithErrorEmailNotifyForAllProducentsHandler',
                                                                     ['context', 'result'])):
@@ -1593,7 +1615,7 @@ class LinkUpdateRequestSender(namedtuple('LinkUpdateRequestSender',['context']))
             uuid = self.context.UID(),
             urn_nbn = self.context.getURNNBN(),
             doc_number = self.context.aleph_sys_number,
-            document_url = self.context.makeInternalURL() or "",
+            document_url = self.context.makeDocumentURL() or "",
             kramerius_url = self.context.makeAccessingURL() or "",
             session_id = self.context.UID(),
             )
@@ -1603,10 +1625,10 @@ class LinkUpdateRequestSender(namedtuple('LinkUpdateRequestSender',['context']))
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
 
-class LinkUpdateResultHandler(namedtuple('LinkUpdateResultHandler',['context', 'result'])):
+class EmptyResultHandler(namedtuple('EmptyResultHandler',['context', 'result'])):
     implements(IAMQPHandler)
     def handle(self):
-        print "<- Update links at Aleph result for: ", str(self.context)
+        print "<- Empty message result from aleph amqp: ", str(self.context)
         pass
 # ----
 class ExportToStorageRequestSender(namedtuple('ExportToStorageRequest',['context'])):
