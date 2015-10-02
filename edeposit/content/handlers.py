@@ -173,7 +173,7 @@ def handleAlephResponse(message, event):
         getMultiAdapter((context,amqpError),IAMQPHandler).handle()
         message.ack()
     else:
-        if message.body == []:
+        if not message.body:
             result = EmptyMessage()
             pass
         else:

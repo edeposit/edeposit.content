@@ -55,6 +55,7 @@ from operator import truth
 from functools import partial
 from itertools import product
 from zope.app.form.browser import DatetimeI18nWidget
+import edeposit.amqp.marcxml2mods
 
 from .tasks import (
     IPloneTaskSender,
@@ -74,7 +75,12 @@ from edeposit.content.tasks import (
 )
 
 from edeposit.content.next_step import INextStep
-from cz_urnnbn_api import api as urnnbn_api
+from cz_urnnbn_api import (
+ api as urnnbn_api,
+ convert_mono_xml,
+ convert_mono_volume_xml
+)
+
 
 @grok.provider(IContextSourceBinder)
 def availableAlephRecords(context):
@@ -354,9 +360,20 @@ class OriginalFile(Container):
         internal_url = "/".join([api.portal.get().absolute_url(), '@@redirect-to-uuid', self.UID()])
         return internal_url
 
-    def makeAccessingURL(self):
+    def makeDocumentURL(self):
         internal_url = "/".join([api.portal.get().absolute_url(), '@@redirect-to-accessing', self.UID()])
         return internal_url
+
+    def makeAllRelatedDocumentsURLs(self):
+        def getAllDocumentURLs(summary_record_aleph_sys_number):
+            catalog = api.portal.get_tool('portal_catalog')
+            brains = catalog(portal_type="edeposit.content.originalfile",
+                             summary_record_aleph_sys_number = self.summary_record_aleph_sys_number)
+            return [bb.getObject().makeDocumentURL() for bb in brains]
+
+        urls = (self.summary_record_aleph_sys_number and getAllDocumentURLs(self.summary_record_aleph_sys_number)) \
+            or [ self.makeDocumentURL() ]
+        return urls
 
     @property
     def isWellFormedForLTP(self):
@@ -408,14 +425,32 @@ class OriginalFile(Container):
         return "http://aleph.nkp.cz/X?op=find_doc&doc_num=%s&base=nkc" % (record.aleph_sys_number,)
 
     def urlToKramerius(self):
-        return "some"
+        return None
+
+    def getMODS(self):
+        aleph_record = getattr(self.related_aleph_record,'to_object',None)
+        summary_aleph_record = getattr(self.summary_aleph_record, 'to_object',None)
+
+        if not aleph_record and not summary_aleph_record:
+            return None
+        
+        result = edeposit.amqp.marcxml2mods.marcxml2mods(
+            marc_xml=(summary_aleph_record or aleph_record).xml.data, 
+            uuid = self.UID(), 
+            url = self.makeInternalURL())
+        mods = result and result[0]
+        return mods
 
     def getURNNBN(self):
+        mods = self.getMODS()
         if not self.urnnbn:
-            self.urnnbn = urnnbn_api.register_document_obj(
-                urnnbn_api.MonographComposer(title=self.title,
-                                             author="", 
-                                             format=getAdapter(self,IFormat).format or ""))
+            try:
+                request = convert_mono_xml(mods,getAdapter(self,IFormat).format or "")
+                self.urnnbn = urnnbn_api.register_document(request)
+            except ValueError,e:
+                wft = api.portal.get_tool('portal_workflow')
+                wft.doActionFor(self,'amqpError',comment='error from urnnbn resolver: ' + str(e))
+
         return self.urnnbn
 
     def hasSomeAlephRecords(self):
@@ -479,7 +514,7 @@ of.SearchableText()
         times = filter(bool,
                        map(lambda item: item['time'],  
                            filter(lambda item: item['review_state'] in states, workflowHistory)))
-        result =  max(times)
+        result =  (times and max(times)) or min(map(lambda item: item['time'], workflowHistory))
         return result
 
         

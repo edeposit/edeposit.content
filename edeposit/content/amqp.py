@@ -1611,12 +1611,17 @@ class LinkUpdateRequestSender(namedtuple('LinkUpdateRequestSender',['context']))
     implements(IAMQPSender)
     def send(self):
         print "-> Update links at Aleph for: ", str(self.context)
+        urnnbn = self.context.getURNNBN()
+        if not urnnbn:
+            print "no urnnbn exists, no action"
+            return
+
         request = LinkUpdateRequest(
             uuid = self.context.UID(),
-            urn_nbn = self.context.getURNNBN(),
+            urn_nbn = urnnbn,
             doc_number = self.context.aleph_sys_number,
-            document_url = self.context.makeDocumentURL() or "",
-            kramerius_url = self.context.makeAccessingURL() or "",
+            document_urls = self.context.makeAllRelatedDocumentsURLs() or [],
+            kramerius_url = self.context.urlToKramerius(),
             session_id = self.context.UID(),
             )
         producer = getUtility(IProducer, name="amqp.aleph-link-update-request")
@@ -1636,18 +1641,16 @@ class ExportToStorageRequestSender(namedtuple('ExportToStorageRequest',['context
     implements(IAMQPSender)
     def send(self):
         print "-> Export To Storage Request for: ", str(self.context)
-        if not self.context.urnnbn:
-            self.context.urnnbn = urnnbn_api.register_document_obj(
-                urnnbn_api.MonographCompobser(title=self.context.title, 
-                                             author="", 
-                                             format=getAdapter(self.context,IFormat).format or ""))
-
+        IPloneTaskSender(DoActionFor(transition='submitUpdateLinksAtAleph', uid=self.context.UID())).send()
+        urnnbn = self.context.getURNNBN()
+        if not urnnbn:
+            return
         record = Publication(
             title = self.context.title,
             author = "",
             pub_year = "",
             isbn = self.context.isbn,            
-            urnnbn = self.context.urnnbn,
+            urnnbn = urnnbn,
             uuid = self.context.UID(),
             aleph_id = self.context.aleph_sys_number,
             producent_id = "",
@@ -1685,14 +1688,8 @@ class SearchStorageRequestSender(namedtuple('SearchStorageRequest',['context']))
     implements(IAMQPSender)
     def send(self):
         print "-> Search Storage Request for: ", str(self.context)
-        if not self.context.urnnbn:
-            self.context.urnnbn = urnnbn_api.register_document_obj(
-                urnnbn_api.MonographComposer(title=self.context.title, 
-                                             author="", 
-                                             format=getAdapter(self.context,IFormat).format or ""))
-
         publication = Publication(
-            urnnbn = self.context.urnnbn,
+            urnnbn = self.context.getURNNBN(),
             uuid = self.context.UID(),
             title = self.context.title,
             isbn = self.context.isbn,
@@ -1730,12 +1727,6 @@ class ExportToLTPRequestSender(namedtuple('ExportToLTPRequest',['context'])):
     implements(IAMQPSender)
     def send(self):
         print "-> Export To LTP Request for: ", str(self.context)
-        if not self.context.urnnbn:
-            self.context.urnnbn = urnnbn_api.register_document_obj(
-                urnnbn_api.MonographComposer(title=self.context.title, 
-                                             author="", 
-                                             format=getAdapter(self.context,IFormat).format or ""))
-            
         aleph_record = getattr(self.context.related_aleph_record,'to_object',None)
         if not aleph_record:
             print "... chyba exportu do LTP, chybi related aleph zaznam"
@@ -1745,7 +1736,7 @@ class ExportToLTPRequestSender(namedtuple('ExportToLTPRequest',['context'])):
         request = ltp.ExportRequest (
             aleph_record = aleph_record.xml.data,
             book_uuid = self.context.UID(),
-            urn_nbn = self.context.urnnbn,
+            urn_nbn = self.context.getURNNBN(),
             url = url,
             filename = self.context.file.filename,
             b64_data = base64.b64encode(self.context.file.data),
@@ -1775,12 +1766,6 @@ class ExportToKrameriusRequestSender(namedtuple('ExportToKrameriusRequest',['con
     implements(IAMQPSender)
     def send(self):
         print "-> Export To Kramerius Request for: ", str(self.context)
-        if not self.context.urnnbn:
-            self.context.urnnbn = urnnbn_api.register_document_obj(
-                urnnbn_api.MonographComposer(title=self.context.title, 
-                                             author="", 
-                                             format=getAdapter(self.context,IFormat).format or ""))
-            
         # publication = Publication(
         #     urnnbn = self.context.urnnbn,
         #     uuid = self.context.UID(),

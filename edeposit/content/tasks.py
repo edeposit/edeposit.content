@@ -117,7 +117,6 @@ class RenewAlephRecords(namedtuple('RenewAlephRecords',[])):
 class IDoActionFor(IPloneTask):
     uid = schema.ASCIILine()
     transition = schema.ASCIILine()
-    pass
 
 class DoActionFor(namedtuple('DoActionFor',['uid','transition'])):
     implements(IDoActionFor)

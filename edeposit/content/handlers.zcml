@@ -221,6 +221,14 @@
 
   <adapter
       for="edeposit.content.amqp_folder.IAMQPFolder
+           edeposit.content.handlers.IEmptyMessage
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.EmptyResultHandler"
+      />
+
+  <adapter
+      for="edeposit.content.amqp_folder.IAMQPFolder
            edeposit.content.tasks.ISendEmailWithCollectionToGroup
            "
       provides="edeposit.content.amqp.IAMQPHandler"
