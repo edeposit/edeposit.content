@@ -98,7 +98,8 @@ import edeposit.amqp.ltp as ltp
 
 from edeposit.amqp.aleph_link_export import (
     LinkUpdateRequest,
-    LinkUpdateResponse
+    LinkUpdateResponse,
+    LinkDescription
 )
 
 from edeposit.user.producent import IProducent
@@ -1616,14 +1617,19 @@ class LinkUpdateRequestSender(namedtuple('LinkUpdateRequestSender',['context']))
             print "no urnnbn exists, no action"
             return
 
+        def documentURLToLinkFormat(pair):
+            result=LinkDescription(url=pair['internal_url'], format=pair['format'])
+            return result
+
         request = LinkUpdateRequest(
             uuid = self.context.UID(),
             urn_nbn = urnnbn,
             doc_number = self.context.aleph_sys_number,
-            document_urls = self.context.makeAllRelatedDocumentsURLs() or [],
+            document_urls = map(documentURLToLinkFormat, self.context.makeAllRelatedDocumentsURLs() or []),
             kramerius_url = self.context.urlToKramerius(),
             session_id = self.context.UID(),
             )
+
         producer = getUtility(IProducer, name="amqp.aleph-link-update-request")
         session_data =  { 'isbn': str(self.context.isbn), }
         headers = make_headers(self.context, session_data)
@@ -1641,7 +1647,6 @@ class ExportToStorageRequestSender(namedtuple('ExportToStorageRequest',['context
     implements(IAMQPSender)
     def send(self):
         print "-> Export To Storage Request for: ", str(self.context)
-        IPloneTaskSender(DoActionFor(transition='submitUpdateLinksAtAleph', uid=self.context.UID())).send()
         urnnbn = self.context.getURNNBN()
         if not urnnbn:
             return
@@ -1682,6 +1687,7 @@ class PublicationExportToStorageResultHandler(namedtuple('PublicationExportToSto
             wft.doActionFor(self.context, transition)
             pass
         pass
+        IPloneTaskSender(DoActionFor(transition='submitUpdateLinksAtAleph', uid=self.context.UID())).send()
 
 class SearchStorageRequestSender(namedtuple('SearchStorageRequest',['context'])):
     """ context will be original file """

@@ -356,20 +356,26 @@ class OriginalFile(Container):
 
         return False
 
+    def wasStoredAtStorage(self):
+        return bool(self.storage_path)
+
     def makeInternalURL(self):
         internal_url = "/".join([api.portal.get().absolute_url(), '@@redirect-to-uuid', self.UID()])
         return internal_url
 
     def makeDocumentURL(self):
+        format = getAdapter(self,IFormat).format or ""
         internal_url = "/".join([api.portal.get().absolute_url(), '@@redirect-to-accessing', self.UID()])
-        return internal_url
+        return dict(internal_url=internal_url,format=format)
 
     def makeAllRelatedDocumentsURLs(self):
         def getAllDocumentURLs(summary_record_aleph_sys_number):
             catalog = api.portal.get_tool('portal_catalog')
             brains = catalog(portal_type="edeposit.content.originalfile",
                              summary_record_aleph_sys_number = self.summary_record_aleph_sys_number)
-            return [bb.getObject().makeDocumentURL() for bb in brains]
+            return map(methodcaller('makeDocumentURL'),
+                       filter(methodcaller('wasStoredAtStorage'),
+                              map(methodcaller('getObject'), brains)))
 
         urls = (self.summary_record_aleph_sys_number and getAllDocumentURLs(self.summary_record_aleph_sys_number)) \
             or [ self.makeDocumentURL() ]
