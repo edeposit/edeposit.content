@@ -1624,7 +1624,7 @@ class LinkUpdateRequestSender(namedtuple('LinkUpdateRequestSender',['context']))
         request = LinkUpdateRequest(
             uuid = self.context.UID(),
             urn_nbn = urnnbn,
-            doc_number = self.context.aleph_sys_number,
+            doc_number = self.context.summary_record_aleph_sys_number or self.context.aleph_sys_number,
             document_urls = map(documentURLToLinkFormat, self.context.makeAllRelatedDocumentsURLs() or []),
             kramerius_url = self.context.urlToKramerius(),
             session_id = self.context.UID(),

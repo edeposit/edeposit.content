@@ -372,7 +372,7 @@ class OriginalFile(Container):
         def getAllDocumentURLs(summary_record_aleph_sys_number):
             catalog = api.portal.get_tool('portal_catalog')
             brains = catalog(portal_type="edeposit.content.originalfile",
-                             summary_record_aleph_sys_number = self.summary_record_aleph_sys_number)
+                             summary_record_aleph_sys_number = summary_record_aleph_sys_number)
             return map(methodcaller('makeDocumentURL'),
                        filter(methodcaller('wasStoredAtStorage'),
                               map(methodcaller('getObject'), brains)))
