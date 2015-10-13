@@ -451,6 +451,9 @@ class OriginalFile(Container):
         mods = self.getMODS()
         if not self.urnnbn:
             try:
+                # import datetime
+                # prefix = datetime.datetime.now().strftime("%s-%f")
+                # open("/tmp/%s-mods.txt" % (prefix,),"wb").write(str(mods))
                 request = convert_mono_xml(mods,getAdapter(self,IFormat).format or "")
                 self.urnnbn = urnnbn_api.register_document(request)
             except ValueError,e:

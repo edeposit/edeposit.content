@@ -468,7 +468,7 @@ class OriginalFileSysNumberSearchRequestSender(namedtuple('SysNumberSearchReques
     implements(IAMQPSender)
     def send(self):
         print "-> SysNumber search Request for: ", str(self.context), self.context.isbn
-        request = SearchRequest(ISBNQuery(self.context.isbn, 'cze-dep'))
+        request = SearchRequest(ISBNQuery(self.context.isbn))
         producer = getUtility(IProducer, name="amqp.isbn-search-request")
         msg = ""
         session_data =  { 'isbn': str(self.context.isbn),
@@ -483,7 +483,7 @@ class OriginalFileSearchRequestSender(namedtuple('OriginalFileSearchRequest',['c
     implements(IAMQPSender)
     def send(self):
         print "-> SysNumber search Request for: ", str(self.context), self.context.isbn
-        request = SearchRequest(ISBNQuery(self.context.isbn, 'cze-dep'))
+        request = SearchRequest(ISBNQuery(self.context.isbn))
         producer = getUtility(IProducer, name="amqp.isbn-search-request")
         msg = ""
         session_data =  { 'isbn': str(self.context.isbn),
@@ -499,7 +499,7 @@ class RenewAlephRecordsRequestSender(namedtuple('RenewAlephRecordsRequest',['con
     implements(IAMQPSender)
     def send(self):
         print "-> Renew Aleph Records Request for: ", str(self.context), self.context.isbn
-        request = SearchRequest(ISBNQuery(self.context.isbn,'cze-dep'))
+        request = SearchRequest(ISBNQuery(self.context.isbn))
         producer = getUtility(IProducer, name="amqp.isbn-search-request")
         msg = ""
         session_data =  { 'isbn': str(self.context.isbn),
@@ -523,7 +523,7 @@ class RenewAlephRecordsBySysNumberRequestSender(namedtuple('RenewAlephRecordsByS
                 print "... no related_aleph_record found, skipping"
                 continue
 
-            request = SearchRequest(DocumentQuery(sysnumber,'cze-dep'))
+            request = SearchRequest(DocumentQuery(sysnumber))
             producer = getUtility(IProducer, name="amqp.isbn-search-request")
             msg = ""
             session_data =  { 'isbn': str(self.context.isbn),
@@ -548,7 +548,7 @@ class RenewAlephRecordsByICZSysNumberRequestSender(namedtuple('RenewAlephRecords
                 print "... no icz sysnumber found, skipping"
                 continue
 
-            request = SearchRequest(ICZQuery(icznumber,'cze-dep'))
+            request = SearchRequest(ICZQuery(icznumber))
             producer = getUtility(IProducer, name="amqp.isbn-search-request")
             msg = ""
             session_data =  { 'isbn': str(self.context.isbn),
@@ -569,7 +569,7 @@ class RenewAlephRecordsByICZSysNumberRequestSender(namedtuple('RenewAlephRecords
 #             print "... no sysnumber for summary record found at related_aleph_record, quit"
 #             return
 
-#         request = SearchRequest(DocumentQuery(sysnumber,'cze-dep'))
+#         request = SearchRequest(DocumentQuery(sysnumber))
 #         producer = getUtility(IProducer, name="amqp.isbn-search-request")
 #         msg = ""
 #         session_data =  { 'isbn': str(self.context.isbn),
@@ -591,7 +591,7 @@ class OriginalFileContributionPDFGenerateRequestSender(namedtuple('PDFGenerateRe
         dataFromOriginalFile = self.context.dataForContributionPDF()
         data = dict(dataFromEPublication.items() + dataFromOriginalFile.items())
         #open("/tmp/data-for-pdf.json","wb").write(json.dumps(data,ensure_ascii=False))
-        # request = SearchRequest(ISBNQuery(self.context.isbn,'cze-dep'))
+        # request = SearchRequest(ISBNQuery(self.context.isbn))
         # producer = getUtility(IProducer, name="amqp.isbn-search-request")
         # msg = ""
         # session_data =  { 'isbn': str(self.context.isbn),
@@ -877,7 +877,7 @@ class AlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'resu
                 # submit next search, if record is closed
                 if record.semantic_info.isClosed:
                     sysnumber = record.semantic_info.parsedSummaryRecordSysNumber
-                    request = SearchRequest(ICZQuery(sysnumber,'cze-dep'))
+                    request = SearchRequest(ICZQuery(sysnumber))
                     producer = getUtility(IProducer, name="amqp.isbn-search-request")
                     msg = ""
                     session_data =  { 'isbn': str(self.context.isbn),
@@ -1647,9 +1647,10 @@ class ExportToStorageRequestSender(namedtuple('ExportToStorageRequest',['context
     implements(IAMQPSender)
     def send(self):
         print "-> Export To Storage Request for: ", str(self.context)
-        urnnbn = self.context.getURNNBN()
-        if not urnnbn:
-            return
+        #urnnbn = self.context.getURNNBN()
+        #if not urnnbn:
+        #    return
+        urnnbn = ""
         record = Publication(
             title = self.context.title,
             author = "",
@@ -1684,7 +1685,7 @@ class PublicationExportToStorageResultHandler(namedtuple('PublicationExportToSto
             transition = self.context.isWellFormedForLTP and "exportToStorageOKToLTP" \
                 or "exportToStorageOKSkipLTP"
             print "... transition: ", transition, api.content.get_state(obj=self.context)
-            wft.doActionFor(self.context, transition)
+            # wft.doActionFor(self.context, transition)
             pass
         pass
         IPloneTaskSender(DoActionFor(transition='submitUpdateLinksAtAleph', uid=self.context.UID())).send()
