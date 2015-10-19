@@ -25,6 +25,7 @@ from plone.app.layout.viewlets import ViewletBase
 from Products.CMFCore.permissions import ModifyPortalContent, ReviewPortalContent
 
 from plone import api
+from eperiodical import IePeriodical
 from originalfile import IOriginalFile
 from epublication import IePublication, IMainMetadata, MainMetadataForm
 from epublicationfolder import IePublicationFolder
@@ -112,6 +113,12 @@ class ContentHistoryForBook(grok.Viewlet):
     grok.viewletmanager(IBelowContent)
     grok.context(IBook)
     #grok.template('viewlets_templates/contenthistory.pt')
+
+class ContentHistoryForEPeriodical(grok.Viewlet):
+    grok.name('edeposit.contenthistoryforeperiodical')
+    grok.require('zope2.View')
+    grok.viewletmanager(IBelowContent)
+    grok.context(IePeriodical)
 
 class MainMetadataFormWrapper(FormWrapper):
     index = ViewPageTemplateFile("viewlets_templates/formwrapper.pt")

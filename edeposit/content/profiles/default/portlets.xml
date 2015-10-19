@@ -39,6 +39,13 @@
       purge="True"
       manager="plone.leftcolumn"
       category="content_type"
+      key="edeposit.content.eperiodical"
+      />
+
+  <assignment
+      purge="True"
+      manager="plone.leftcolumn"
+      category="content_type"
       key="edeposit.content.epublicationfolder"
       />
 
