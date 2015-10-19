@@ -13,6 +13,7 @@ from plone.app.textfield import RichText
 from plone.namedfile.field import NamedImage, NamedFile
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
 from plone.namedfile.interfaces import IImageScaleTraversable
+from zope.i18n import translate
 
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.statusmessages.interfaces import IStatusMessage
@@ -52,6 +53,7 @@ from edeposit.content.book_states import StatesGenerator
 from operator import methodcaller, attrgetter, __or__
 from zope.component import getUtility
 from zope.app.intid.interfaces import IIntIds
+from string import Template
 
 # Interface class; used to define content-type schema.
 
@@ -278,6 +280,46 @@ def nakladatelDefaultValue(data):
 
 class Book(Container):
     grok.implements(IBook)
+
+    state_view_template = Template(u"""
+    <div class="document-state-viewlet">
+        <span class="ObjectStatus">Stav: <a class="$stateClass" href="$stateCollectionHREF">$stateTitle</a></span>
+    </div>
+""")
+
+    def getCurrentStateCollectionHREF(self):
+        return self.getStateCollectionHREF(api.content.get_state(self))
+
+    def getStateCollectionHREF(self,state):
+        prefix = '/producents/prehledy/knihy'
+        print "getStateCollectionHREF for: ", state
+        stateHREFs = dict(
+            acquisition = '/akvizice/cekaji-na-akvizici',
+            ISBNSubjectValidation = '/isbn-agentura/cekaji-na-vecnou-kontrolu-isbn',
+            chooseProperAlephRecord = '/akvizice/cekaji-na-vyber-spravneho-zaznamu-z-alephu',
+            declarationWithError = '/producent/problemy-pri-zpracovani/chyba-v-zadani',
+            fileProblem = '/producent/problemy-pri-zpracovani/problem-s-originalem',
+            wrongISBNError = '/producent/problemy-pri-zpracovani/chyba-v-isbn',
+            onlyCzechISBNAceptedError = '/producent/problemy-pri-zpracovani/jsou-prijimana-pouze-ceska-isbn',
+            isbnAlreadyExistsError = '/producent/problemy-pri-zpracovani/isbn-jiz-existuje',
+            zpracovatelIsRequiredError = '/producent/problemy-pri-zpracovani/zpracovatel-je-povinny',
+            middlewareProblem = '/producent/problemy-pri-zpracovani/chyba-v-systemu',
+            DatumVydaniIsRequired = '/producent/problemy-pri-zpracovani/datum-vydani-je-povinne'
+            )
+        stateHREF = stateHREFs.get(state, "/")
+        return api.portal.get().absolute_url() + prefix + stateHREF
+
+    def state_viewlet(self):
+        state = api.content.get_state(obj=self)
+        stateTitle = translate(self.portal_workflow.getTitleForStateOnType(state, self.portal_type),
+                               domain='plone',context = self.REQUEST)
+        data = dict(
+            stateClass = 'state-' + self.plone_utils.normalizeString(state),
+            stateTitle = stateTitle,
+            stateCollectionHREF = self.getStateCollectionHREF(state),
+            )
+        return Book.state_view_template.substitute(data)
+
 
     def hasVoucher(self):
         return bool(self.voucher)

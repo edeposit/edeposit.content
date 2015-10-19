@@ -74,12 +74,31 @@ class ContentStateForEPublication(ContentState):
     grok.context(IePublication)
     grok.template('viewlets_templates/contentstate.pt')
 
-class ContentStateForBook(ContentState):
+class ContentStateForBook(grok.Viewlet):
     grok.name('edeposit.contentstateforbook')
     grok.require('zope2.View')
     grok.viewletmanager(IContentViews)
     grok.context(IBook)
-    grok.template('viewlets_templates/contentstate.pt')
+    #grok.template('viewlets_templates/contentstateforbook.pt')
+
+    def update(self):
+        super(ContentStateForBook,self).update()
+        context = aq_inner(self.context)
+        plone_utils = api.portal.get_tool('plone_utils')
+        wft = api.portal.get_tool('portal_workflow')
+        state = api.content.get_state(obj=context)
+        stateTitle = wft.getTitleForStateOnType(state,context.portal_type)
+
+        self.wf_state = dict( state = state, 
+                              title = stateTitle,
+                              stateClass = 'contentstate-'+plone_utils.normalizeString(state),
+                              href = context.absolute_url() + "/content_status_history",
+                              )
+        wf_tool = getToolByName(self.context, 'portal_workflow')
+        infos = filter(lambda info: info.get('available',None) and info.get('category',None) == 'workflow', wf_tool.listActionInfos(object=self.context))
+        self.transitions = infos
+        return
+
 
 class ContentHistory(grok.Viewlet):
     grok.name('edeposit.contenthistory')
