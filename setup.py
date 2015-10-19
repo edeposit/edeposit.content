@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
 import os
 
@@ -15,10 +16,10 @@ setup(name='edeposit.content',
         "Programming Language :: Python",
         "Topic :: Software Development :: Libraries :: Python Modules",
         ],
-      keywords='',
-      author='',
-      author_email='',
-      url='https://github.com/jstavel/edeposit.content',
+      keywords='eDeposit',
+      author=u'Jan Stavěl',
+      author_email='stavel.jan@gmail.com',
+      url='https://github.com/edeposit/edeposit.content',
       license='GPL',
       packages=find_packages(exclude=['ez_setup']),
       namespace_packages=['edeposit'],
