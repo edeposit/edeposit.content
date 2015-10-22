@@ -236,3 +236,4 @@ class BackToAcquisitionButton(plone.app.layout.viewlets.common.ContentActionsVie
         if not self.available():
             return ""
         return super(BackToAcquisitionButton,self).render()
+

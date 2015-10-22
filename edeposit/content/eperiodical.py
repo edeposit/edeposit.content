@@ -22,6 +22,7 @@ from edeposit.content.library import ILibrary
 from edeposit.content.eperiodicalfolder import IePeriodicalFolder
 from edeposit.content import MessageFactory as _
 from plone import api
+from edeposit.app.fields import PeriodicityChoice
 
 """
 Denně
@@ -83,7 +84,7 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
         required = False,
     )
 
-    cetnost_vydani = schema.Choice (
+    cetnost_vydani = PeriodicityChoice (
         title = u"Četnost (periodicita) vydání",
         required = True,
         source = periodicityChoicesSource,
