@@ -12,7 +12,7 @@ def loadFromAlephByISBN(isbn,num_of_records=0):
 def is_valid_isbn(isbn, result=True):
     return result
 
-def getISBNCount(isbn,base='nkc',result=0):
+def getISBNCount(isbn, result=0):
     return result
 
 def getAlephRecord():

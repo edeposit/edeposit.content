@@ -16,15 +16,15 @@ import tempfile
 # nosier "/usr/bin/python utils.py"
 
 def loadFromAlephByISBN(isbn):
-    result = aleph.reactToAMQPMessage(aleph.SearchRequest(aleph.ISBNQuery(isbn, base='nkc')),'UUID')
+    result = aleph.reactToAMQPMessage(aleph.SearchRequest(aleph.ISBNQuery(isbn),'UUID')
     return result.records
 
 
 def is_valid_isbn(isbn):
     return isbn_validator.is_valid_isbn(isbn)
 
-def getISBNCount(isbn, base='nkc'):
-    return aleph.aleph.getISBNCount(isbn, base='nkc')
+def getISBNCount(isbn):
+    return aleph.aleph.getISBNCount(isbn)
 
 
 def normalizeISBN(isbn):

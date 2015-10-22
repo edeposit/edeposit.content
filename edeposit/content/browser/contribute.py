@@ -164,7 +164,7 @@ class LoadFromSimilarForm(form.SchemaForm):
                 pass
             else:
                 try:
-                    appearedAtAleph = getISBNCount(isbn, base='nkc')
+                    appearedAtAleph = getISBNCount(isbn)
                     if not appearedAtAleph:
                         errors += (getErrorView(isbnWidget, 
                                                 Invalid(u'ISBN v Alephu neexistuje. Použijte jiné.')),)
