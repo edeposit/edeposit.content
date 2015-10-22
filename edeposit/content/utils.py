@@ -16,7 +16,7 @@ import tempfile
 # nosier "/usr/bin/python utils.py"
 
 def loadFromAlephByISBN(isbn):
-    result = aleph.reactToAMQPMessage(aleph.SearchRequest(aleph.ISBNQuery(isbn),'UUID')
+    result = aleph.reactToAMQPMessage(aleph.SearchRequest(aleph.ISBNQuery(isbn),'UUID'))
     return result.records
 
 
