@@ -20,7 +20,15 @@ from Products.CMFPlone import PloneMessageFactory as _
 from plone.directives import form
 from five import grok
 from plone.app.layout.globals.interfaces import IViewView
-from plone.app.layout.viewlets.interfaces import IContentViews, IBelowContent, IAboveContentBody, IBelowContentBody
+from plone.app.layout.viewlets.interfaces import (
+    IContentViews, 
+    IBelowContent,
+    IAboveContentBody,
+    IBelowContentBody,
+    IAboveContent,
+    IPortalHeader,
+    )
+
 from plone.app.layout.viewlets import ViewletBase
 from Products.CMFCore.permissions import ModifyPortalContent, ReviewPortalContent
 
@@ -137,7 +145,6 @@ class EBookMetadata(grok.Viewlet):
         self.main_metadata_form = view
         self.ebook = ebook
 
-
 class Contact(grok.Viewlet):
     grok.name('edeposit.contact')
     grok.require('zope2.View')
@@ -237,3 +244,24 @@ class BackToAcquisitionButton(plone.app.layout.viewlets.common.ContentActionsVie
             return ""
         return super(BackToAcquisitionButton,self).render()
 
+class Breadcrumbs(grok.Viewlet):
+    grok.name('edeposit.path_bar')
+    grok.viewletmanager(IPortalHeader)
+    grok.context(IDexterityContent)
+
+    def visible(self):
+        return True
+        #return len(self.breadcrumbs) >= 1
+
+    def update(self):
+        context= self.context.aq_inner
+
+        self.portal_state = getMultiAdapter((context, self.request), name="plone_portal_state")
+        self.site_url = self.portal_state.portal_url()
+        self.navigation_root_url = self.portal_state.navigation_root_url()
+        self.is_rtl = self.portal_state.is_rtl()
+        breadcrumbs_view = getMultiAdapter((self.context, self.request),
+                                           name='breadcrumbs_view')
+        breadcrumbs =  breadcrumbs_view.breadcrumbs()
+        self.breadcrumbs = (len(breadcrumbs) > 1) and breadcrumbs[1:] or breadcrumbs
+        pass

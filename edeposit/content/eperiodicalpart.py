@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from five import grok
 
 from z3c.form import group, field
@@ -11,16 +12,25 @@ from plone.directives import dexterity, form
 from plone.app.textfield import RichText
 from plone.namedfile.field import NamedImage, NamedFile
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
+from plone.namedfile.interfaces import INamedBlobFileField
+from zope.interface import implements
+
 from plone.namedfile.interfaces import IImageScaleTraversable
 from z3c.relationfield.schema import RelationChoice, RelationList
 from plone.formwidget.contenttree import ObjPathSourceBinder, UUIDSourceBinder
 from plone.formwidget.autocomplete import AutocompleteFieldWidget, AutocompleteMultiFieldWidget
-
 from edeposit.content.library import ILibrary
-
-
+import z3c.form.browser.radio
+from edeposit.content.epublication import librariesAccessing
 from edeposit.content import MessageFactory as _
+from edeposit.content.originalfile import OriginalFileSource
 
+# file source
+class IEPeriodicalPartFileField(INamedBlobFileField):
+    pass
+
+class EPeriodicalPartFile(NamedBlobFile):
+    implements(IEPeriodicalPartFileField)
 
 # Interface class; used to define content-type schema.
 
@@ -112,56 +122,51 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
         vocabulary='edeposit.content.currencies'
         )
 
-    form.fieldset('technical',
-                  label=_('Technical'),
-                  fields = [ 'person_who_processed_this',
-                             'aleph_doc_number',
-                             ]
+    form.fieldset('original',
+                  label='Soubor',
+                  fields = [ 'file',]
                   )
-    person_who_processed_this = schema.ASCIILine(
-        title = _(u'Person who processed this.'),
-        description = _(u'Fill in a name of a person who processed this ePeriodical part.'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
 
-    aleph_doc_number = schema.ASCIILine(
-        title = _(u'Aleph DocNumber'),
-        description = _(u'Internal DocNumber that Aleph refers to metadata of this ePeriodical part'),
+    form.primary('file')
+    file = EPeriodicalPartFile (
+        title=_(u"Original File of an ePeriodical Part"),
         required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
         )
 
     form.fieldset('accessing',
                   label=_(u'Accessing'),
-                  fields = ['libraries_that_can_access_at_library_terminal',
-                            'libraries_that_can_access_at_public',
-                            ])
-    #form.widget(libraries_that_can_access_at_library_terminal=AutocompleteMultiFieldWidget)    
-    libraries_that_can_access_at_library_terminal = RelationList(
-        title = _(u'Libraries that can access at library terminal'),
-        description = _(u'Choose libraries that can show an ePublication at its terminal.'),
+                  fields = [ 'is_public',
+                             'libraries_accessing',
+                             'libraries_that_can_access',
+                             ])
+
+    is_public = schema.Bool(
+        title = u'ePublikace je veřejná',
+        required = False,
+        default = False,
+        missing_value = False,
+        )
+
+    form.widget(libraries_accessing=z3c.form.browser.radio.RadioFieldWidget)
+    libraries_accessing = schema.Choice (
+        title = u"Oprávnění knihovnám",
+        required = False,
+        readonly = False,
+        default = None,
+        missing_value = None,
+        source = librariesAccessing,
+        #vocabulary = 'edeposit.content.librariesAccessingChoices'
+    )
+
+    #form.widget(libraries_that_can_access=AutocompleteMultiFieldWidget)    
+    libraries_that_can_access = RelationList(
+        title = _(u'Libraries that can access this ePublication'),
+        #description = _(u'Choose libraries that can show an ePublication at its terminal.'),
         required = False,
         readonly = False,
         default = [],
         value_type = RelationChoice(
             title = _(u'Related libraries'),
-            source = ObjPathSourceBinder(object_provides=ILibrary.__identifier__),
-            )
-        )
-    #form.widget(libraries_that_can_access_at_public=AutocompleteMultiFieldWidget)    
-    libraries_that_can_access_at_public = RelationList(
-        title = _(u'Libraries that can access at public'),
-        description = _(u'Choose libraries that can show an ePublication at public.'),
-        required = False,
-        readonly = False,
-        default = [],
-        value_type = RelationChoice(
-            title = _(u'Related libraries at public'),
             source = ObjPathSourceBinder(object_provides=ILibrary.__identifier__),
             )
         )
@@ -179,6 +184,49 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
         default = None,
         missing_value = None,
         )
+
+    form.fieldset('technical',
+                  label=_('Technical'),
+                  fields = [ 'person_who_processed_this',
+                             'thumbnail',
+                             'aleph_doc_number',
+                             'storage_download_url',
+                             'storage_path'
+                             ]
+                  )
+    person_who_processed_this = schema.ASCIILine(
+        title = _(u'Person who processed this.'),
+        description = _(u'Fill in a name of a person who processed this ePeriodical part.'),
+        required = False,
+        readonly = False,
+        default = None,
+        missing_value = None,
+        )
+
+    thumbnail = NamedBlobFile(
+        title=_(u"PDF kopie"),
+        required = False,
+        )
+
+    aleph_doc_number = schema.ASCIILine(
+        title = _(u'Aleph DocNumber'),
+        description = _(u'Internal DocNumber that Aleph refers to metadata of this ePeriodical part'),
+        required = False,
+        readonly = False,
+        default = None,
+        missing_value = None,
+        )
+
+    storage_download_url = schema.ASCIILine (
+        title = u"Linka do úložiště",
+        required = False,
+    )
+
+    storage_path = schema.ASCIILine (
+        title = u"Cesta v úložišti",
+        required = False,
+    )
+
     
 
 # Custom content-type class; objects created for this content type will
@@ -190,7 +238,6 @@ class ePeriodicalPart(Container):
     grok.implements(IePeriodicalPart)
 
     # Add your class methods and properties here
-
 
 # View class
 # The view will automatically use a similarly named template in

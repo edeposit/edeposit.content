@@ -66,6 +66,7 @@ edeposit/content/vocabularies.py
 edeposit/content/browser/__init__.py
 edeposit/content/browser/changes_notification_email.py
 edeposit/content/browser/contribute.py
+edeposit/content/browser/eperiodical_periodicity.py
 edeposit/content/browser/originalfile_download.py
 edeposit/content/browser/originalfile_isbn.py
 edeposit/content/browser/sendemail.py
