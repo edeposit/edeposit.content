@@ -24,6 +24,7 @@ import z3c.form.browser.radio
 from edeposit.content.epublication import librariesAccessing
 from edeposit.content import MessageFactory as _
 from edeposit.content.originalfile import OriginalFileSource
+from plone import api
 
 # file source
 class IEPeriodicalPartFileField(INamedBlobFileField):
@@ -39,99 +40,55 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
     E-Deposit - ePeriodical Part
     """
     
-    book_binding = schema.ASCIILine(
-        title = _(u"Book Binding"),
-        description = _(u"Fill in binding of a book."),
+    cast = schema.TextLine (
+        title = u"Část (svazek,díl)",
         required = False,
-        )
+    )
     
-    subtitle = schema.ASCIILine (
-        title = _(u"Subtitle"),
+    nazev_casti = schema.TextLine (
+        title = u"Název části, dílu",
         required = False,
         )
 
-    edition = schema.ASCIILine (
-        title = _(u"Edition"),
+    cena = schema.Decimal (
+        title = u'Cena v Kč',
         required = False,
-        )
-
-    form.fieldset('Publishing',
-                  label=_(u"Publishing"),
-                  fields = [ 'date_of_publishing',
-                             'published_with_coedition',
-                             'published_at_order',
-                             'place_of_publishing',
-                             ]
-                  )
-    place_of_publishing = schema.ASCIILine (
-        title = _(u"Place of Publishing"),
-        required = False,
-        )
-
-    date_of_publishing = schema.Date (
-        title = _(u"Publishing Date"),
-        required = False,
-        )
-    
-    published_with_coedition = schema.ASCIILine(
-        title = _(u'Published with Coedition'),
-        description = _(u'Fill in a coedition of an ePublication'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
-
-    published_at_order = schema.ASCIILine(
-        title = _(u'Published at order'),
-        description = _(u'Fill in an order an ePublication was published at.'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
-    
-
-    form.fieldset('volume',
-                  label=_(u'Volume'),
-                  fields = ['volume','volume_title','volume_number']
-                  )
-    volume = schema.ASCIILine (
-        title = _(u"Volume"), # svazek
-        required = False,
-        )
-    
-    volume_title = schema.ASCIILine (
-        title = _(u"Volume Title"),
-        required = False,
-        )
-    
-    volume_number = schema.ASCIILine (
-        title = _(u"Volume Number"),
-        required = False,
-        )
-
-    price = schema.Decimal(
-        title = _(u"Price"),
-        required = False,
-        )
-
-    currency = schema.Choice(
-        title = _(u'Currency'),
-        description = _(u'Fill in currency of a price.'),
-        vocabulary='edeposit.content.currencies'
-        )
-
-    form.fieldset('original',
-                  label='Soubor',
-                  fields = [ 'file',]
-                  )
+    )
 
     form.primary('file')
     file = EPeriodicalPartFile (
         title=_(u"Original File of an ePeriodical Part"),
         required = False,
         )
+
+    vazba = schema.TextLine (
+        title = u"Vazba",
+        required = False,
+        default = u"online",
+    )
+
+    form.fieldset('Publishing',
+                  label=_(u"Publishing"),
+                  fields = [ 'poradi_vydani',
+                             'misto_vydani',
+                             'rok_vydani',
+                             ]
+                  )
+
+    poradi_vydani = schema.TextLine(
+        title = u'Pořadí vydání',
+        required = True,
+    )
+
+    misto_vydani = schema.TextLine(
+        title = u'Místo vydání',
+        required = True,
+    )
+
+    rok_vydani = schema.TextLine (
+        title = u"Rok vydání",
+        required = True,
+    )
 
     form.fieldset('accessing',
                   label=_(u'Accessing'),
@@ -141,7 +98,7 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
                              ])
 
     is_public = schema.Bool(
-        title = u'ePublikace je veřejná',
+        title = u'vydání je veřejné',
         required = False,
         default = False,
         missing_value = False,
@@ -155,13 +112,10 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
         default = None,
         missing_value = None,
         source = librariesAccessing,
-        #vocabulary = 'edeposit.content.librariesAccessingChoices'
     )
 
-    #form.widget(libraries_that_can_access=AutocompleteMultiFieldWidget)    
     libraries_that_can_access = RelationList(
-        title = _(u'Libraries that can access this ePublication'),
-        #description = _(u'Choose libraries that can show an ePublication at its terminal.'),
+        title = u"Knihovny které mají přístup k vydání ePeriodika",
         required = False,
         readonly = False,
         default = [],
@@ -187,24 +141,21 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
 
     form.fieldset('technical',
                   label=_('Technical'),
-                  fields = [ 'person_who_processed_this',
+                  fields = [ 'zpracovatel_zaznamu',
                              'thumbnail',
                              'aleph_doc_number',
                              'storage_download_url',
                              'storage_path'
                              ]
                   )
-    person_who_processed_this = schema.ASCIILine(
-        title = _(u'Person who processed this.'),
-        description = _(u'Fill in a name of a person who processed this ePeriodical part.'),
+
+    zpracovatel_zaznamu = schema.TextLine(
+        title = u'Zpracovatel záznamu',
         required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
+    )
 
     thumbnail = NamedBlobFile(
-        title=_(u"PDF kopie"),
+        title=u"PDF kopie",
         required = False,
         )
 
@@ -228,6 +179,11 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
     )
 
     
+
+@form.default_value(field=IePeriodicalPart['zpracovatel_zaznamu'])
+def zpracovatelDefaultValue(data):
+    member = api.user.get_current()
+    return member.fullname or member.id
 
 # Custom content-type class; objects created for this content type will
 # be instances of this class. Use this class to add content-type specific

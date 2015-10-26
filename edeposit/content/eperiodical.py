@@ -90,11 +90,6 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
         source = periodicityChoicesSource,
     )
 
-    misto_vydani = schema.TextLine (
-        title = u"Místo vydáni",
-        required = True,
-    )
-
     obsahove_zamereni = schema.TextLine (
         title = u"Obsahové zaměření",
         required = False,

@@ -14,6 +14,14 @@
   <adapter factory=".eperiodical_periodicity.EPeriodicalChangePeriodicity"/>
 
   <browser:page
+      for="edeposit.content.eperiodical.IePeriodical"
+      name="eperiodical-view"
+      class="plone.dexterity.browser.view.DefaultView"
+      template="eperiodical-container.pt"
+      permission="zope2.View"
+      />
+
+  <browser:page
       name="aleph-record-loaded"
       for="edeposit.content.epublicationfolder.IePublicationFolder"
       class=".contribute.AlephRecordLoaded"
