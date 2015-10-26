@@ -46,7 +46,6 @@
                         pas_member context/@@pas_member;
                         plone_view context/@@plone;">
     <tal:listing condition="batch">
-
         <dl metal:define-slot="entries">
             <tal:entry tal:repeat="item batch" metal:define-macro="entries">
             <tal:block tal:define="item_url item/getURL|item/absolute_url;
@@ -69,7 +68,6 @@
                 <metal:block define-slot="entry">
                 <dt metal:define-macro="listitem"
                     tal:attributes="class python:test(item_type == 'Event', 'vevent', '')">
-
                     <span class="summary">
                         <img tal:replace="structure item_icon/html_tag" />
                         <a href="#"
@@ -79,6 +77,10 @@
                             Item Title
                         </a>
                     </span>
+
+		    <a tal:attributes="href python:item_url+'/++add++edeposit.content.eperiodicalpart'" 
+		       tal:condition="python:item_type == 'Folder'"
+		       class="add-next-part">přiložit další vydání</a>
 
                     <span class="documentByLine">
                         <span tal:condition="python: item_type == 'Event' and item_sametime"
