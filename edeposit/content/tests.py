@@ -22,6 +22,13 @@ ztc.ZopeDocFileSuite(
 
 # -*- extra stuff goes here -*-
 
+        # Integration tests for eperiodicalpartsfolder
+        ztc.ZopeDocFileSuite(
+            'eperiodicalpartsfolder.txt',
+            package='edeposit.content',
+            optionflags = OPTION_FLAGS,
+            test_class=TestCase),
+
         # Integration tests for EPubCheckValidationResponse
         ztc.ZopeDocFileSuite(
             'EPubCheckValidationResponse.txt',
