@@ -10,12 +10,12 @@
   <property name="icon_expr">string:${portal_url}/folder_icon.png</property>
   <property name="factory">edeposit.content.eperiodicalpartsfolder</property>
   <property name="global_allow">False</property>
-  <property name="filter_content_types">False</property>
+  <property name="filter_content_types">True</property>
   <property name="allowed_content_types">
     <element value="edeposit.content.eperiodicalpart"/>
+    <element value="edeposit.content.eperiodicalpartsfolder"/>
   </property>
   <property name="allow_discussion">False</property>
-
   <!-- schema and class used for content items -->
   <property name="schema">edeposit.content.eperiodicalpartsfolder.Ieperiodicalpartsfolder</property>
   <property name="klass">edeposit.content.eperiodicalpartsfolder.eperiodicalpartsfolder</property>
@@ -27,14 +27,14 @@
 
   <!-- View information -->
   <property name="link_target"></property>
-  <property name="immediate_view">view</property>
-  <property name="default_view">view</property>
+  <property name="immediate_view">eperiodical-view</property>
+  <property name="default_view">eperiodical-view</property>
   <property name="view_methods">
    <element value="view"/>
+   <element value="eperiodical-view"/>
   </property>
   <property name="default_view_fallback">False</property>
   <property name="add_permission">cmf.AddPortalContent</property>
-
 
   <!-- Method aliases -->
   <alias from="(Default)" to="(dynamic view)" />
