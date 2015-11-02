@@ -265,3 +265,7 @@ class Breadcrumbs(grok.Viewlet):
         breadcrumbs =  breadcrumbs_view.breadcrumbs()
         self.breadcrumbs = (len(breadcrumbs) > 1) and breadcrumbs[1:] or breadcrumbs
         pass
+
+
+class EditIconViewlet(plone.app.layout.viewlets.common.ViewletBase):
+    index = ViewPageTemplateFile('viewlets_templates/editiconviewlet.pt')
