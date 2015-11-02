@@ -11,6 +11,23 @@
   <grok:grok package="." />
 
   <adapter factory=".originalfile_isbn.OriginalFileChangeISBN"/>
+  <adapter factory=".eperiodical_periodicity.EPeriodicalChangePeriodicity"/>
+
+  <browser:page
+      for="edeposit.content.eperiodical.IePeriodical"
+      name="eperiodical-view"
+      class="plone.dexterity.browser.view.DefaultView"
+      template="eperiodical-container.pt"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="edeposit.content.eperiodicalpartsfolder.Ieperiodicalpartsfolder"
+      name="eperiodical-view"
+      class="plone.dexterity.browser.view.DefaultView"
+      template="eperiodical-container.pt"
+      permission="zope2.View"
+      />
 
   <browser:page
       name="aleph-record-loaded"

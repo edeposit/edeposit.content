@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from five import grok
 
 from z3c.form import group, field
@@ -11,16 +12,26 @@ from plone.directives import dexterity, form
 from plone.app.textfield import RichText
 from plone.namedfile.field import NamedImage, NamedFile
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
+from plone.namedfile.interfaces import INamedBlobFileField
+from zope.interface import implements
+
 from plone.namedfile.interfaces import IImageScaleTraversable
 from z3c.relationfield.schema import RelationChoice, RelationList
 from plone.formwidget.contenttree import ObjPathSourceBinder, UUIDSourceBinder
 from plone.formwidget.autocomplete import AutocompleteFieldWidget, AutocompleteMultiFieldWidget
-
 from edeposit.content.library import ILibrary
-
-
+import z3c.form.browser.radio
+from edeposit.content.epublication import librariesAccessing
 from edeposit.content import MessageFactory as _
+from edeposit.content.originalfile import OriginalFileSource
+from plone import api
 
+# file source
+class IEPeriodicalPartFileField(INamedBlobFileField):
+    pass
+
+class EPeriodicalPartFile(NamedBlobFile):
+    implements(IEPeriodicalPartFileField)
 
 # Interface class; used to define content-type schema.
 
@@ -29,139 +40,87 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
     E-Deposit - ePeriodical Part
     """
     
-    book_binding = schema.ASCIILine(
-        title = _(u"Book Binding"),
-        description = _(u"Fill in binding of a book."),
+    cast = schema.TextLine (
+        title = u"Část (svazek,díl)",
         required = False,
-        )
+    )
     
-    subtitle = schema.ASCIILine (
-        title = _(u"Subtitle"),
+    nazev_casti = schema.TextLine (
+        title = u"Název části, dílu",
         required = False,
         )
 
-    edition = schema.ASCIILine (
-        title = _(u"Edition"),
+    cena = schema.Decimal (
+        title = u'Cena v Kč',
+        required = False,
+    )
+
+    form.primary('file')
+    file = EPeriodicalPartFile (
+        title=_(u"Original File of an ePeriodical Part"),
         required = False,
         )
+
+    vazba = schema.TextLine (
+        title = u"Vazba",
+        required = False,
+        default = u"online",
+    )
 
     form.fieldset('Publishing',
                   label=_(u"Publishing"),
-                  fields = [ 'date_of_publishing',
-                             'published_with_coedition',
-                             'published_at_order',
-                             'place_of_publishing',
+                  fields = [ 'poradi_vydani',
+                             'misto_vydani',
+                             'rok_vydani',
                              ]
                   )
-    place_of_publishing = schema.ASCIILine (
-        title = _(u"Place of Publishing"),
-        required = False,
-        )
 
-    date_of_publishing = schema.Date (
-        title = _(u"Publishing Date"),
-        required = False,
-        )
-    
-    published_with_coedition = schema.ASCIILine(
-        title = _(u'Published with Coedition'),
-        description = _(u'Fill in a coedition of an ePublication'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
+    poradi_vydani = schema.TextLine(
+        title = u'Pořadí vydání',
+        required = True,
+    )
 
-    published_at_order = schema.ASCIILine(
-        title = _(u'Published at order'),
-        description = _(u'Fill in an order an ePublication was published at.'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
-    
+    misto_vydani = schema.TextLine(
+        title = u'Místo vydání',
+        required = True,
+    )
 
-    form.fieldset('volume',
-                  label=_(u'Volume'),
-                  fields = ['volume','volume_title','volume_number']
-                  )
-    volume = schema.ASCIILine (
-        title = _(u"Volume"), # svazek
-        required = False,
-        )
-    
-    volume_title = schema.ASCIILine (
-        title = _(u"Volume Title"),
-        required = False,
-        )
-    
-    volume_number = schema.ASCIILine (
-        title = _(u"Volume Number"),
-        required = False,
-        )
-
-    price = schema.Decimal(
-        title = _(u"Price"),
-        required = False,
-        )
-
-    currency = schema.Choice(
-        title = _(u'Currency'),
-        description = _(u'Fill in currency of a price.'),
-        vocabulary='edeposit.content.currencies'
-        )
-
-    form.fieldset('technical',
-                  label=_('Technical'),
-                  fields = [ 'person_who_processed_this',
-                             'aleph_doc_number',
-                             ]
-                  )
-    person_who_processed_this = schema.ASCIILine(
-        title = _(u'Person who processed this.'),
-        description = _(u'Fill in a name of a person who processed this ePeriodical part.'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
-
-    aleph_doc_number = schema.ASCIILine(
-        title = _(u'Aleph DocNumber'),
-        description = _(u'Internal DocNumber that Aleph refers to metadata of this ePeriodical part'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
+    rok_vydani = schema.TextLine (
+        title = u"Rok vydání",
+        required = True,
+    )
 
     form.fieldset('accessing',
                   label=_(u'Accessing'),
-                  fields = ['libraries_that_can_access_at_library_terminal',
-                            'libraries_that_can_access_at_public',
-                            ])
-    #form.widget(libraries_that_can_access_at_library_terminal=AutocompleteMultiFieldWidget)    
-    libraries_that_can_access_at_library_terminal = RelationList(
-        title = _(u'Libraries that can access at library terminal'),
-        description = _(u'Choose libraries that can show an ePublication at its terminal.'),
+                  fields = [ 'is_public',
+                             'libraries_accessing',
+                             'libraries_that_can_access',
+                             ])
+
+    is_public = schema.Bool(
+        title = u'vydání je veřejné',
+        required = False,
+        default = False,
+        missing_value = False,
+        )
+
+    form.widget(libraries_accessing=z3c.form.browser.radio.RadioFieldWidget)
+    libraries_accessing = schema.Choice (
+        title = u"Oprávnění knihovnám",
+        required = False,
+        readonly = False,
+        default = None,
+        missing_value = None,
+        source = librariesAccessing,
+    )
+
+    libraries_that_can_access = RelationList(
+        title = u"Knihovny které mají přístup k vydání ePeriodika",
         required = False,
         readonly = False,
         default = [],
         value_type = RelationChoice(
             title = _(u'Related libraries'),
-            source = ObjPathSourceBinder(object_provides=ILibrary.__identifier__),
-            )
-        )
-    #form.widget(libraries_that_can_access_at_public=AutocompleteMultiFieldWidget)    
-    libraries_that_can_access_at_public = RelationList(
-        title = _(u'Libraries that can access at public'),
-        description = _(u'Choose libraries that can show an ePublication at public.'),
-        required = False,
-        readonly = False,
-        default = [],
-        value_type = RelationChoice(
-            title = _(u'Related libraries at public'),
             source = ObjPathSourceBinder(object_provides=ILibrary.__identifier__),
             )
         )
@@ -179,7 +138,52 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
         default = None,
         missing_value = None,
         )
+
+    form.fieldset('technical',
+                  label=_('Technical'),
+                  fields = [ 'zpracovatel_zaznamu',
+                             'thumbnail',
+                             'aleph_doc_number',
+                             'storage_download_url',
+                             'storage_path'
+                             ]
+                  )
+
+    zpracovatel_zaznamu = schema.TextLine(
+        title = u'Zpracovatel záznamu',
+        required = False,
+    )
+
+    thumbnail = NamedBlobFile(
+        title=u"PDF kopie",
+        required = False,
+        )
+
+    aleph_doc_number = schema.ASCIILine(
+        title = _(u'Aleph DocNumber'),
+        description = _(u'Internal DocNumber that Aleph refers to metadata of this ePeriodical part'),
+        required = False,
+        readonly = False,
+        default = None,
+        missing_value = None,
+        )
+
+    storage_download_url = schema.ASCIILine (
+        title = u"Linka do úložiště",
+        required = False,
+    )
+
+    storage_path = schema.ASCIILine (
+        title = u"Cesta v úložišti",
+        required = False,
+    )
+
     
+
+@form.default_value(field=IePeriodicalPart['zpracovatel_zaznamu'])
+def zpracovatelDefaultValue(data):
+    member = api.user.get_current()
+    return member.fullname or member.id
 
 # Custom content-type class; objects created for this content type will
 # be instances of this class. Use this class to add content-type specific
@@ -190,7 +194,6 @@ class ePeriodicalPart(Container):
     grok.implements(IePeriodicalPart)
 
     # Add your class methods and properties here
-
 
 # View class
 # The view will automatically use a similarly named template in

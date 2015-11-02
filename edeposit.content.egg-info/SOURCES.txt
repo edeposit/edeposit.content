@@ -66,6 +66,7 @@ edeposit/content/vocabularies.py
 edeposit/content/browser/__init__.py
 edeposit/content/browser/changes_notification_email.py
 edeposit/content/browser/contribute.py
+edeposit/content/browser/eperiodical_periodicity.py
 edeposit/content/browser/originalfile_download.py
 edeposit/content/browser/originalfile_isbn.py
 edeposit/content/browser/sendemail.py
@@ -114,6 +115,7 @@ edeposit/content/tests/test_technicalmetadata.py
 edeposit/content/tests/test_waitingforacquisition.py
 edeposit/content/tests/test_waitingforaleph.py
 edeposit/content/widgets/__init__.py
+edeposit/content/widgets/eperiodicalpartfile.py
 edeposit/content/widgets/interfaces.py
 edeposit/content/widgets/originalfilesource.py
 edeposit/content/widgets/producent.py

@@ -1,27 +1,24 @@
 <?xml version="1.0"?>
-<object name="edeposit.content.eperiodicalpart"
+<object name="edeposit.content.eperiodicalpartsfolder"
    meta_type="Dexterity FTI"
    i18n:domain="edeposit.content" xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
   <!-- Basic metadata -->
-  <property name="title" i18n:translate="">ePeriodicalPart</property>
+  <property name="title" i18n:translate="">eperiodicalpartsfolder</property>
   <property name="description"
-    i18n:translate="">E-Deposit - ePeriodical Part</property>
+    i18n:translate="">E-Deposit: ePeriodical Parts Folder</property>
   <property name="icon_expr">string:${portal_url}/folder_icon.png</property>
-  <property name="factory">edeposit.content.eperiodicalpart</property>
-  <property name="global_allow">True</property>
+  <property name="factory">edeposit.content.eperiodicalpartsfolder</property>
+  <property name="global_allow">False</property>
   <property name="filter_content_types">True</property>
   <property name="allowed_content_types">
-    <element value="edeposit.content.author"/>
-    <element value="edeposit.content.printingfile"/>
-    <element value="edeposit.content.originalfile"/>
-    <element value="edeposit.content.previewfile"/>
+    <element value="edeposit.content.eperiodicalpart"/>
+    <element value="edeposit.content.eperiodicalpartsfolder"/>
   </property>
   <property name="allow_discussion">False</property>
-
   <!-- schema and class used for content items -->
-  <property name="schema">edeposit.content.eperiodicalpart.IePeriodicalPart</property>
-  <property name="klass">edeposit.content.eperiodicalpart.ePeriodicalPart</property>
+  <property name="schema">edeposit.content.eperiodicalpartsfolder.Ieperiodicalpartsfolder</property>
+  <property name="klass">edeposit.content.eperiodicalpartsfolder.eperiodicalpartsfolder</property>
 
   <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
@@ -30,14 +27,14 @@
 
   <!-- View information -->
   <property name="link_target"></property>
-  <property name="immediate_view">view</property>
-  <property name="default_view">view</property>
+  <property name="immediate_view">eperiodical-view</property>
+  <property name="default_view">eperiodical-view</property>
   <property name="view_methods">
    <element value="view"/>
+   <element value="eperiodical-view"/>
   </property>
   <property name="default_view_fallback">False</property>
-  <property name="add_permission">edeposit.AddEPeriodical</property>
-
+  <property name="add_permission">cmf.AddPortalContent</property>
 
   <!-- Method aliases -->
   <alias from="(Default)" to="(dynamic view)" />

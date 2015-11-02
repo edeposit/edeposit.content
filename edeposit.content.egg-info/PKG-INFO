@@ -2,9 +2,9 @@ Metadata-Version: 1.1
 Name: edeposit.content
 Version: 1.0.0
 Summary: E-Deposit Content
-Home-page: https://github.com/jstavel/edeposit.content
-Author: UNKNOWN
-Author-email: UNKNOWN
+Home-page: https://github.com/edeposit/edeposit.content
+Author: Jan Stavěl
+Author-email: stavel.jan@gmail.com
 License: GPL
 Description: * eDeposit Plone Dexterity Content Package
         
@@ -22,6 +22,7 @@ Description: * eDeposit Plone Dexterity Content Package
         
         - Initial release
         
+Keywords: eDeposit
 Platform: UNKNOWN
 Classifier: Framework :: Plone
 Classifier: Programming Language :: Python

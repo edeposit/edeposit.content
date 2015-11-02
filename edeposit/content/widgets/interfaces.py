@@ -9,3 +9,6 @@ class IOriginalFileSourceWidget(INamedFileWidget):
 
 class IProducentTextWidget(ITextWidget):
     pass
+
+class IEPeriodicalPartFileWidget(INamedFileWidget):
+    pass

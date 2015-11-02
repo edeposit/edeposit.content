@@ -13,6 +13,7 @@
   <property name="filter_content_types">True</property>
   <property name="allowed_content_types">
     <element value="edeposit.content.eperiodicalpart"/>
+    <element value="edeposit.content.eperiodicalpartsfolder"/>
     <element value="edeposit.content.alephrecord"/>
     <element value="Collection"/>
     <element value="Image"/>
@@ -34,10 +35,11 @@
 
   <!-- View information -->
   <property name="link_target"></property>
-  <property name="immediate_view">view</property>
-  <property name="default_view">view</property>
+  <property name="immediate_view">eperiodical-view</property>
+  <property name="default_view">eperiodical-view</property>
   <property name="view_methods">
     <element value="view"/>
+    <element value="eperiodical-view"/>
   </property>
   <property name="default_view_fallback">False</property>
   <property name="add_permission">edeposit.AddEPeriodical</property>

@@ -24,6 +24,8 @@
       directory="static"
       />
 
+  <cmf:registerDirectory name="skins" directory="skins" recursive="True" />
+
   <!-- Register components configured using Python directives -->
   <grok:grok package="." />
   

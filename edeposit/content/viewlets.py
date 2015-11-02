@@ -20,11 +20,20 @@ from Products.CMFPlone import PloneMessageFactory as _
 from plone.directives import form
 from five import grok
 from plone.app.layout.globals.interfaces import IViewView
-from plone.app.layout.viewlets.interfaces import IContentViews, IBelowContent, IAboveContentBody, IBelowContentBody
+from plone.app.layout.viewlets.interfaces import (
+    IContentViews, 
+    IBelowContent,
+    IAboveContentBody,
+    IBelowContentBody,
+    IAboveContent,
+    IPortalHeader,
+    )
+
 from plone.app.layout.viewlets import ViewletBase
 from Products.CMFCore.permissions import ModifyPortalContent, ReviewPortalContent
 
 from plone import api
+from eperiodical import IePeriodical
 from originalfile import IOriginalFile
 from epublication import IePublication, IMainMetadata, MainMetadataForm
 from epublicationfolder import IePublicationFolder
@@ -74,12 +83,31 @@ class ContentStateForEPublication(ContentState):
     grok.context(IePublication)
     grok.template('viewlets_templates/contentstate.pt')
 
-class ContentStateForBook(ContentState):
+class ContentStateForBook(grok.Viewlet):
     grok.name('edeposit.contentstateforbook')
     grok.require('zope2.View')
     grok.viewletmanager(IContentViews)
     grok.context(IBook)
-    grok.template('viewlets_templates/contentstate.pt')
+    #grok.template('viewlets_templates/contentstateforbook.pt')
+
+    def update(self):
+        super(ContentStateForBook,self).update()
+        context = aq_inner(self.context)
+        plone_utils = api.portal.get_tool('plone_utils')
+        wft = api.portal.get_tool('portal_workflow')
+        state = api.content.get_state(obj=context)
+        stateTitle = wft.getTitleForStateOnType(state,context.portal_type)
+
+        self.wf_state = dict( state = state, 
+                              title = stateTitle,
+                              stateClass = 'contentstate-'+plone_utils.normalizeString(state),
+                              href = context.absolute_url() + "/content_status_history",
+                              )
+        wf_tool = getToolByName(self.context, 'portal_workflow')
+        infos = filter(lambda info: info.get('available',None) and info.get('category',None) == 'workflow', wf_tool.listActionInfos(object=self.context))
+        self.transitions = infos
+        return
+
 
 class ContentHistory(grok.Viewlet):
     grok.name('edeposit.contenthistory')
@@ -93,6 +121,12 @@ class ContentHistoryForBook(grok.Viewlet):
     grok.viewletmanager(IBelowContent)
     grok.context(IBook)
     #grok.template('viewlets_templates/contenthistory.pt')
+
+class ContentHistoryForEPeriodical(grok.Viewlet):
+    grok.name('edeposit.contenthistoryforeperiodical')
+    grok.require('zope2.View')
+    grok.viewletmanager(IBelowContent)
+    grok.context(IePeriodical)
 
 class MainMetadataFormWrapper(FormWrapper):
     index = ViewPageTemplateFile("viewlets_templates/formwrapper.pt")
@@ -110,7 +144,6 @@ class EBookMetadata(grok.Viewlet):
         view.form_instance = MainMetadataForm(ebook, self.request)
         self.main_metadata_form = view
         self.ebook = ebook
-
 
 class Contact(grok.Viewlet):
     grok.name('edeposit.contact')
@@ -210,3 +243,25 @@ class BackToAcquisitionButton(plone.app.layout.viewlets.common.ContentActionsVie
         if not self.available():
             return ""
         return super(BackToAcquisitionButton,self).render()
+
+class Breadcrumbs(grok.Viewlet):
+    grok.name('edeposit.path_bar')
+    grok.viewletmanager(IPortalHeader)
+    grok.context(IDexterityContent)
+
+    def visible(self):
+        return True
+        #return len(self.breadcrumbs) >= 1
+
+    def update(self):
+        context= self.context.aq_inner
+
+        self.portal_state = getMultiAdapter((context, self.request), name="plone_portal_state")
+        self.site_url = self.portal_state.portal_url()
+        self.navigation_root_url = self.portal_state.navigation_root_url()
+        self.is_rtl = self.portal_state.is_rtl()
+        breadcrumbs_view = getMultiAdapter((self.context, self.request),
+                                           name='breadcrumbs_view')
+        breadcrumbs =  breadcrumbs_view.breadcrumbs()
+        self.breadcrumbs = (len(breadcrumbs) > 1) and breadcrumbs[1:] or breadcrumbs
+        pass
