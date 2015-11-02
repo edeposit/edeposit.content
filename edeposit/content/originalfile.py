@@ -202,6 +202,7 @@ class IOriginalFile(form.Schema, IImageScaleTraversable):
         title=u"Anotace",
         required=False,
         missing_value=u'',
+        max_length = 500,
     )
     urnnbn = schema.ASCIILine (
         title = u"URN:NBN číslo",
