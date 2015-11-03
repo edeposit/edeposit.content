@@ -213,6 +213,13 @@
   <!--     class="edeposit.content.epublicationfolder.AssignWorkerForm" -->
   <!--     permission="cmf.ModifyPortalContent" -->
   <!--     /> -->
+  
+  <browser:viewlet
+      name="edeposit.editicon"
+      manager="plone.app.layout.viewlets.interfaces.IAboveContentBody"
+      class="edeposit.content.viewlets.EditIconViewlet"
+      permission="cmf.ModifyPortalContent"
+      for="*"/>
 
 
   <!-- -*- extra stuff goes here -*- -->
