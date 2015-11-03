@@ -23,6 +23,8 @@ from edeposit.content.eperiodicalfolder import IePeriodicalFolder
 from edeposit.content import MessageFactory as _
 from plone import api
 from edeposit.app.fields import PeriodicityChoice
+import z3c.form.browser.radio
+from edeposit.content.epublication import librariesAccessing
 
 """
 Denně
@@ -60,6 +62,7 @@ periodicityChoices = [
     ['rocenka',u'Ročenka'],
     ['1x za 2 roky',u'1x za 2 roky'],
     ['1x za 3 roky',u'1x za 3 roky'],
+    ['nepravidelne',u"nepravidelně"]
 ]
 
 @grok.provider(IContextSourceBinder)
@@ -100,6 +103,78 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
         required=False,
         missing_value=u'',
     )
+
+    form.fieldset('Publishing',
+                  label=_(u"Publishing"),
+                  fields = [ 'poradi_vydani',
+                             'misto_vydani',
+                             'rok_vydani',
+                             ]
+                  )
+
+    poradi_vydani = schema.TextLine(
+        title = u'Pořadí vydání',
+        required = True,
+    )
+
+    misto_vydani = schema.TextLine(
+        title = u'Místo vydání',
+        required = True,
+    )
+
+    rok_vydani = schema.TextLine (
+        title = u"Rok vydání",
+        required = True,
+    )
+
+    form.fieldset('accessing',
+                  label=_(u'Accessing'),
+                  fields = [ 'is_public',
+                             'libraries_accessing',
+                             'libraries_that_can_access',
+                             ])
+
+    is_public = schema.Bool(
+        title = u'vydání je veřejné',
+        required = False,
+        default = False,
+        missing_value = False,
+        )
+
+    form.widget(libraries_accessing=z3c.form.browser.radio.RadioFieldWidget)
+    libraries_accessing = schema.Choice (
+        title = u"Oprávnění knihovnám",
+        required = False,
+        readonly = False,
+        default = None,
+        missing_value = None,
+        source = librariesAccessing,
+    )
+
+    libraries_that_can_access = RelationList(
+        title = u"Knihovny které mají přístup k vydání ePeriodika",
+        required = False,
+        readonly = False,
+        default = [],
+        value_type = RelationChoice(
+            title = _(u'Related libraries'),
+            source = ObjPathSourceBinder(object_provides=ILibrary.__identifier__),
+            )
+        )
+
+    form.fieldset('riv',
+                  label=_(u'RIV'),
+                  fields = ['category_for_riv',
+                            ])
+
+    category_for_riv = schema.ASCIILine(
+        title = _(u'RIV category'),
+        description = _(u'Category of an ePublication for RIV'),
+        required = False,
+        readonly = False,
+        default = None,
+        missing_value = None,
+        )
 
 
 # Custom content-type class; objects created for this content type will
