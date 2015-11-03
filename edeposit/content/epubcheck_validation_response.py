@@ -37,12 +37,30 @@ class IEPubCheckValidationResponse(form.Schema, IImageScaleTraversable):
         required = False
     )
 
-    form.widget(messages=z3c.form.browser.multi.multiFieldWidgetFactory)
-    messages = schema.List (
-        title = u"Poznámky k validaci",
-        required = False,
-        value_type = schema.TextLine(required=False)
-    )
+    created = schema.TextLine(
+        title = u"Vytvořeno",
+        required = False
+        )
+
+    format = schema.TextLine(
+        title = u"Formát",
+        required = False
+        )
+    version = schema.TextLine(
+        title = u"Verze",
+        required = False
+        )
+    status = schema.TextLine(
+        title = u"Status",
+        required = False
+        )
+
+    # form.widget(messages=z3c.form.browser.multi.multiFieldWidgetFactory)
+    # messages = schema.List (
+    #     title = u"Poznámky k validaci",
+    #     required = False,
+    #     value_type = schema.TextLine(required=False)
+    # )
 
     xml = NamedBlobFile (
         title=_(u"XML file with full response"),
@@ -63,10 +81,36 @@ class EPubCheckValidationResponse(Item):
     def messages(self):
         if not self.xml:
             return []
-        elements = etree.fromstring(self.xml.data).xpath("/repInfo/messages/message")
+        elements = etree.fromstring(self.xml.data).xpath("/jhove/repInfo/messages/message")
         return map(lambda el: el.text, elements)
 
-    # Add your class methods and properties here
+    @property
+    def created(self):
+        if not self.xml:
+            return ""
+        elements = etree.fromstring(self.xml.data).xpath("/jhove/repInfo/created")
+        return elements and elements[0].text or ""
+
+    @property
+    def format(self):
+        if not self.xml:
+            return ""
+        elements = etree.fromstring(self.xml.data).xpath("/jhove/repInfo/format")
+        return elements and elements[0].text or ""
+
+    @property
+    def version(self):
+        if not self.xml:
+            return ""
+        elements = etree.fromstring(self.xml.data).xpath("/jhove/repInfo/version")
+        return elements and elements[0].text or ""
+
+    @property
+    def status(self):
+        if not self.xml:
+            return ""
+        elements = etree.fromstring(self.xml.data).xpath("/jhove/repInfo/status")
+        return elements and elements[0].text or ""
     pass
 
 
