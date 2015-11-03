@@ -3,6 +3,6 @@
      tal:define="ploneview context/@@plone"
      tal:condition="ploneview/showEditableBorder">
   <tal:block>
-    <a class="edit-link" style="float:right"  href="edit"><img src="/++resource++edeposit.content/EditDocument.png"/></a>
+    <a class="edit-link" style="float:right"  tal:attributes="href string:${context/absolute_url}/edit"><img src="/++resource++edeposit.content/EditDocument.png"/></a>
   </tal:block>
 </div>
