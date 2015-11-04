@@ -964,3 +964,16 @@ def updateFormat(context, event):
 
 #     message.ack()
 #     pass
+
+
+from edeposit.content.tasks import (
+    IPloneTaskSender, 
+    DoActionFor
+)
+
+def addedEPeriodicalPart(context, event):
+    wft = api.portal.get_tool('portal_workflow')
+    if context.file:
+        IPloneTaskSender(DoActionFor(transition='submitDeclaration', uid=context.UID())).send()
+    pass
+

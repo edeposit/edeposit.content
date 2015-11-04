@@ -16,6 +16,9 @@
     <element value="edeposit.content.printingfile"/>
     <element value="edeposit.content.originalfile"/>
     <element value="edeposit.content.previewfile"/>
+    <element value="edeposit.content.pdfboxvalidationresponse"/>
+    <element value="edeposit.content.epubcheckvalidationresponse"/>
+    <element value="Link"/>
   </property>
   <property name="allow_discussion">False</property>
 
@@ -26,6 +29,8 @@
   <property name="behaviors">
      <element value="plone.app.content.interfaces.INameFromTitle" />
      <element value="plone.app.dexterity.behaviors.metadata.IBasic"/>
+     <element value="edeposit.content.behaviors.IFormat"/>
+     <element value="plone.app.referenceablebehavior.referenceable.IReferenceable"/>
    </property>
 
   <!-- View information -->

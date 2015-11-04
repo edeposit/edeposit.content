@@ -104,6 +104,13 @@
   
   <adapter factory=".originalfile_changes.OriginalFileChanges"/>
 
+  <adapter factory=".eperiodicalpart.PrimaryFieldInfo"/>
+
+  <subscriber
+      for=".eperiodicalpart.IePeriodicalPart
+           zope.container.interfaces.IObjectAddedEvent"
+      handler=".handlers.addedEPeriodicalPart"/>
+
   <!-- <subscriber -->
   <!--     for=".aleph_record.IAlephRecord -->
   <!--          zope.container.interfaces.IObjectAddedEvent" -->
@@ -147,7 +154,7 @@
 
   <browser:viewlet
       name="edeposit.sendtoacquisition"
-      for="plone.dexterity.interfaces.IDexterityContent"
+      for="edeposit.content.originalfile.IOriginalFile"
       manager="plone.app.layout.viewlets.interfaces.IContentViews"
       class=".viewlets.SendToAcquisitionButton"
       template="viewlets_templates/sendtoacquisition.pt"
@@ -155,8 +162,17 @@
       />
 
   <browser:viewlet
+      name="edeposit.sendtoacquisition-eperiodicalpart"
+      for="edeposit.content.eperiodicalpart.IePeriodicalPart"
+      manager="plone.app.layout.viewlets.interfaces.IContentViews"
+      class=".viewlets.SendToAcquisitionButtonForEPeriodicalPart"
+      template="viewlets_templates/sendtoacquisition.pt"
+      permission="zope2.View"
+      />
+
+  <browser:viewlet
       name="edeposit.backtoacquisition"
-      for="plone.dexterity.interfaces.IDexterityContent"
+      for="edeposit.content.originalfile.IOriginalFile"
       manager="plone.app.layout.viewlets.interfaces.IContentViews"
       class=".viewlets.BackToAcquisitionButton"
       template="viewlets_templates/backtoacquisition.pt"
