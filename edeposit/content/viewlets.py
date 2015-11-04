@@ -34,6 +34,7 @@ from Products.CMFCore.permissions import ModifyPortalContent, ReviewPortalConten
 
 from plone import api
 from eperiodical import IePeriodical
+from eperiodicalpart import IePeriodicalPart
 from originalfile import IOriginalFile
 from epublication import IePublication, IMainMetadata, MainMetadataForm
 from epublicationfolder import IePublicationFolder
@@ -120,13 +121,18 @@ class ContentHistoryForBook(grok.Viewlet):
     grok.require('zope2.View')
     grok.viewletmanager(IBelowContent)
     grok.context(IBook)
-    #grok.template('viewlets_templates/contenthistory.pt')
 
 class ContentHistoryForEPeriodical(grok.Viewlet):
     grok.name('edeposit.contenthistoryforeperiodical')
     grok.require('zope2.View')
     grok.viewletmanager(IBelowContent)
     grok.context(IePeriodical)
+
+class ContentHistoryForEPeriodicalPart(grok.Viewlet):
+    grok.name('edeposit.contenthistoryforeperiodicalpart')
+    grok.require('zope2.View')
+    grok.viewletmanager(IBelowContent)
+    grok.context(IePeriodicalPart)
 
 class MainMetadataFormWrapper(FormWrapper):
     index = ViewPageTemplateFile("viewlets_templates/formwrapper.pt")
@@ -193,18 +199,10 @@ class SummarySysNumberCopy(plone.app.layout.viewlets.common.ContentActionsViewle
 
 class SendToAcquisitionButton(plone.app.layout.viewlets.common.ContentActionsViewlet):
     def available(self):
-        return (api.content.get_state(self.context) in ('declarationWithError',
-                                                        'fileProblem',
-                                                        'onlyCzechISBNAcceptedError',
-                                                        'zpracovatelIsRequiredError',
-                                                        'DatumVydaniIsRequiredError',
-                                                        'isbnAlreadyExistsError',
-                                                        'wrongISBNError',
-                                                        'unknownError',
-                                                    ) \
-                and getSecurityManager().checkPermission(ModifyPortalContent, self.context)\
-                and self.context.file
-        )
+        wft=api.portal.get_tool('portal_workflow')
+        transitions = wft.getTransitionsFor(self.context)
+        submitDeclarationTransitions = filter(lambda tr: 'submitDeclaration' in tr['id'], transitions)
+        return len(submitDeclarationTransitions)
 
     def submitDeclarationURL(self):
         baseUrl = "/".join([self.context.absolute_url(),"content_status_comment"])
@@ -217,6 +215,24 @@ class SendToAcquisitionButton(plone.app.layout.viewlets.common.ContentActionsVie
         if not self.available():
             return ""
         return super(SendToAcquisitionButton,self).render()
+
+class SendToAcquisitionButtonForEPeriodicalPart(plone.app.layout.viewlets.common.ContentActionsViewlet):
+    def available(self):
+        wft=api.portal.get_tool('portal_workflow')
+        transitions = wft.getTransitionsFor(self.context)
+        submitDeclarationTransitions = filter(lambda tr: 'submitDeclaration' in tr['id'], transitions)
+        return len(submitDeclarationTransitions)
+
+    def submitDeclarationURL(self):
+        wft=api.portal.get_tool('portal_workflow')
+        transitions = wft.getTransitionsFor(self.context)
+        submitDeclarationTransitions = filter(lambda tr: 'submitDeclaration' in tr['id'], transitions)
+        return submitDeclarationTransitions[0]['url']
+
+    def render(self):
+        if not self.available():
+            return ""
+        return super(SendToAcquisitionButtonForEPeriodicalPart,self).render()
 
 
 class BackToAcquisitionButton(plone.app.layout.viewlets.common.ContentActionsViewlet):

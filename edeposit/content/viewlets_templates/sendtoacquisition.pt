@@ -31,6 +31,6 @@
     <a class="send-to-acquisition ui-state-default
               ui-corner-all"
        tal:attributes="href view/submitDeclarationURL"
-       >Poslat zpátky k akvizici</a>
+       >Poslat k akvizici</a>
   </tal:block>
 </div>
