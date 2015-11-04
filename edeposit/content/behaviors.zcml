@@ -16,6 +16,8 @@
     <adapter factory=".originalfile_behaviors.CalibreFormat"/>
     <adapter factory=".book_behaviors.CalibreFormat"/>
     <adapter factory=".book_behaviors.Format"/>
+    <adapter factory=".eperiodicalpart_behaviors.Format"/>
+    <adapter factory=".eperiodicalpart_behaviors.CalibreFormat"/>
 
     <plone:behavior
         title="Informing about changes"
