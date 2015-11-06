@@ -971,9 +971,25 @@ from edeposit.content.tasks import (
     DoActionFor
 )
 
+def addedEPeriodical(context, event):
+    actualYear = datetime.now().year
+    createContentInContainer(context,'edeposit.content.eperiodicalpartsfolder',title=str(actualYear))
+
 def addedEPeriodicalPart(context, event):
     wft = api.portal.get_tool('portal_workflow')
     if context.file:
         IPloneTaskSender(DoActionFor(transition='submitDeclaration', uid=context.UID())).send()
+    pass
+
+
+from eperiodical import getNumOfPartsAYear, getPeriodicityLabel
+from eperiodical import periodicityChoices
+
+def addedEPeriodicalPartsFolder(context, event):
+    periodicity = context.aq_parent.cetnost_vydani
+    nums = getNumOfPartsAYear(periodicity)
+    for num in range(1,nums+1):
+        title = getPeriodicityLabel(num)
+        createContentInContainer(context, 'edeposit.content.eperiodicalpart', title=title)
     pass
 

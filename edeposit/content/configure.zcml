@@ -111,6 +111,16 @@
            zope.container.interfaces.IObjectAddedEvent"
       handler=".handlers.addedEPeriodicalPart"/>
 
+  <subscriber
+      for=".eperiodicalpartsfolder.Ieperiodicalpartsfolder
+           zope.container.interfaces.IObjectAddedEvent"
+      handler=".handlers.addedEPeriodicalPartsFolder"/>
+
+  <subscriber
+      for=".eperiodical.IePeriodical
+           zope.container.interfaces.IObjectAddedEvent"
+      handler=".handlers.addedEPeriodical"/>
+
   <!-- <subscriber -->
   <!--     for=".aleph_record.IAlephRecord -->
   <!--          zope.container.interfaces.IObjectAddedEvent" -->
