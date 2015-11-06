@@ -46,24 +46,31 @@ Ročenka
 """
 
 periodicityChoices = [
-    ['denne',u"Denně"],
-    ['1x tydne', u"1x týdně"],
-    ['2x tydne',u"2x týdně"],
-    ['3x tydne',u'3x týdně'],
-    ['1x mesicne',u'1x měsíčně'],
-    ['2x mesicne',u'2x měsíčně'],
-    ['1x za 2 tydny',u'1x za 2 týdny'],
-    ['3x mesicne',u'3x měsíčně'],
-    ['2x rocne',u'2x ročně'],
-    ['3x rocne',u'3x ročně'],
-    ['4x rocne',u'4x ročně'],
-    ['6x rocne',u'6x ročně'],
-    ['10x rocne',u'10x ročně'],
-    ['rocenka',u'Ročenka'],
-    ['1x za 2 roky',u'1x za 2 roky'],
-    ['1x za 3 roky',u'1x za 3 roky'],
-    ['nepravidelne',u"nepravidelně"]
+    ['denne',u"Denně",356],
+    ['1x tydne', u"1x týdně",52],
+    ['2x tydne',u"2x týdně",104],
+    ['3x tydne',u'3x týdně',156],
+    ['1x mesicne',u'1x měsíčně',12],
+    ['2x mesicne',u'2x měsíčně',24],
+    ['1x za 2 tydny',u'1x za 2 týdny', 26],
+    ['3x mesicne',u'3x měsíčně', 36],
+    ['2x rocne',u'2x ročně',2],
+    ['3x rocne',u'3x ročně',3],
+    ['4x rocne',u'4x ročně',4],
+    ['6x rocne',u'6x ročně',6],
+    ['10x rocne',u'10x ročně',10],
+    ['rocenka',u'Ročenka',1],
+    ['1x za 2 roky',u'1x za 2 roky',1],
+    ['1x za 3 roky',u'1x za 3 roky',1],
+    ['nepravidelne',u"nepravidelně",0]
 ]
+
+def getNumOfPartsAYear(periodicity):
+    nums = [ii[2] for ii in periodicityChoices if ii[0] == periodicity]
+    return nums and nums[0] or 0
+
+def getPeriodicityLabel(num):
+    return u"%d. číslo" % (num,)
 
 @grok.provider(IContextSourceBinder)
 def periodicityChoicesSource(context):

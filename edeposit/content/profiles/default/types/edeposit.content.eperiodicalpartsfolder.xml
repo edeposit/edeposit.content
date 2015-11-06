@@ -27,11 +27,11 @@
 
   <!-- View information -->
   <property name="link_target"></property>
-  <property name="immediate_view">eperiodical-view</property>
-  <property name="default_view">eperiodical-view</property>
+  <property name="immediate_view">eperiodicalpartsfolder-view</property>
+  <property name="default_view">eperiodicalpartsfolder-view</property>
   <property name="view_methods">
    <element value="view"/>
-   <element value="eperiodical-view"/>
+   <element value="eperiodicalpartsfolder-view"/>
   </property>
   <property name="default_view_fallback">False</property>
   <property name="add_permission">cmf.AddPortalContent</property>

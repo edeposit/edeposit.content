@@ -48,8 +48,8 @@
 
       <div class="menu">
 	<ul style="list-style: outside none none !important;">
-	  <li style="display:inline"><a href="++add++edeposit.content.eperiodicalpartsfolder"  class="add-next-eperiodicalpartsfolder">vytvořit další složku</a></li>
-	  <li style="display:inline"><a href="++add++edeposit.content.eperiodicalpart"  class="add-next-eperiodicalpart">přiložit další vydání</a></li>
+	  <li style="display:inline"><a href="++add++edeposit.content.eperiodicalpartsfolder"  class="add-next-eperiodicalpartsfolder">Rok</a></li>
+	  <li style="display:inline"><a href="++add++edeposit.content.eperiodicalpart"  class="add-next-eperiodicalpart">další číslo</a></li>
 	</ul>
       </div>
       <tal:listing condition="batch">
@@ -85,11 +85,15 @@
                     </a>
                   </span>
 
-		  <img class="eperiodical-context-menu" src="/++resource++edeposit.content/EditDocument-16x16.png" style="display:inline"/>
+		  <!-- <img class="eperiodical-context-menu" src="/++resource++edeposit.content/EditDocument-16x16.png" style="display:inline"/> -->
 
-		  <a tal:attributes="href python:item_url+'/++add++edeposit.content.eperiodicalpart'" 
+		  <a tal:attributes="href string:${item_url}/++add++edeposit.content.eperiodicalpart" 
 		     tal:condition="python:item_type == 'edeposit.content.eperiodicalpartsfolder'"
-		     class="add-next-part">přiložit další vydání</a>
+		     class="add-next-part">další číslo</a>
+
+		  <a tal:attributes="href string:${item_url}/edit" 
+		     tal:condition="python:item_type == 'edeposit.content.eperiodicalpart'"
+		     class="add-next-part">přiložit vydání</a>
 		  
                   <span class="documentByLine">
                     <span tal:condition="item_description">&mdash;</span>

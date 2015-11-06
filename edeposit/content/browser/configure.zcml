@@ -32,9 +32,9 @@
 
   <browser:page
       for="edeposit.content.eperiodicalpartsfolder.Ieperiodicalpartsfolder"
-      name="eperiodical-view"
+      name="eperiodicalpartsfolder-view"
       class="plone.dexterity.browser.view.DefaultView"
-      template="eperiodical-container.pt"
+      template="eperiodicalpartsfolder-container.pt"
       permission="zope2.View"
       />
 
