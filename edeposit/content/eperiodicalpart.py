@@ -74,18 +74,10 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
         required = False,
         )
 
-    vazba = schema.TextLine (
-        title = u"Vazba",
-        required = False,
-        default = u"online",
-    )
-
-
     form.fieldset('technical',
                   label=_('Technical'),
                   fields = [ 'zpracovatel_zaznamu',
                              'thumbnail',
-                             'aleph_doc_number',
                              'storage_download_url',
                              'storage_path'
                              ]
@@ -99,15 +91,6 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
     thumbnail = NamedBlobFile(
         title=u"PDF kopie",
         required = False,
-        )
-
-    aleph_doc_number = schema.ASCIILine(
-        title = _(u'Aleph DocNumber'),
-        description = _(u'Internal DocNumber that Aleph refers to metadata of this ePeriodical part'),
-        required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
         )
 
     storage_download_url = schema.ASCIILine (

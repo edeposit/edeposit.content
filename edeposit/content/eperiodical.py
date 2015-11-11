@@ -134,6 +134,12 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
         required = True,
     )
 
+    vazba = schema.TextLine (
+        title = u"Vazba",
+        required = False,
+        default = u"online",
+    )
+
     form.fieldset('accessing',
                   label=_(u'Accessing'),
                   fields = [ 'is_public',
@@ -182,6 +188,22 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
         default = None,
         missing_value = None,
         )
+
+    form.fieldset('technical',
+                  label=_('Technical'),
+                  fields = [ 'aleph_doc_number', ]
+                  )
+
+    aleph_doc_number = schema.ASCIILine(
+        title = _(u'Aleph DocNumber'),
+        description = _(u'Internal DocNumber that Aleph refers to metadata of this ePeriodical part'),
+        required = False,
+        readonly = False,
+        default = None,
+        missing_value = None,
+        )
+
+
 
 
 # Custom content-type class; objects created for this content type will
