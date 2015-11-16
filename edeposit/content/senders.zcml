@@ -24,16 +24,51 @@
     />
 
   <adapter
+    for="edeposit.content.eperiodicalpart.IePeriodicalPart"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.AntivirusRequestSender"
+    name="antivirus-check"
+    />
+
+  <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
-    factory=".amqp.OriginalFilePDFBoxValidationRequestSender"
+    factory=".amqp.PDFBoxValidationRequestSender"
+    name="pdfbox-validation"
+    />
+
+  <adapter
+    for="edeposit.content.eperiodicalpart.IePeriodicalPart"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.PDFBoxValidationRequestSender"
+    name="pdfbox-validation"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.PDFBoxValidationRequestSender"
     name="pdfbox-validation"
     />
 
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
-    factory=".amqp.OriginalFileEPubCheckValidationRequestSender"
+    factory=".amqp.EPubCheckValidationRequestSender"
+    name="epubcheck-validation"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.EPubCheckValidationRequestSender"
+    name="epubcheck-validation"
+    />
+
+  <adapter
+    for="edeposit.content.eperiodicalpart.IePeriodicalPart"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.EPubCheckValidationRequestSender"
     name="epubcheck-validation"
     />
 
@@ -194,7 +229,21 @@
   <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
-    factory=".amqp.OriginalFileThumbnailRequestSender"
+    factory=".amqp.ThumbnailRequestSender"
+    name="generate-thumbnail"
+    />
+
+  <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.ThumbnailRequestSender"
+    name="generate-thumbnail"
+    />
+
+  <adapter
+    for="edeposit.content.eperiodicalpart.IePeriodicalPart"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.ThumbnailRequestSender"
     name="generate-thumbnail"
     />
 

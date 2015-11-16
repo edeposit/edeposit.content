@@ -794,6 +794,7 @@ class IAddAtOnceForm(form.Schema):
         title = u"Anotace",
         description = u"Anotace se objeví v Alephu (max. 500znaků)",
         required = False,
+        max_length = 500,
     )
 
     form.mode(epublication_uid='hidden')

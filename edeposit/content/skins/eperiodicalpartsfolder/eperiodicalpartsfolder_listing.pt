@@ -48,7 +48,6 @@
 
       <div class="menu">
 	<ul style="list-style: outside none none !important;">
-	  <li style="display:inline"><a href="++add++edeposit.content.eperiodicalpartsfolder"  class="add-next-eperiodicalpartsfolder">Rok</a></li>
 	  <li style="display:inline"><a href="++add++edeposit.content.eperiodicalpart"  class="add-next-eperiodicalpart">další číslo</a></li>
 	</ul>
       </div>

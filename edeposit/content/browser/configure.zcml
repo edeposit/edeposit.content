@@ -21,6 +21,23 @@
       permission="zope2.View"
       />
 
+  <!-- Default view for Dexterity types in Plone  4 -->
+  <browser:page
+      for="edeposit.content.epubcheck_validation_response.IEPubCheckValidationResponse"
+      name="view-with-messages"
+      class="plone.dexterity.browser.view.DefaultView"
+      template="epubcheck-response-item.pt"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="edeposit.content.eperiodicalpartsfolder.Ieperiodicalpartsfolder"
+      name="eperiodicalpartsfolder-view"
+      class="plone.dexterity.browser.view.DefaultView"
+      template="eperiodicalpartsfolder-container.pt"
+      permission="zope2.View"
+      />
+
   <browser:page
       name="aleph-record-loaded"
       for="edeposit.content.epublicationfolder.IePublicationFolder"

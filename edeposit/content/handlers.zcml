@@ -43,6 +43,14 @@
     />
 
   <adapter
+    for="edeposit.content.eperiodicalpart.IePeriodicalPart
+         edeposit.content.amqp.IScanResult
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.EPeriodicalPartAntivirusResultHandler"
+    />
+
+  <adapter
     for="edeposit.content.book.IBook
          edeposit.content.amqp.IScanResult
          "
@@ -55,7 +63,15 @@
          edeposit.content.amqp.IPDFBoxResponse
          "
     provides="edeposit.content.amqp.IAMQPHandler"
-    factory=".amqp.OriginalFilePDFBoxValidationResultHandler"
+    factory=".amqp.PDFBoxValidationResultHandler"
+    />
+
+  <adapter
+    for="edeposit.content.eperiodicalpart.IePeriodicalPart
+         edeposit.content.amqp.IPDFBoxResponse
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.PDFBoxValidationResultHandler"
     />
 
   <adapter
@@ -63,7 +79,15 @@
          edeposit.content.amqp.IEPubCheckResponse
          "
     provides="edeposit.content.amqp.IAMQPHandler"
-    factory=".amqp.OriginalFileEPubCheckValidationResultHandler"
+    factory=".amqp.EPubCheckValidationResultHandler"
+    />
+
+  <adapter
+    for="edeposit.content.eperiodicalpart.IePeriodicalPart
+         edeposit.content.amqp.IEPubCheckResponse
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.EPubCheckValidationResultHandler"
     />
 
   <adapter
@@ -167,6 +191,14 @@
            "
       provides="edeposit.content.amqp.IAMQPHandler"
       factory=".amqp.OriginalFileThumbnailGeneratingResultHandler"
+      />
+
+  <adapter
+      for="edeposit.content.eperiodicalpart.IePeriodicalPart
+           edeposit.content.amqp.ICalibreConversionResult
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.ThumbnailGeneratingResultHandler"
       />
 
   <adapter

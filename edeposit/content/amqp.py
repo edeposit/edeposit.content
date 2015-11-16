@@ -345,12 +345,11 @@ def parse_headers(headers):
 
 from collections import namedtuple
 
-class OriginalFileThumbnailRequestSender(namedtuple('ThumbnailGeneratingRequest',['context'])):
+class ThumbnailRequestSender(namedtuple('ThumbnailGeneratingRequest',['context'])):
     implements(IAMQPSender)
     def send(self):
         print "-> Thumbnail Generating Request for: ", str(self.context)
-        originalfile = self.context
-        fileName = originalfile.file.filename
+        fileName = self.context.file.filename
 
         inputFormat = getAdapter(self.context,ICalibreFormat).format.lower()
         fileNameExt = fileName.split(".")[-1].lower()
@@ -358,13 +357,10 @@ class OriginalFileThumbnailRequestSender(namedtuple('ThumbnailGeneratingRequest'
         supportedFormat = fileName and ((inputFormat in INPUT_FORMATS and inputFormat)
                                         or
                                         (fileNameExt in INPUT_FORMATS and fileNameExt))
-        request = ConversionRequest(supportedFormat, "pdf", base64.b64encode(originalfile.file.data))
+        request = ConversionRequest(supportedFormat, "pdf", base64.b64encode(self.context.file.data))
         producer = getUtility(IProducer, name="amqp.calibre-convert-request")
-        msg = ""
-        session_data =  { 'isbn': str(self.context.isbn),
-                          'filename': fileName,
-                          'msg': msg
-        }
+        session_data =  { 'filename': fileName,
+                          'obj': str(self.context) }
         headers = make_headers(self.context, session_data)
         producer.publish(serialize(request), content_type = 'application/json', headers = headers )
     pass
@@ -377,10 +373,7 @@ class AntivirusRequestSender(namedtuple('AntivirusRequest',['context'])):
         fileName = context.file.filename
         request = ScanFile(fileName, base64.b64encode(context.file.data))
         producer = getUtility(IProducer, name="amqp.antivirus-request")
-        msg = ""
-        session_data =  { 'isbn': str(self.context.isbn),
-                          'msg': msg
-        }
+        session_data =  { 'obj': str(self.context) }
         headers = make_headers(self.context, session_data)
         producer.publish(serialize(request), content_type = 'application/json', headers = headers )
     pass
@@ -635,7 +628,7 @@ def PDFBoxResponseFactory():
         return PDFBoxResponse(xml=xml)
     return factory
 
-class OriginalFilePDFBoxValidationRequestSender(namedtuple('PDFBoxValidationRequest',['context'])):
+class PDFBoxValidationRequestSender(namedtuple('PDFBoxValidationRequest',['context'])):
     implements(IAMQPSender)
     def send(self):
         print "-> PDFBox Validation Request for: ", str(self.context)
@@ -643,11 +636,8 @@ class OriginalFilePDFBoxValidationRequestSender(namedtuple('PDFBoxValidationRequ
         fileName = originalfile.file.filename
         request = B64FileData(b64_data = base64.b64encode(originalfile.file.data), filename = fileName)
         producer = getUtility(IProducer, name="amqp.pdfbox-validation-request")
-        msg = ""
-        session_data =  { 'isbn': str(self.context.isbn),
-                          'filename': fileName,
-                          'msg': msg
-        }
+        session_data =  { 'filename': fileName,
+                          'obj': str(self.context) }
         headers = make_headers(self.context, session_data)
         producer.publish(serialize(request), 
                          content_encoding = "application/json",
@@ -655,7 +645,7 @@ class OriginalFilePDFBoxValidationRequestSender(namedtuple('PDFBoxValidationRequ
                          headers = headers)
     pass
 
-class OriginalFileEPubCheckValidationRequestSender(namedtuple('EPubCheckValidationRequest',['context'])):
+class EPubCheckValidationRequestSender(namedtuple('EPubCheckValidationRequest',['context'])):
     implements(IAMQPSender)
     def send(self):
         print "-> EPubCheck Validation Request for: ", str(self.context)
@@ -663,11 +653,8 @@ class OriginalFileEPubCheckValidationRequestSender(namedtuple('EPubCheckValidati
         fileName = originalfile.file.filename
         request = B64FileData(b64_data = base64.b64encode(originalfile.file.data), filename = fileName)
         producer = getUtility(IProducer, name="amqp.epubcheck-validation-request")
-        msg = ""
-        session_data =  { 'isbn': str(self.context.isbn),
-                          'filename': fileName,
-                          'msg': msg
-        }
+        session_data =  { 'filename': fileName,
+                          'obj': str(self.context) }
         headers = make_headers(self.context, session_data)
         producer.publish(serialize(request), 
                          content_encoding = "application/json",
@@ -709,30 +696,26 @@ class OriginalFilePDFGenerationResultHandler(namedtuple('PDFGenerationResult',['
             pass
         pass
 
-class OriginalFilePDFBoxValidationResultHandler(namedtuple('PDFBoxValidationResult',['context', 'result'])):
+class PDFBoxValidationResultHandler(namedtuple('PDFBoxValidationResult',['context', 'result'])):
     implements(IAMQPHandler)
     def handle(self):
         print "<- PDFBox Validation Result for: ", str(self.context)
-        wft = api.portal.get_tool('portal_workflow')
         result = self.result
         context = self.context
         with api.env.adopt_user(username="system"):
             context.updateOrAddPDFBoxResponse(result.xml)
-            #wft.doActionFor(context, 'pdfboxResponse')
             IPloneTaskSender(DoActionFor(transition='pdfboxResponse', uid=context.UID())).send()
         pass
 
-class OriginalFileEPubCheckValidationResultHandler(namedtuple('EPubCheckValidationResult',
-                                                              ['context', 'result'])):
+class EPubCheckValidationResultHandler(namedtuple('EPubCheckValidationResult', ['context', 'result'])):
     implements(IAMQPHandler)
     def handle(self):
         print "<- EPubCheck Validation Result for: ", str(self.context)
-        wft = api.portal.get_tool('portal_workflow')
         result = self.result
         context = self.context
         with api.env.adopt_user(username="system"):
             context.updateOrAddEPubCheckResponse(result)
-            wft.doActionFor(context, 'epubcheckResponse')
+            IPloneTaskSender(DoActionFor(transition='epubcheckResponse', uid=context.UID())).send()
         pass
 
 class OriginalFileAntivirusResultHandler(namedtuple('AntivirusResult',['context', 'result'])):
@@ -756,6 +739,31 @@ class OriginalFileAntivirusResultHandler(namedtuple('AntivirusResult',['context'
                 print "transition: %s" % (transition,)
                 context.submitValidationsForLTP()
                 wft.doActionFor(context, transition)
+            pass
+        pass
+
+class EPeriodicalPartAntivirusResultHandler(namedtuple('AntivirusResult',['context', 'result'])):
+    implements(IAMQPHandler)
+    def handle(self):
+        print "<- Antivirus Result for: ", str(self.context)
+        wft = api.portal.get_tool('portal_workflow')
+        result = self.result
+        context = self.context
+        with api.env.adopt_user(username="system"):
+            if result.result: # some virus found
+                comment =u"v souboru %s je virus: %s" % (context.file.filename, str(result.result))
+                wft.doActionFor(context, 'antivirusError', comment=comment)
+            else:
+                print "current state: ", api.content.get_state(self.context)
+                transition = self.context.needsThumbnailGeneration() and 'antivirusOKThumbnail' \
+                    or 'antivirusOKNoThumbnail'
+                print "transition: %s" % (transition,)
+                wft.doActionFor(self.context, transition)
+                self.context.submitValidationsForLTP()
+                if self.context.needsThumbnailGeneration():
+                    IPloneTaskSender(DoActionFor(transition='submitThumbnailGenerating', uid=self.context.UID())).send()
+                else:
+                    IPloneTaskSender(DoActionFor(transition='submitDocumentViewer', uid=self.context.UID())).send()
             pass
         pass
 
@@ -783,6 +791,22 @@ class OriginalFileThumbnailGeneratingResultHandler(namedtuple('ThumbnailGenerati
                 print "... Thumbnail Generating Result  error", comment
         pass
 
+class ThumbnailGeneratingResultHandler(namedtuple('ThumbnailGeneratingResult',
+                                                  ['context','result'])):
+    """ 
+    context: eperiodicalpart
+    result:  ThumbnailGeneratingResult
+    """
+    def handle(self):
+        print "<- Calibre Thumbnail Generating Result for: ", str(self.context)
+        wft = api.portal.get_tool('portal_workflow')
+        with api.env.adopt_user(username="system"):
+            bfile = NamedBlobFile(data=b64decode(self.result.b64_data),  filename=u"thumbnail.pdf")
+            self.context.thumbnail = bfile
+            transaction.savepoint(optimistic=True)
+            transition = 'thumbnailOK'
+            wft.doActionFor(self.context,transition)
+            IPloneTaskSender(DoActionFor(transition="submitDocumentViewer", uid=self.context.UID())).send()
 
 class ISBNValidateResultHandler(namedtuple('ISBNValidateResult',['context', 'result'])):
     """ 

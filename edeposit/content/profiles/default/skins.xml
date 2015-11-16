@@ -1,8 +1,11 @@
 <?xml version="1.0"?>
 <object name="portal_skins" meta_type="Plone Skins Tool">
- <object name="eperiodical" meta_type="Filesystem Directory View"
-         directory="edeposit.content:skins/eperiodical"/>
+  <object name="eperiodical" meta_type="Filesystem Directory View"
+          directory="edeposit.content:skins/eperiodical"/>
+  <object name="eperiodicalpartsfolder" meta_type="Filesystem Directory View"
+          directory="edeposit.content:skins/eperiodicalpartsfolder"/>
   <skin-path name="*">
     <layer name="eperiodical" insert-after="custom"/>
+    <layer name="eperiodicalpartsfolder" insert-after="custom"/>
   </skin-path>
 </object>

@@ -23,6 +23,8 @@ from edeposit.content.eperiodicalfolder import IePeriodicalFolder
 from edeposit.content import MessageFactory as _
 from plone import api
 from edeposit.app.fields import PeriodicityChoice
+import z3c.form.browser.radio
+from edeposit.content.epublication import librariesAccessing
 
 """
 Denně
@@ -44,23 +46,31 @@ Ročenka
 """
 
 periodicityChoices = [
-    ['denne',u"Denně"],
-    ['1x tydne', u"1x týdně"],
-    ['2x tydne',u"2x týdně"],
-    ['3x tydne',u'3x týdně'],
-    ['1x mesicne',u'1x měsíčně'],
-    ['2x mesicne',u'2x měsíčně'],
-    ['1x za 2 tydny',u'1x za 2 týdny'],
-    ['3x mesicne',u'3x měsíčně'],
-    ['2x rocne',u'2x ročně'],
-    ['3x rocne',u'3x ročně'],
-    ['4x rocne',u'4x ročně'],
-    ['6x rocne',u'6x ročně'],
-    ['10x rocne',u'10x ročně'],
-    ['rocenka',u'Ročenka'],
-    ['1x za 2 roky',u'1x za 2 roky'],
-    ['1x za 3 roky',u'1x za 3 roky'],
+    ['denne',u"Denně",356],
+    ['1x tydne', u"1x týdně",52],
+    ['2x tydne',u"2x týdně",104],
+    ['3x tydne',u'3x týdně',156],
+    ['1x mesicne',u'1x měsíčně',12],
+    ['2x mesicne',u'2x měsíčně',24],
+    ['1x za 2 tydny',u'1x za 2 týdny', 26],
+    ['3x mesicne',u'3x měsíčně', 36],
+    ['2x rocne',u'2x ročně',2],
+    ['3x rocne',u'3x ročně',3],
+    ['4x rocne',u'4x ročně',4],
+    ['6x rocne',u'6x ročně',6],
+    ['10x rocne',u'10x ročně',10],
+    ['rocenka',u'Ročenka',1],
+    ['1x za 2 roky',u'1x za 2 roky',1],
+    ['1x za 3 roky',u'1x za 3 roky',1],
+    ['nepravidelne',u"nepravidelně",0]
 ]
+
+def getNumOfPartsAYear(periodicity):
+    nums = [ii[2] for ii in periodicityChoices if ii[0] == periodicity]
+    return nums and nums[0] or 0
+
+def getPeriodicityLabel(num):
+    return u"%d. číslo" % (num,)
 
 @grok.provider(IContextSourceBinder)
 def periodicityChoicesSource(context):
@@ -100,6 +110,100 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
         required=False,
         missing_value=u'',
     )
+
+    form.fieldset('Publishing',
+                  label=_(u"Publishing"),
+                  fields = [ 'poradi_vydani',
+                             'misto_vydani',
+                             'rok_vydani',
+                             ]
+                  )
+
+    poradi_vydani = schema.TextLine(
+        title = u'Pořadí vydání',
+        required = True,
+    )
+
+    misto_vydani = schema.TextLine(
+        title = u'Místo vydání',
+        required = True,
+    )
+
+    rok_vydani = schema.TextLine (
+        title = u"Rok vydání",
+        required = True,
+    )
+
+    vazba = schema.TextLine (
+        title = u"Vazba",
+        required = False,
+        default = u"online",
+    )
+
+    form.fieldset('accessing',
+                  label=_(u'Accessing'),
+                  fields = [ 'is_public',
+                             'libraries_accessing',
+                             'libraries_that_can_access',
+                             ])
+
+    is_public = schema.Bool(
+        title = u'vydání je veřejné',
+        required = False,
+        default = False,
+        missing_value = False,
+        )
+
+    form.widget(libraries_accessing=z3c.form.browser.radio.RadioFieldWidget)
+    libraries_accessing = schema.Choice (
+        title = u"Oprávnění knihovnám",
+        required = False,
+        readonly = False,
+        default = None,
+        missing_value = None,
+        source = librariesAccessing,
+    )
+
+    libraries_that_can_access = RelationList(
+        title = u"Knihovny které mají přístup k vydání ePeriodika",
+        required = False,
+        readonly = False,
+        default = [],
+        value_type = RelationChoice(
+            title = _(u'Related libraries'),
+            source = ObjPathSourceBinder(object_provides=ILibrary.__identifier__),
+            )
+        )
+
+    form.fieldset('riv',
+                  label=_(u'RIV'),
+                  fields = ['category_for_riv',
+                            ])
+
+    category_for_riv = schema.ASCIILine(
+        title = _(u'RIV category'),
+        description = _(u'Category of an ePublication for RIV'),
+        required = False,
+        readonly = False,
+        default = None,
+        missing_value = None,
+        )
+
+    form.fieldset('technical',
+                  label=_('Technical'),
+                  fields = [ 'aleph_doc_number', ]
+                  )
+
+    aleph_doc_number = schema.ASCIILine(
+        title = _(u'Aleph DocNumber'),
+        description = _(u'Internal DocNumber that Aleph refers to metadata of this ePeriodical part'),
+        required = False,
+        readonly = False,
+        default = None,
+        missing_value = None,
+        )
+
+
 
 
 # Custom content-type class; objects created for this content type will
