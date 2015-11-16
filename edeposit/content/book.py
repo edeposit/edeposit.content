@@ -538,21 +538,21 @@ class IBookAddAtOnce(form.Schema):
         description = u"Příjmení a jméno oddělené čárkou",
         required = False,
         )
-
     # form.mode(book_uid='hidden')
     # book_uid = schema.ASCIILine(
     #     required = False,
     # )
+
 
 class AddAtOnceForm(form.Form):
     grok.name('add-at-once')
     grok.require('edeposit.AddEPublication')
     grok.context(IBookFolder)
 
-    fields = field.Fields(IBook) + field.Fields(IBookAddAtOnce)
+    fields = field.Fields(IBook) + field.Fields(IBookAddAtOnce) + field.Fields(IPreprint)
 
     ignoreContext = True
-    label = u"Ohlásit knihu / tiskovou předlohu"
+    label = u"Ohlásit knihu / preprint"
     enable_form_tabbing = False
     autoGroups = False
     template = ViewPageTemplateFile('book_templates/addatonce.pt')
