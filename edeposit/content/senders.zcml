@@ -136,6 +136,13 @@
     />
 
   <adapter
+    for="edeposit.content.eperiodical.IePeriodical"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.RenewAlephRecordsRequestSender"
+    name="renew-aleph-records"
+    />
+
+  <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
     factory=".amqp.RenewAlephRecordsBySysNumberRequestSender"
@@ -161,6 +168,20 @@
     provides="edeposit.content.amqp.IAMQPSender"
     factory=".amqp.RenewAlephRecordsByICZSysNumberRequestSender"
     name="renew-aleph-records-by-icz-sysnumber"
+    />
+
+  <adapter
+    for="edeposit.content.eperiodical.IePeriodical"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.RenewAlephRecordsByICZSysNumberRequestSender"
+    name="renew-aleph-records-by-icz-sysnumber"
+    />
+
+  <adapter
+    for="edeposit.content.eperiodical.IePeriodical"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.LoadAlephRecordsByTitleRequestSender"
+    name="load-aleph-records-by-title"
     />
 
   <!-- <adapter -->

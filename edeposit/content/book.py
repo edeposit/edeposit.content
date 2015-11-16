@@ -21,7 +21,6 @@ from functools import partial
 from plone.dexterity.utils import createContentInContainer, addContentToContainer, createContent
 from z3c.form.interfaces import WidgetActionExecutionError, ActionExecutionError, IObjectFactory, IValidator, IErrorViewSnippet, INPUT_MODE
 
-from edeposit.content.printingfile import IPrintingFile
 from edeposit.content.browser.contribute import (
     LoadFromSimilarForBookForm,
     LoadFromSimilarForBookView,
@@ -204,7 +203,7 @@ class IBook(form.Schema, IImageScaleTraversable):
 
     form.primary('file')
     file = NamedBlobFile(
-        title=u"Tisková předloha",
+        title=u"Preprint",
         required = False,
     )
     
@@ -549,7 +548,7 @@ class AddAtOnceForm(form.Form):
     grok.require('edeposit.AddEPublication')
     grok.context(IBookFolder)
 
-    fields = field.Fields(IBook) + field.Fields(IBookAddAtOnce) + field.Fields(IPreprint)
+    fields = field.Fields(IBook) + field.Fields(IBookAddAtOnce)
 
     ignoreContext = True
     label = u"Ohlásit knihu / preprint"

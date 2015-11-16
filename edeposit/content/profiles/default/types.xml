@@ -4,7 +4,6 @@
   <object name="edeposit.content.library" meta_type="Dexterity FTI"/>
   <object name="edeposit.content.isbn" meta_type="Dexterity FTI"/>
   <object name="edeposit.content.previewfile" meta_type="Dexterity FTI" />
-  <object name="edeposit.content.preprint" meta_type="Dexterity FTI"/>
   <object name="edeposit.content.originalfile" meta_type="Dexterity FTI"/>
   <object name="edeposit.content.author" meta_type="Dexterity FTI"/>
   <object name="edeposit.content.epublication" meta_type="Dexterity FTI" />

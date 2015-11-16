@@ -502,6 +502,20 @@ class RenewAlephRecordsRequestSender(namedtuple('RenewAlephRecordsRequest',['con
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
 
+class LoadAlephRecordsByTitleRequestSender(namedtuple('LoadAlephRecordsByTitleRequest',['context'])):
+    """ context will be original file """
+    implements(IAMQPSender)
+    def send(self):
+        print "-> Load Aleph Records By SysNumber Request for: ", str(self.context)
+        title = ""
+        import pdb; pdb.set_trace()
+        request = SearchRequest(GenericQuery(title, field='wtl'))
+        producer = getUtility(IProducer, name="amqp.isbn-search-request")
+        session_data =  { 'uuid-of-originalfile': self.context.UID(),
+                          'load-records-by-title': str(title) }
+        headers = make_headers(alephRecord, session_data)
+        producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
+
 class RenewAlephRecordsBySysNumberRequestSender(namedtuple('RenewAlephRecordsBySysNumberRequest',['context'])):
     """ context will be original file """
     implements(IAMQPSender)
@@ -518,12 +532,9 @@ class RenewAlephRecordsBySysNumberRequestSender(namedtuple('RenewAlephRecordsByS
 
             request = SearchRequest(DocumentQuery(sysnumber))
             producer = getUtility(IProducer, name="amqp.isbn-search-request")
-            msg = ""
-            session_data =  { 'isbn': str(self.context.isbn),
-                              'msg': msg,
-                              'uuid-of-originalfile': self.context.UID(),
+            session_data =  { 'uuid-of-originalfile': self.context.UID(),
                               'renew-records-for-sysnumber': str(sysnumber)
-                          }
+                              }
             headers = make_headers(alephRecord, session_data)
             producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
 
