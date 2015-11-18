@@ -183,8 +183,8 @@ class AlephRecord(Item):
         
         diffs = map(diff, fieldRevisions, fieldRevisions[1:])
         #if "3363" in self.aleph_sys_number:
-        result = bool(filter(isYounger,diffs))
-        print "... field is younger than", fieldName, time, result
+        result = bool(fieldValue) and bool(filter(isYounger,diffs))
+        print "... field is younger than", fieldName, time, result, fieldValue
         return result
 
         #return fieldValue

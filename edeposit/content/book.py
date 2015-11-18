@@ -88,7 +88,7 @@ class IBook(form.Schema, IImageScaleTraversable):
     
     nazev = schema.TextLine (
         title = u"Název",
-        required = False,
+        required = True,
     )
 
     podnazev = schema.TextLine (
@@ -199,6 +199,7 @@ class IBook(form.Schema, IImageScaleTraversable):
         title = u"Anotace",
         description = u"Anotace se objeví v Alephu",
         required = False,
+        max_length = 500,
         )
 
     form.primary('file')
@@ -228,6 +229,7 @@ class IBook(form.Schema, IImageScaleTraversable):
                       'shouldBeFullyCatalogized',
                       'isWellFormedForLTP',
                       'isClosed',
+                      'lastProcessingStart',
                   ])
 
     thumbnail = NamedBlobFile(
@@ -259,6 +261,11 @@ class IBook(form.Schema, IImageScaleTraversable):
         required = False,
         default = False,
     )
+    lastProcessingStart = schema.TextLine(
+        title = u"Začátek posledního zpracování",
+        required = False,
+        readonly=True,
+        )
 
 
 
@@ -322,6 +329,17 @@ class Book(Container):
 
     def hasVoucher(self):
         return bool(self.voucher)
+
+    @property
+    def lastProcessingStart(self):
+        states = ["antivirus", "exportToAleph"]
+        wft = api.portal.get_tool('portal_workflow')
+        workflowHistory = wft.getHistoryOf('edeposit_book_workflow',self)
+        times = filter(bool,
+                       map(lambda item: item['time'],  
+                           filter(lambda item: item['review_state'] in states, workflowHistory)))
+        result =  (times and max(times)) or min(map(lambda item: item['time'], workflowHistory))
+        return result
 
     @property
     def isbnAppearsAtRelatedAlephRecord(self):

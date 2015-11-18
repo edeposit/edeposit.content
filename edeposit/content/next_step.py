@@ -251,4 +251,13 @@ class OriginalFileNextStep(namedtuple("OriginalFileNextStep",['context',])):
 
 
 class BookNextStep(OriginalFileNextStep):
-    pass
+
+    @withRelatedAlephRecord
+    def nextstep_for_descriptiveCataloguingPreparing(self, related_aleph_record=None, *args, **kwargs):
+        """ staci, jestli uz existuje podpis """
+        import pdb; pdb.set_trace()
+        if self.context.getAssignedDescriptiveCataloguer():
+            self.wft.doActionFor(self.context,'submitDescriptiveCataloguingPreparing')
+            return True
+
+        return False

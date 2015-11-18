@@ -41,7 +41,8 @@ from edeposit.amqp.aleph import (
     DocumentQuery,
     ICZQuery,
     ISBNValidationRequest,
-    ExportRequest
+    ExportRequest,
+    settings as aleph_settings
 )
 
 from edeposit.amqp.serializers import (
@@ -507,13 +508,12 @@ class LoadAlephRecordsByTitleRequestSender(namedtuple('LoadAlephRecordsByTitleRe
     implements(IAMQPSender)
     def send(self):
         print "-> Load Aleph Records By SysNumber Request for: ", str(self.context)
-        title = ""
-        import pdb; pdb.set_trace()
-        request = SearchRequest(GenericQuery(title, field='wtl'))
+        title = self.context.title
+        request = SearchRequest(GenericQuery(aleph_settings.ALEPH_DEFAULT_BASE, title, True, field='wtl'))
         producer = getUtility(IProducer, name="amqp.isbn-search-request")
         session_data =  { 'uuid-of-originalfile': self.context.UID(),
                           'load-records-by-title': str(title) }
-        headers = make_headers(alephRecord, session_data)
+        headers = make_headers(self.context, session_data)
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
 
 class RenewAlephRecordsBySysNumberRequestSender(namedtuple('RenewAlephRecordsBySysNumberRequest',['context'])):

@@ -27,6 +27,22 @@
     />
 
   <adapter
+    for="edeposit.content.eperiodical.IePeriodical
+         edeposit.content.handlers.IAMQPError
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.ExceptionHandler"
+    />
+
+  <adapter
+    for="edeposit.content.eperiodicalpart.IePeriodicalPart
+         edeposit.content.handlers.IAMQPError
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.ExceptionHandler"
+    />
+
+  <adapter
     for="edeposit.content.aleph_record.IAlephRecord
          edeposit.content.handlers.IAMQPError
          "
