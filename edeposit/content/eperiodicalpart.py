@@ -32,12 +32,21 @@ from edeposit.content.originalfile import OriginalFileSource
 from plone import api
 import os.path
 from edeposit.content.behaviors import IFormat, ICalibreFormat
+from Acquisition import aq_parent, aq_inner
+from plone.app.layout.navigation.root import getNavigationRootObject
+
 from .tasks import (
     IPloneTaskSender,
     DoActionFor
 )
 from plone.dexterity.interfaces import IDexterityFTI
 
+@grok.provider(IContextSourceBinder)
+def availableAlephRecords(context):
+    path = '/'.join(context.getPhysicalPath())
+    query = { "portal_type" : ("edeposit.content.alephrecord",),
+              "path": {'query' :path } }
+    return ObjPathSourceBinder(navigation_tree_query = query).__call__(context)
 
 # file source
 class IEPeriodicalPartFileField(INamedBlobFileField):
@@ -79,7 +88,8 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
                   fields = [ 'zpracovatel_zaznamu',
                              'thumbnail',
                              'storage_download_url',
-                             'storage_path'
+                             'storage_path',
+                             'related_aleph_record',
                              ]
                   )
 
@@ -102,7 +112,10 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
         title = u"Cesta v úložišti",
         required = False,
     )
-
+    
+    related_aleph_record = RelationChoice( title=u"Odpovídající záznam v Alephu",
+                                           required = False,
+                                           source = availableAlephRecords)
     
 
 @form.default_value(field=IePeriodicalPart['zpracovatel_zaznamu'])
@@ -117,6 +130,16 @@ def zpracovatelDefaultValue(data):
 
 class ePeriodicalPart(Container):
     grok.implements(IePeriodicalPart)
+
+    @property
+    def related_aleph_record(self):
+        results = api.portal.get_tool('portal_catalog')(UID=self.UID())
+        obj = results and results[0].getObject()
+        parent = getattr(obj,'aq_parent',None)
+        while parent and parent.portal_type != 'edeposit.content.eperiodical': 
+            parent = getattr(parent,'aq_parent',None)
+
+        return getattr(parent,'related_aleph_record',None)
 
     def needsThumbnailGeneration(self):
         fileformat  = (getAdapter(self,IFormat).format or "")
