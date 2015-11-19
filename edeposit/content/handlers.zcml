@@ -171,6 +171,14 @@
       />
 
   <adapter
+      for="edeposit.content.eperiodical.IePeriodical
+           edeposit.content.amqp.IAlephSearchResult
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.AlephSearchResultHandler"
+      />
+
+  <adapter
       for="edeposit.content.aleph_record.IAlephRecord
            edeposit.content.amqp.IAlephSearchResult
            "

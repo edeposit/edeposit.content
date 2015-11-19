@@ -7,6 +7,11 @@ from zope.interface import invariant, Invalid
 from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from z3c.form import group, field, button
+from zope.component import queryUtility, getUtility, getAdapter
+from z3c.relationfield import RelationValue
+from zope.app.intid.interfaces import IIntIds
+from urlparse import urlparse
+from operator import __or__, attrgetter, methodcaller
 
 from plone.dexterity.content import Container
 from plone.directives import dexterity, form
@@ -25,6 +30,13 @@ from plone import api
 from edeposit.app.fields import PeriodicityChoice
 import z3c.form.browser.radio
 from edeposit.content.epublication import librariesAccessing
+from plone.formwidget.contenttree import ObjPathSourceBinder, PathSourceBinder
+
+from .tasks import (
+    IPloneTaskSender,
+    DoActionFor,
+    CheckUpdates,
+)
 
 """
 Denně
@@ -72,6 +84,7 @@ def getNumOfPartsAYear(periodicity):
 def getPeriodicityLabel(num):
     return u"%d. číslo" % (num,)
 
+
 @grok.provider(IContextSourceBinder)
 def periodicityChoicesSource(context):
     def getTerm(item):
@@ -79,6 +92,15 @@ def periodicityChoicesSource(context):
         return SimpleVocabulary.createTerm(item[0], item[0], title)
 
     return SimpleVocabulary(map(getTerm, periodicityChoices))
+
+@grok.provider(IContextSourceBinder)
+def availableAlephRecords(context):
+    path = '/'.join(context.getPhysicalPath())
+    query = { "portal_type" : ("edeposit.content.alephrecord",),
+              "path": {'query' :path } 
+             }
+    return ObjPathSourceBinder(navigation_tree_query = query).__call__(context)
+
 
 class IePeriodical(form.Schema, IImageScaleTraversable):
     """
@@ -191,18 +213,19 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
 
     form.fieldset('technical',
                   label=_('Technical'),
-                  fields = [ 'aleph_doc_number', ]
+                  fields = ['related_aleph_record', 'isClosed' ]
                   )
+    
+    related_aleph_record = RelationChoice( title=u"Odpovídající záznam v Alephu",
+                                           required = False,
+                                           source = availableAlephRecords)
 
-    aleph_doc_number = schema.ASCIILine(
-        title = _(u'Aleph DocNumber'),
-        description = _(u'Internal DocNumber that Aleph refers to metadata of this ePeriodical part'),
+    isClosed= schema.Bool (
+        title = _(u'is closed out by Catalogizators'),
+        description = u"",
         required = False,
-        readonly = False,
-        default = None,
-        missing_value = None,
-        )
-
+        default = False,
+    )
 
 
 
@@ -215,6 +238,105 @@ class ePeriodical(Container):
     grok.implements(IePeriodical)
 
     # Add your class methods and properties here
+
+    # Add your class methods and properties here
+    def updateOrAddAlephRecord(self, dataForFactory):
+        sysNumber = dataForFactory.get('aleph_sys_number',None)
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+
+        # exist some record with the same sysNumber?
+        arecordWithTheSameSysNumber = filter(lambda arecord: arecord.aleph_sys_number == sysNumber,
+                                             alephRecords)
+        print dataForFactory
+        if arecordWithTheSameSysNumber:
+            print "a record with the same sysnumber"
+            # update this record
+            alephRecord = arecordWithTheSameSysNumber[0]
+            changedAttrs = alephRecord.findAndLoadChanges(dataForFactory)
+            importantAttrs = frozenset(changedAttrs) - frozenset(['xml','aleph_library'])
+            if importantAttrs:
+                print "... changed important attrs: ", importantAttrs
+                IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
+
+        else:
+            alephRecord = createContentInContainer(self, 'edeposit.content.alephrecord', **dataForFactory)
+            IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
+
+    def makeInternalURL(self):
+        internal_url = "/".join([api.portal.get().absolute_url(), '@@redirect-to-uuid', self.UID()])
+        return internal_url
+
+    def refersToThis(self,aleph_record):
+        # older records can have
+        # absolute_url as internal url
+        absolute_path = urlparse(self.absolute_url()).path
+        internal_path = urlparse(self.makeInternalURL()).path
+
+        def startsWithProperURL(url):
+            path = urlparse(url).path
+            result = absolute_path in path or internal_path in path
+            return result
+
+        result = reduce(__or__, map(startsWithProperURL, aleph_record.internal_urls), False)
+        return result
+
+    def updateAlephRelatedData(self):
+        # try to choose related_aleph_record
+        print "... update Aleph Related Data"
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+
+        self.related_aleph_record = None
+        related_aleph_record = None
+
+        intids = getUtility(IIntIds)
+        recordsThatRefersToThis = filter(lambda rr: self.refersToThis(rr), alephRecords)
+        if len(recordsThatRefersToThis) == 1:
+            related_aleph_record = recordsThatRefersToThis[0]
+            self.related_aleph_record = RelationValue(intids.getId(related_aleph_record))
+            self.reindexObject(idxs=['id_number',])
+
+    def checkUpdates(self):
+        """ it tries to decide whether some changes appeared in aleph records. 
+        The function loads the changes from a proper aleph record into its own attributes.
+        The function will plan producent notification.
+        """
+        self.updateAlephRelatedData()
+
+    @property
+    def sysNumber(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object', None)
+            return record and record.aleph_sys_number or ""
+        return None
+
+    @property
+    def id_number(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object', None)
+            return record and record.aleph_sys_number or ""
+        return None
+
+    @property
+    def isClosed(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object',None)
+            return record and record.isClosed
+        return False
+
+    @property
+    def aleph_sys_number(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object',None)
+            return record and record.aleph_sys_number
+        return None
+
+    @property
+    def id_number(self):
+        if self.related_aleph_record:
+            record = getattr(self.related_aleph_record, 'to_object',None)
+            return record and record.id_number
+        return None
+        
 
 
 # View class

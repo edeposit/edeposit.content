@@ -503,6 +503,7 @@ class RenewAlephRecordsRequestSender(namedtuple('RenewAlephRecordsRequest',['con
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
 
+
 class LoadAlephRecordsByTitleRequestSender(namedtuple('LoadAlephRecordsByTitleRequest',['context'])):
     """ context will be original file """
     implements(IAMQPSender)

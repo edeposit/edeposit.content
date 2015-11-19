@@ -136,13 +136,6 @@
     />
 
   <adapter
-    for="edeposit.content.eperiodical.IePeriodical"
-    provides="edeposit.content.amqp.IAMQPSender"
-    factory=".amqp.RenewAlephRecordsRequestSender"
-    name="renew-aleph-records"
-    />
-
-  <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
     factory=".amqp.RenewAlephRecordsBySysNumberRequestSender"
