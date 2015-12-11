@@ -508,11 +508,11 @@ class LoadAlephRecordsByTitleRequestSender(namedtuple('LoadAlephRecordsByTitleRe
     """ context will be original file """
     implements(IAMQPSender)
     def send(self):
-        print "-> Load Aleph Records By SysNumber Request for: ", str(self.context)
+        print "-> Load Aleph Records By Title Request for: ", str(self.context)
         title = self.context.title
         request = SearchRequest(GenericQuery(aleph_settings.ALEPH_DEFAULT_BASE, title, True, field='wtl'))
         producer = getUtility(IProducer, name="amqp.isbn-search-request")
-        session_data =  { 'uuid-of-originalfile': self.context.UID(),
+        session_data =  { 'uuid-of-context': self.context.UID(),
                           'load-records-by-title': str(title) }
         headers = make_headers(self.context, session_data)
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
@@ -522,7 +522,10 @@ class RenewAlephRecordsBySysNumberRequestSender(namedtuple('RenewAlephRecordsByS
     implements(IAMQPSender)
     def send(self):
         print "-> Renew Aleph Records By SysNumber Request for: ", str(self.context)
-        alephRecords = self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        alephRecords = self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'}) \
+            +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforepublication'}) \
+            +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforeperiodical'})
+
         for alephRecord in alephRecords:
             print "... renew Aleph Record: ", str(alephRecord)
             sysnumber = alephRecord.aleph_sys_number
@@ -533,7 +536,7 @@ class RenewAlephRecordsBySysNumberRequestSender(namedtuple('RenewAlephRecordsByS
 
             request = SearchRequest(DocumentQuery(sysnumber))
             producer = getUtility(IProducer, name="amqp.isbn-search-request")
-            session_data =  { 'uuid-of-originalfile': self.context.UID(),
+            session_data =  { 'context-uuid': self.context.UID(),
                               'renew-records-for-sysnumber': str(sysnumber)
                               }
             headers = make_headers(alephRecord, session_data)
@@ -544,8 +547,11 @@ class RenewAlephRecordsByICZSysNumberRequestSender(namedtuple('RenewAlephRecords
     implements(IAMQPSender)
     def send(self):
         print "-> Renew Aleph Records By ICZ SysNumber Request for: ", str(self.context)
-        alephRecords = self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
-        for alephRecord in filter(lambda rr: rr.isClosed, alephRecords):
+        alephRecords = self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'}) \
+            +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforepublication'}) \
+            +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforeperiodical'})
+
+        for alephRecord in filter(lambda rr: getattr(rr,'isClosed',False), alephRecords):
             print "... renew Summary record for closed Aleph Record: ", str(alephRecord)
             icznumber = alephRecord.summary_record_aleph_sys_number
 
@@ -870,7 +876,7 @@ class AlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'resu
         with api.env.adopt_user(username="system"):
             print "num of records: ", len(self.result.records)
             for record in self.result.records:
-                epublication = record.epublication
+                epublication = record.parsed_info
                 internal_url = getattr(epublication,'internal_url',None)
                 internal_urls = getattr(epublication,'internal_urls', None)  or internal_url or []
                 # if record.docNumber in ['000003035','000003043']:
@@ -879,6 +885,7 @@ class AlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'resu
                 # if record.docNumber in ['000003099']:
                 #     internal_urls += [ self.context.makeInternalURL() ]
 
+                isbns = getattr(epublication,'ISBNS',[])
                 dataForFactory = {
                     'title': "".join([u"Záznam v Alephu: ",
                                       str(epublication.nazev), 
@@ -886,7 +893,7 @@ class AlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'resu
                                       str(record.docNumber),
                                       ')']),
                     'nazev':  str(epublication.nazev),
-                    'isbn': epublication.ISBN and epublication.ISBN[0],
+                    'isbn': isbns and isbns[0],
                     'podnazev': epublication.podnazev,
                     'cast': epublication.castDil,
                     'nazev_casti': epublication.nazevCasti,
@@ -932,6 +939,57 @@ class AlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'resu
             IPloneTaskSender(CheckUpdates(uid=self.context.UID())).send()
         pass
 
+class AlephSearchResultHandlerForEPeriodical(namedtuple('AlephSearchtResultForEPeriodical',['context', 'result'])):
+    """ 
+    context: eperiodical
+    result:  SearchResult
+    """
+    def handle(self):
+        print "<- Aleph Record Aleph Search result for: ", str(self.context)
+        with api.env.adopt_user(username="system"):
+            print "num of records: ", len(self.result.records)
+            for record in self.result.records:
+                pinfo = record.parsed_info
+                internal_url = getattr(pinfo,'internal_url',None) # this is a list of urls
+                internal_urls = getattr(pinfo,'internal_urls', None) or internal_url or []
+                issns = getattr(pinfo,'ISSN',[])
+                dataForFactory = {
+                    'title': "".join([u"Záznam v Alephu: ",
+                                      str(pinfo.nazev), 
+                                      '(', 
+                                      str(record.docNumber),
+                                      ')']),
+                    'nazev':  str(pinfo.nazev),
+                    'podnazev': getattr(pinfo,'podnazev',None),
+                    'misto_vydani': pinfo.mistoVydani,
+                    'datum_vydani': pinfo.datumVydani,
+                    'url': pinfo.url,
+                    'anotace': pinfo.anotace,
+                    'internal_urls': internal_urls,
+                    'issns': issns and issns[0],
+                    'aleph_sys_number': record.docNumber,
+                    'aleph_library': record.library,
+                    'acquisitionFields': record.semantic_info.acquisitionFields,
+                    'isClosed': record.semantic_info.isClosed,
+                    'summary_record_info' : record.semantic_info.summaryRecordSysNumber,
+                    'summary_record_aleph_sys_number' : record.semantic_info.parsedSummaryRecordSysNumber,
+                    'isSummaryRecord': record.semantic_info.isSummaryRecord or False,
+                    'xml': NamedBlobFile(record.xml, filename=u"marc21.xml"),
+                    'id_number': getattr(pinfo,'id_number',None),
+                    }
+
+                self.context.updateOrAddAlephRecord(dataForFactory)
+
+                # submit next search, if record is closed
+                if record.semantic_info.isClosed:
+                    sysnumber = record.semantic_info.parsedSummaryRecordSysNumber
+                    request = SearchRequest(ICZQuery(sysnumber))
+                    producer = getUtility(IProducer, name="amqp.isbn-search-request")
+                    session_data =  { 'load-record-by-parsed-sysnumber': str(sysnumber) }
+                    headers = make_headers(self.context, session_data)
+                    producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
+        pass
+
 class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'result'])):
     """ 
     context: alephRecord
@@ -942,7 +1000,7 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
         with api.env.adopt_user(username="system"):
             print "num of records: ", len(self.result.records)
             for record in self.result.records:
-                epublication = record.epublication
+                epublication = record.parsed_info
                 internal_url = getattr(epublication,'internal_url',None) # this is a list of urls
                 internal_urls = getattr(epublication,'internal_urls', None) or internal_url or []
 
@@ -952,6 +1010,7 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
                 # if record.docNumber in ['000003099']:
                 #     internal_urls += [ self.context.makeInternalURL() ]
 
+                isbns = getattr(epublication,'ISBN',[])
                 dataForFactory = {
                     'title': "".join([u"Záznam v Alephu: ",
                                       str(epublication.nazev), 
@@ -959,10 +1018,10 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
                                       str(record.docNumber),
                                       ')']),
                     'nazev':  str(epublication.nazev),
-                    'isbn': epublication.ISBN and epublication.ISBN[0],
-                    'podnazev': epublication.podnazev,
-                    'cast': epublication.castDil,
-                    'nazev_casti': epublication.nazevCasti,
+                    'isbn': isbns and isbns[0],
+                    'podnazev': getattr(epublication,'podnazev',None),
+                    'cast': getattr(epublication,'castDil',None),
+                    'nazev_casti': getattr(epublication,'nazevCasti',None),
                     'rok_vydani': epublication.datumVydani,
                     'aleph_sys_number': record.docNumber,
                     'aleph_library': record.library,
@@ -990,6 +1049,55 @@ class AlephRecordAlephSearchResultHandler(namedtuple('AlephSearchtResult',['cont
                     
             originalfile = aq_parent(aq_inner(self.context))
             IPloneTaskSender(CheckUpdates(uid=originalfile.UID())).send()
+        pass
+
+class AlephRecordForEPeriodicalAlephSearchResultHandler(namedtuple('AlephSearchtResult',['context', 'result'])):
+    """ 
+    context: alephRecordForEPeriodical
+    result:  SearchResult
+    """
+    def handle(self):
+        print "<- Aleph Record Aleph Search result for: ", str(self.context)
+        with api.env.adopt_user(username="system"):
+            print "num of records: ", len(self.result.records)
+            for record in self.result.records:
+                pinfo = record.parsed_info
+                internal_url = getattr(pinfo,'internal_url',None) # this is a list of urls
+                internal_urls = getattr(pinfo,'internal_urls', None) or internal_url or []
+                issns = getattr(pinfo,'ISSN',[])
+                dataForFactory = {
+                    'title': "".join([u"Záznam v Alephu: ",
+                                      str(pinfo.nazev), 
+                                      '(', 
+                                      str(record.docNumber),
+                                      ')']),
+                    'nazev':  str(pinfo.nazev),
+                    'podnazev': getattr(pinfo,'podnazev',None),
+                    'misto_vydani': pinfo.mistoVydani,
+                    'datum_vydani': pinfo.datumVydani,
+                    'url': pinfo.url,
+                    'anotace': pinfo.anotace,
+                    'internal_urls': internal_urls,
+                    'issns': issns and issns[0],
+                    'aleph_sys_number': record.docNumber,
+                    'aleph_library': record.library,
+                    'acquisitionFields': record.semantic_info.acquisitionFields,
+                    'isClosed': record.semantic_info.isClosed,
+                    'summary_record_info' : record.semantic_info.summaryRecordSysNumber,
+                    'summary_record_aleph_sys_number' : record.semantic_info.parsedSummaryRecordSysNumber,
+                    'isSummaryRecord': record.semantic_info.isSummaryRecord or False,
+                    'xml': NamedBlobFile(record.xml, filename=u"marc21.xml"),
+                    'id_number': getattr(epublication,'id_number',None),
+                    }
+
+                self.context.findAndLoadChanges(dataForFactory)
+
+                if not self.result.records:
+                    # drop context - no appropriate record at Aleph exists
+                    api.content.delete(obj=self.context)
+                    
+            eperiodical = aq_parent(aq_inner(self.context))
+            IPloneTaskSender(CheckUpdates(uid=eperiodical.UID())).send()
         pass
 
 # class OriginalFileAlephSearchDocumentResultHandler(namedtuple('AlephSearchDocumentResult',
@@ -1407,10 +1515,20 @@ class LoadSysNumbersFromAlephTaskHandler(namedtuple('LoadSysNumbersFromAlephTask
         print "<- Plone AMQP Task: ", str(self.result)
         with api.env.adopt_user(username="system"):
             producentsFolder = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producentfolder')[0].getObject()
-            collection = producentsFolder['originalfiles-waiting-for-aleph']
-            uids = map(lambda item: item.UID, collection.results(batch=False))
-            for uid in uids:
-                IPloneTaskSender(DoActionFor(transition='searchSysNumber', uid=uid)).send()
+            def getObj(accum, key):
+                return getattr(accum,key,None)
+
+            coll1 = reduce(getObj, ['prehledy','originaly','ve_zpracovani'], producentsFolder)
+            coll2 = reduce(getObj, ['prehledy','knihy','ve_zpracovani'], producentsFolder)
+            coll3 = reduce(getObj, ['prehledy','eperiodika','ve_zpracovani'], producentsFolder)
+            
+            for collection in filter(bool, (coll1, coll2, coll3)):
+                uids = map(lambda item: item.UID, collection.results(batch=False))
+                for uid in uids:
+                    IPloneTaskSender(DoActionFor(transition='searchSysNumber', uid=uid)).send()
+
+            # collection = reduce(getObj, ['prehledy','originaly','ve_zpracovani'], producentsFolder)
+            #collection = producentsFolder['originalfiles-waiting-for-renew-aleph-records']                                         
             pass
 
 class RenewAlephRecordsTaskHandler(namedtuple('RenewAlephRecordsTaskHandler',
@@ -1423,10 +1541,19 @@ class RenewAlephRecordsTaskHandler(namedtuple('RenewAlephRecordsTaskHandler',
         print "<- Plone AMQP Task: ", str(self.result)
         with api.env.adopt_user(username="system"):
             producentsFolder = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producentfolder')[0].getObject()
-            collection = producentsFolder['originalfiles-waiting-for-renew-aleph-records']
-            uids = map(lambda item: item.UID, collection.results(batch=False))
-            for uid in uids:
-                IPloneTaskSender(DoActionFor(transition='renewAlephRecords', uid=uid)).send()
+
+            def getObj(accum, key):
+                return getattr(accum,key,None)
+
+            #collection = producentsFolder['originalfiles-waiting-for-renew-aleph-records']                                                                    
+            coll1 = reduce(getObj, ['prehledy','originaly','ve_zpracovani'], producentsFolder)
+            coll2 = reduce(getObj, ['prehledy','knihy','ve_zpracovani'], producentsFolder)
+            coll3 = reduce(getObj, ['prehledy','eperiodika','ve_zpracovani'], producentsFolder)
+            
+            for collection in filter(bool, (coll1, coll2, coll3)):
+                uids = map(lambda item: item.UID, collection.results(batch=False))
+                for uid in uids:
+                    IPloneTaskSender(DoActionFor(transition='renewAlephRecords', uid=uid)).send()
 
 class DoActionForTaskHandler(namedtuple('DoActionForTaskHandler',
                                         ['context','result'])):
@@ -1725,6 +1852,38 @@ class PublicationExportToStorageResultHandler(namedtuple('PublicationExportToSto
             pass
         pass
         IPloneTaskSender(DoActionFor(transition='submitUpdateLinksAtAleph', uid=self.context.UID())).send()
+
+class ExportToStorageRequestSenderForEPeriodicalPart(namedtuple('ExportToStorageRequestForEPeriodicalPart',['context'])):
+    """ context will be original file """
+    implements(IAMQPSender)
+    def send(self):
+        print "-> Export To Storage Request for: ", str(self.context)
+        #urnnbn = self.context.getURNNBN()
+        #if not urnnbn:
+        #    return
+        urnnbn = ""
+        record = Publication (
+            title = self.context.title,
+            author = "",
+            pub_year = "",
+            isbn = self.context.issn,            
+            urnnbn = urnnbn,
+            uuid = self.context.UID(),
+            aleph_id = self.context.aleph_sys_number,
+            producent_id = "",
+            is_public = self.context.is_public,
+            filename = self.context.file.filename,
+            b64_data = base64.b64encode(self.context.file.data),
+            url = "",
+            file_pointer = "",
+            )
+        
+        request = SaveRequest(record=record)
+        producer = getUtility(IProducer, name="amqp.storage-export-request")
+        session_data =  { 'issn': str(self.context.issn), }
+        headers = make_headers(self.context, session_data)
+        producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
+        pass
 
 class SearchStorageRequestSender(namedtuple('SearchStorageRequest',['context'])):
     """ context will be original file """
