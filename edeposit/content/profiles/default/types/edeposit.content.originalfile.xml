@@ -15,6 +15,7 @@
     <element value="edeposit.content.isbn"/>
     <element value="edeposit.content.previewfile"/>
     <element value="edeposit.content.alephrecord"/>
+    <element value="edeposit.content.alephrecordforepublication"/>
     <element value="edeposit.content.pdfboxvalidationresponse"/>
     <element value="edeposit.content.epubcheckvalidationresponse"/>
     <element value="Link"/>

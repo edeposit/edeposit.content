@@ -17,18 +17,11 @@ from plone.namedfile.interfaces import IImageScaleTraversable
 from functools import partial
 
 from edeposit.content import MessageFactory as _
+from edeposit.content.aleph_record import AlephRecordBase
 
-# Interface class; used to define content-type schema.
-class IAlephRecordsContainer(form.Schema):
-    """ marker interface for containers that can contain aleph records:
-    IOriginalFile
-    IBook
+class IAlephRecordForEPublication(form.Schema, IImageScaleTraversable):
     """
-    pass
-
-class IAlephRecord(form.Schema, IImageScaleTraversable):
-    """
-    E-Deposit Aleph Record
+    E-Deposit Aleph Record for ePublication
     """
     isbn = schema.ASCIILine(
         title=_("ISBN"),
@@ -159,87 +152,6 @@ class IAlephRecord(form.Schema, IImageScaleTraversable):
         required = False
     )
 
-# Custom content-type class; objects created for this content type will
-# be instances of this class. Use this class to add content-type specific
-# methods and properties. Put methods that are mainly useful for rendering
-# in separate view classes.
 
-class AlephRecordBase(Item):
-    def lastChangeOfFields(self, fieldNames):
-        revisions = self.revisionsOfFields(fieldNames)
-        return None
-
-    def fieldIsYoungerThan(self, fieldName,time):
-        fieldValue = getattr(self,fieldName,None)
-        fieldRevisions = self.revisionsOfFields([fieldName])
-        def diff(current, previous):
-            return (bool(current and previous and (current[0] != previous[0])), current[1])
-
-        def isYounger(item):
-            (isDiff, modification_date) = item
-            return (isDiff and modification_date > time)
-
-        diffs = map(diff, fieldRevisions, fieldRevisions[1:])
-        # if "3389" in self.aleph_sys_number:
-        #     import pdb; pdb.set_trace()
-
-        result = bool(fieldValue) and bool(filter(isYounger,diffs))
-        print "... field is younger than", fieldName, time, result, fieldValue
-        return result
-
-        #return fieldValue
-
-    def revisionsOfFields(self, fieldNames):
-        def getFields(vd):
-            getField = partial(getattr, vd.object)
-            return map(getField, fieldNames + ['modification_date',])
-        
-        return map(getFields, self.portal_repository.getHistory(self))
-
-    def findAndLoadChanges(self, data):
-        def isChanged(attr):
-            return getattr(self,attr,None) != data.get(attr,None)
-
-        changedAttrs = filter(isChanged, data.keys())
-        print "... changedAttrs", changedAttrs
-        print "... data", data
-        for attr in changedAttrs:
-            setattr(self, attr, data.get(attr,None) )
-
-        importantAttrs = frozenset(changedAttrs) - frozenset(['xml','aleph_library'])
-        if importantAttrs:
-            print "... sent modified event"
-            modified(self)
-            #self.set_new_version()
-
-        return changedAttrs
-
-    def set_new_version(self, comment=""):
-        try:
-            self.portal_repository.save(obj=self, comment=comment)
-        except FileTooLargeToVersionError:
-            pass # the on edit save will emit a warning
-
-class AlephRecord(AlephRecordBase):
-    grok.implements(IAlephRecord)
-
-
-# View class
-# The view will automatically use a similarly named template in
-# aleph_record_templates.
-# Template filenames should be all lower case.
-# The view will render when you request a content object with this
-# interface with "/@@sampleview" appended.
-# You may make this the default view for content objects
-# of this type by uncommenting the grok.name line below or by
-# changing the view class name and template filename to View / view.pt.
-
-class SampleView(grok.View):
-    """ sample view class """
-
-    grok.context(IAlephRecord)
-    grok.require('zope2.View')
-
-    # grok.name('view')
-
-    # Add view methods here
+class AlephRecordForEPublication(AlephRecordBase):
+    grok.implements(IAlephRecordForEPublication)

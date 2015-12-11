@@ -17,6 +17,8 @@
   <object name="edeposit.content.producentuserplansfolder" meta_type="Dexterity FTI" />
   <object name="edeposit.content.producentuserplan" meta_type="Dexterity FTI" />
   <object name="edeposit.content.alephrecord" meta_type="Dexterity FTI" />
+  <object name="edeposit.content.alephrecordforepublication" meta_type="Dexterity FTI" />
+  <object name="edeposit.content.alephrecordforeperiodical" meta_type="Dexterity FTI" />
   <object name="edeposit.content.originalfilecontributingrequestsfolder" meta_type="Dexterity FTI" />
   <object name="edeposit.content.originalfilecontributingrequest" meta_type="Dexterity FTI" />
   <object name="edeposit.content.alephexception" meta_type="Dexterity FTI" />

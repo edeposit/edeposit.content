@@ -14,7 +14,7 @@
   <property name="allowed_content_types">
     <element value="edeposit.content.eperiodicalpart"/>
     <element value="edeposit.content.eperiodicalpartsfolder"/>
-    <element value="edeposit.content.alephrecord"/>
+    <element value="edeposit.content.alephrecordforeperiodical"/>
     <element value="Collection"/>
     <element value="Image"/>
     <element value="Link"/>

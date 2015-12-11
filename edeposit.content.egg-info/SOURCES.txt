@@ -31,6 +31,8 @@ edeposit/content/changes.py
 edeposit/content/eperiodical.py
 edeposit/content/eperiodicalfolder.py
 edeposit/content/eperiodicalpart.py
+edeposit/content/eperiodicalpart_behaviors.py
+edeposit/content/eperiodicalpartsfolder.py
 edeposit/content/epubcheck_validation_response.py
 edeposit/content/epublication.py
 edeposit/content/epublicationfolder.py
@@ -54,7 +56,6 @@ edeposit/content/originalfile_contributing_request.py
 edeposit/content/originalfile_contributing_requests_folder.py
 edeposit/content/pdfbox_validation_response.py
 edeposit/content/previewfile.py
-edeposit/content/printingfile.py
 edeposit/content/producent_user_plan.py
 edeposit/content/producent_user_plans_folder.py
 edeposit/content/tasks.py
