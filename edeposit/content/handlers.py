@@ -51,7 +51,7 @@ from collective.zamqp.consumer import Consumer
 from collective.zamqp.connection import BlockingChannel
 from collective.zamqp.interfaces import IMessageArrivedEvent
 from edeposit.amqp.aleph.datastructures.epublication import (
-    EPublication,
+    EPublication as EPublicationExport,
     Author
 )
 
@@ -60,7 +60,10 @@ from edeposit.amqp.aleph.datastructures.semanticinfo import (
 )
 
 from edeposit.amqp.aleph.datastructures.alephrecord import (
-    AlephRecord
+    AlephRecord,
+    EPeriodical,
+    EPublication,
+    EPeriodicalSemanticInfo,
 )
 
 from edeposit.amqp.aleph.datastructures.results import (
@@ -667,7 +670,7 @@ def addedAlephExportRequest(context, event):
     epublication = aq_parent(aq_inner(systemMessages))
     originalFile = epublication[context.originalFileID]
     authors = map(lambda aa: Author(lastName = aa.fullname, firstName="", title = ""), epublication.authors.results())
-    epublicationRecord =  EPublication (
+    epublicationRecord =  EPublicationExport (
         ISBN = originalFile.isbn or "",
         nazev = epublication.title or "",
         podnazev = epublication.podnazev or "",

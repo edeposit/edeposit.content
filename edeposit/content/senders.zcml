@@ -150,6 +150,13 @@
     />
 
   <adapter
+    for="edeposit.content.eperiodical.IePeriodical"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.RenewAlephRecordsBySysNumberRequestSender"
+    name="renew-aleph-records-by-sysnumber"
+    />
+
+  <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
     factory=".amqp.RenewAlephRecordsByICZSysNumberRequestSender"
@@ -192,7 +199,21 @@
     />
 
   <adapter
+    for="edeposit.content.eperiodicalpart.IePeriodicalPart"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.ExportToStorageRequestSenderForEPeriodicalPart"
+    name="export-to-storage"
+    />
+
+  <adapter
     for="edeposit.content.originalfile.IOriginalFile"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.LinkUpdateRequestSender"
+    name="update-links-at-aleph"
+    />
+
+  <adapter
+    for="edeposit.content.eperiodicalpart.IePeriodicalPart"
     provides="edeposit.content.amqp.IAMQPSender"
     factory=".amqp.LinkUpdateRequestSender"
     name="update-links-at-aleph"

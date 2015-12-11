@@ -51,6 +51,22 @@
     />
 
   <adapter
+    for="edeposit.content.aleph_record_for_epublication.IAlephRecordForEPublication
+         edeposit.content.handlers.IAMQPError
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.AlephRecordExceptionHandler"
+    />
+
+  <adapter
+    for="edeposit.content.aleph_record_for_eperiodical.IAlephRecordForEPeriodical
+         edeposit.content.handlers.IAMQPError
+         "
+    provides="edeposit.content.amqp.IAMQPHandler"
+    factory=".amqp.AlephRecordExceptionHandler"
+    />
+
+  <adapter
     for="edeposit.content.originalfile.IOriginalFile
          edeposit.content.amqp.IScanResult
          "
@@ -175,7 +191,7 @@
            edeposit.content.amqp.IAlephSearchResult
            "
       provides="edeposit.content.amqp.IAMQPHandler"
-      factory=".amqp.AlephSearchResultHandler"
+      factory=".amqp.AlephSearchResultHandlerForEPeriodical"
       />
 
   <adapter
@@ -184,6 +200,22 @@
            "
       provides="edeposit.content.amqp.IAMQPHandler"
       factory=".amqp.AlephRecordAlephSearchResultHandler"
+      />
+
+  <adapter
+      for="edeposit.content.aleph_record_for_epublication.IAlephRecordForEPublication
+           edeposit.content.amqp.IAlephSearchResult
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.AlephRecordAlephSearchResultHandler"
+      />
+
+  <adapter
+      for="edeposit.content.aleph_record_for_eperiodical.IAlephRecordForEPeriodical
+           edeposit.content.amqp.IAlephSearchResult
+           "
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.AlephRecordForEPeriodicalAlephSearchResultHandler"
       />
 
   <!-- <adapter -->
@@ -262,6 +294,13 @@
 
   <adapter
       for="edeposit.content.originalfile.IOriginalFile
+           edeposit.content.amqp.IStoragePublication"
+      provides="edeposit.content.amqp.IAMQPHandler"
+      factory=".amqp.PublicationExportToStorageResultHandler"
+      />
+
+  <adapter
+      for="edeposit.content.eperiodicalpart.IePeriodicalPart
            edeposit.content.amqp.IStoragePublication"
       provides="edeposit.content.amqp.IAMQPHandler"
       factory=".amqp.PublicationExportToStorageResultHandler"

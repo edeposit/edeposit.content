@@ -85,7 +85,7 @@ from cz_urnnbn_api import (
 @grok.provider(IContextSourceBinder)
 def availableAlephRecords(context):
     path = '/'.join(context.getPhysicalPath())
-    query = { "portal_type" : ("edeposit.content.alephrecord",),
+    query = { "portal_type" : ("edeposit.content.alephrecord","edeposit.content.alephrecordforepublication"),
               "path": {'query' :path } 
              }
     return ObjPathSourceBinder(navigation_tree_query = query).__call__(context)
@@ -464,7 +464,8 @@ class OriginalFile(Container):
         return self.urnnbn
 
     def hasSomeAlephRecords(self):
-        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'}) \
+            + self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforepublication'})
         return len(alephRecords)
         
     def updateOrAddPDFBoxResponse(self, xmldata):
@@ -537,7 +538,9 @@ of.SearchableText()
     # Add your class methods and properties here
     def updateOrAddAlephRecord(self, dataForFactory):
         sysNumber = dataForFactory.get('aleph_sys_number',None)
-        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'}) \
+            + self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforepublication'})
+
 
         # exist some record with the same sysNumber?
         arecordWithTheSameSysNumber = filter(lambda arecord: arecord.aleph_sys_number == sysNumber,
@@ -565,7 +568,7 @@ of.SearchableText()
                 IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
 
         else:
-            alephRecord = createContentInContainer(self, 'edeposit.content.alephrecord', **dataForFactory)
+            alephRecord = createContentInContainer(self, 'edeposit.content.alephrecordforepublication', **dataForFactory)
 
             # if dataForFactory.get('isClosed',False):
             #     self.related_aleph_record = None
@@ -581,7 +584,8 @@ of.SearchableText()
     # Add your class methods and properties here
     def updateOrAddAlephSummaryRecord(self, dataForFactory):
         sysNumber = dataForFactory.get('aleph_sys_number',None)
-        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'}) \
+            + self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforepublication'})
 
         # exist some record with the same sysNumber?
         arecordWithTheSameSysNumber = filter(lambda arecord: arecord.aleph_sys_number == sysNumber,
@@ -731,7 +735,8 @@ of.SearchableText()
     def updateAlephRelatedData(self):
         # try to choose related_aleph_record
         print "... update Aleph Related Data"
-        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'}) \
+            + self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforepublication'})
 
         self.related_aleph_record = None
         self.summary_aleph_record = None
@@ -815,7 +820,8 @@ of.SearchableText()
 
     def removeInappropriateAlephRecords(self):
         """ remove aleph records that does not refer to this original file """
-        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'}) \
+            + self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforepublication'})
 
         toBeRemoved = [rec for rec in alephRecords if not self.refersToThisOriginalFile(rec)]
         for record in toBeRemoved:
