@@ -27,10 +27,10 @@
     </div>
 
     <fieldset id="folder-listing">
-        <legend i18n:translate="" i18n:domain="plone">Jednotlivá vydání</legend>
-        <tal:block define="listing_macro context/eperiodical_listing/macros/listing">
-            <metal:use_macro use-macro="listing_macro" />
-        </tal:block>
+      <legend i18n:translate="" i18n:domain="plone">Jednotlivá vydání</legend>
+      <tal:block define="listing_macro context/eperiodical_listing/macros/listing">
+        <metal:use_macro use-macro="listing_macro" />
+      </tal:block>
     </fieldset>
 
   </metal:content-core>

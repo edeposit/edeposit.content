@@ -40,6 +40,7 @@ class IePeriodicalFolder(form.Schema, IImageScaleTraversable):
 class ePeriodicalFolder(Container):
     grok.implements(IePeriodicalFolder)
 
+
     # Add your class methods and properties here
 
 

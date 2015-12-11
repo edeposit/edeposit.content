@@ -44,7 +44,7 @@ from plone.dexterity.interfaces import IDexterityFTI
 @grok.provider(IContextSourceBinder)
 def availableAlephRecords(context):
     path = '/'.join(context.getPhysicalPath())
-    query = { "portal_type" : ("edeposit.content.alephrecord",),
+    query = { "portal_type" : ("edeposit.content.alephrecord","edeposit.content.alephrecordforeperiodical"),
               "path": {'query' :path } }
     return ObjPathSourceBinder(navigation_tree_query = query).__call__(context)
 
@@ -103,6 +103,13 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
         required = False,
         )
 
+    isWellFormedForLTP = schema.Bool (
+        title = u"Originál je ve formátu vhodném pro LTP",
+        default = False,
+        readonly = True,
+        required = False
+    )
+
     storage_download_url = schema.ASCIILine (
         title = u"Linka do úložiště",
         required = False,
@@ -117,6 +124,10 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
                                            required = False,
                                            source = availableAlephRecords)
     
+    rest_id = schema.ASCIILine (
+        title = u"ID objektu v REST API serveru",
+        required = False,
+    )
 
 @form.default_value(field=IePeriodicalPart['zpracovatel_zaznamu'])
 def zpracovatelDefaultValue(data):
@@ -130,6 +141,9 @@ def zpracovatelDefaultValue(data):
 
 class ePeriodicalPart(Container):
     grok.implements(IePeriodicalPart)
+
+    def canModify(self):
+        return api.user.has_permission('Modify portal content',obj=self)
 
     @property
     def related_aleph_record(self):
@@ -177,6 +191,86 @@ class ePeriodicalPart(Container):
                                  isWellFormedEPub2 = result.isWellFormedEPUB2,
                                  isWellFormedEPub3 = result.isWellFormedEPUB3
         )
+
+    def isApprovedByAcquisition(self):
+        alephRecord = getattr(self.related_aleph_record,'to_object',None)
+        return alephRecord and getattr(alephRecord,'acquisitionFields',False)
+        
+    def checkUpdates(self):
+        state = api.content.get_state(self)
+        if state == 'acquisition' and self.isApprovedByAcquisition():
+            wft = api.portal.get_tool('plone_workflow')
+            wft.doActionFor(self,'submitAcquisition')
+        pass
+
+    def isValidPDFA(self):
+        responses = [ii[1] for ii in self.items() if ii[1].portal_type == 'edeposit.content.pdfboxvalidationresponse']
+        if responses:
+            response = responses[0]
+            return response.isValidPDFA
+
+        return False
+
+    def isValidEPub2(self):
+        responses = [ii[1] for ii in self.items() if ii[1].portal_type == 'edeposit.content.epubcheckvalidationresponse']
+        if responses:
+            response = responses[0]
+            return response.isWellFormedEPub2
+
+        return False
+
+    @property
+    def isWellFormedForLTP(self):
+        result = self.isValidEPub2() or self.isValidPDFA()
+        return result
+
+    def urlToAleph(self):
+        record = self.related_aleph_record and getattr(self.related_aleph_record,'to_object',None)
+        if not record:
+            return ""
+        return "http://aleph.nkp.cz/F?func=find-b&find_code=SYS&x=0&y=0&request=%s&filter_code_1=WTP&filter_request_1=&filter_code_2=WLN&adjacent=N" % (record.aleph_sys_number,)
+
+    def urlToAlephMARCXML(self):
+        record = self.related_aleph_record and getattr(self.related_aleph_record,'to_object',None)
+        if not record:
+            return ""
+        return "http://aleph.nkp.cz/X?op=find_doc&doc_num=%s&base=nkc" % (record.aleph_sys_number,)
+
+    def urlToKramerius(self):
+        return None
+
+    def makeInternalURL(self):
+        internal_url = "/".join([api.portal.get().absolute_url(), '@@redirect-to-uuid', self.UID()])
+        return internal_url
+
+    def getMODS(self):
+        aleph_record = getattr(self.related_aleph_record,'to_object',None)
+        summary_aleph_record = getattr(self.summary_aleph_record, 'to_object',None)
+
+        if not aleph_record and not summary_aleph_record:
+            return None
+        
+        result = edeposit.amqp.marcxml2mods.marcxml2mods(
+            marc_xml=(summary_aleph_record or aleph_record).xml.data, 
+            uuid = self.UID(), 
+            url = self.makeInternalURL())
+        mods = result and result[0]
+        return mods
+
+    def getURNNBN(self):
+        mods = self.getMODS()
+        if not self.urnnbn:
+            try:
+                # import datetime
+                # prefix = datetime.datetime.now().strftime("%s-%f")
+                # open("/tmp/%s-mods.txt" % (prefix,),"wb").write(str(mods))
+                request = convert_mono_xml(mods,getAdapter(self,IFormat).format or "")
+                self.urnnbn = urnnbn_api.register_document(request)
+            except ValueError,e:
+                wft = api.portal.get_tool('portal_workflow')
+                wft.doActionFor(self,'amqpError',comment='error from urnnbn resolver: ' + str(e))
+
+        return self.urnnbn
 
     # Add your class methods and properties here
 

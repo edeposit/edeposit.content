@@ -29,7 +29,6 @@ class Ieperiodicalpartsfolder(form.Schema, IImageScaleTraversable):
     # line below and delete the matching file in the models sub-directory.
     # If you want a model-based interface, edit
     # models/eperiodicalpartsfolder.xml to define the content type.
-
     form.model("models/eperiodicalpartsfolder.xml")
 
 
@@ -40,6 +39,25 @@ class Ieperiodicalpartsfolder(form.Schema, IImageScaleTraversable):
 
 class eperiodicalpartsfolder(Container):
     grok.implements(Ieperiodicalpartsfolder)
+
+    def getStatistics(self):
+        # v zadavani,  ve zpracovani, zpracovano, celkem
+        wtool = self.portal_workflow
+        brains = self.listFolderContents({'portal_type':'edeposit.content.eperiodicalpart'})
+        states = [wtool.getInfoFor(bb,'review_state','') for bb in brains]
+
+        def ff(accum,x):
+            if x == 'declaration':
+                accum[0] += 1
+            else:
+                if x not in ['processed',]:
+                    accum[1] += 1
+                else:
+                    accum[2] += 1 
+            accum[3] += 1
+            return accum
+        
+        return reduce(ff, states, [0,0,0,0])
 
     # Add your class methods and properties here
     pass

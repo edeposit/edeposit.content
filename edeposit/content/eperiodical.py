@@ -96,7 +96,7 @@ def periodicityChoicesSource(context):
 @grok.provider(IContextSourceBinder)
 def availableAlephRecords(context):
     path = '/'.join(context.getPhysicalPath())
-    query = { "portal_type" : ("edeposit.content.alephrecord",),
+    query = { "portal_type" : ("edeposit.content.alephrecordforeperiodical",),
               "path": {'query' :path } 
              }
     return ObjPathSourceBinder(navigation_tree_query = query).__call__(context)
@@ -135,16 +135,10 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
 
     form.fieldset('Publishing',
                   label=_(u"Publishing"),
-                  fields = [ 'poradi_vydani',
-                             'misto_vydani',
+                  fields = [ 'misto_vydani',
                              'rok_vydani',
                              ]
                   )
-
-    poradi_vydani = schema.TextLine(
-        title = u'Pořadí vydání',
-        required = True,
-    )
 
     misto_vydani = schema.TextLine(
         title = u'Místo vydání',
@@ -154,12 +148,6 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
     rok_vydani = schema.TextLine (
         title = u"Rok vydání",
         required = True,
-    )
-
-    vazba = schema.TextLine (
-        title = u"Vazba",
-        required = False,
-        default = u"online",
     )
 
     form.fieldset('accessing',
@@ -242,7 +230,7 @@ class ePeriodical(Container):
     # Add your class methods and properties here
     def updateOrAddAlephRecord(self, dataForFactory):
         sysNumber = dataForFactory.get('aleph_sys_number',None)
-        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforeperiodical'})
 
         # exist some record with the same sysNumber?
         arecordWithTheSameSysNumber = filter(lambda arecord: arecord.aleph_sys_number == sysNumber,
@@ -253,13 +241,13 @@ class ePeriodical(Container):
             # update this record
             alephRecord = arecordWithTheSameSysNumber[0]
             changedAttrs = alephRecord.findAndLoadChanges(dataForFactory)
-            importantAttrs = frozenset(changedAttrs) - frozenset(['xml','aleph_library'])
-            if importantAttrs:
-                print "... changed important attrs: ", importantAttrs
-                IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
+            #importantAttrs = frozenset(changedAttrs) - frozenset(['xml','aleph_library'])
+            #if importantAttrs:
+            #    print "... changed important attrs: ", importantAttrs
+            IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
 
         else:
-            alephRecord = createContentInContainer(self, 'edeposit.content.alephrecord', **dataForFactory)
+            alephRecord = createContentInContainer(self, 'edeposit.content.alephrecordforeperiodical', **dataForFactory)
             IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
 
     def makeInternalURL(self):
@@ -283,7 +271,7 @@ class ePeriodical(Container):
     def updateAlephRelatedData(self):
         # try to choose related_aleph_record
         print "... update Aleph Related Data"
-        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforeperiodical'})
 
         self.related_aleph_record = None
         related_aleph_record = None
@@ -296,11 +284,17 @@ class ePeriodical(Container):
             self.reindexObject(idxs=['id_number',])
 
     def checkUpdates(self):
-        """ it tries to decide whether some changes appeared in aleph records. 
-        The function loads the changes from a proper aleph record into its own attributes.
-        The function will plan producent notification.
-        """
         self.updateAlephRelatedData()
+        if self.related_aleph_record:
+            obj = getattr(self.related_aleph_record,'to_object',None)
+            if obj and obj.acquisitionFields:
+                wft=api.portal.get_tool('portal_workflow')
+                transitions = wft.getTransitionsFor(self)
+                available = len(filter(lambda tr: 'acquisitionOK' in tr['id'], transitions))
+                if available:
+                    wft.doActionFor(self,'acquisitionOK')
+        pass
+        
 
     @property
     def sysNumber(self):
