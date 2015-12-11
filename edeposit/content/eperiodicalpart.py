@@ -62,20 +62,15 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
     E-Deposit - ePeriodical Part
     """
     
-    cast = schema.TextLine (
-        title = u"Část (svazek,díl)",
-        required = False,
-    )
+    # cast = schema.TextLine (
+    #     title = u"Část (svazek,díl)",
+    #     required = False,
+    # )
     
-    nazev_casti = schema.TextLine (
-        title = u"Název části, dílu",
-        required = False,
-        )
-
-    cena = schema.Decimal (
-        title = u'Cena v Kč',
-        required = False,
-    )
+    # nazev_casti = schema.TextLine (
+    #     title = u"Název části, dílu",
+    #     required = False,
+    #     )
 
     form.primary('file')
     file = EPeriodicalPartFile (
@@ -85,18 +80,13 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
 
     form.fieldset('technical',
                   label=_('Technical'),
-                  fields = [ 'zpracovatel_zaznamu',
-                             'thumbnail',
+                  fields = [ 'thumbnail',
                              'storage_download_url',
                              'storage_path',
                              'related_aleph_record',
+                             'rest_id',
                              ]
                   )
-
-    zpracovatel_zaznamu = schema.TextLine(
-        title = u'Zpracovatel záznamu',
-        required = False,
-    )
 
     thumbnail = NamedBlobFile(
         title=u"PDF kopie",
@@ -104,7 +94,7 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
         )
 
     isWellFormedForLTP = schema.Bool (
-        title = u"Originál je ve formátu vhodném pro LTP",
+        title = u"Vydání je ve formátu vhodném pro LTP",
         default = False,
         readonly = True,
         required = False
@@ -128,11 +118,6 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
         title = u"ID objektu v REST API serveru",
         required = False,
     )
-
-@form.default_value(field=IePeriodicalPart['zpracovatel_zaznamu'])
-def zpracovatelDefaultValue(data):
-    member = api.user.get_current()
-    return member.fullname or member.id
 
 # Custom content-type class; objects created for this content type will
 # be instances of this class. Use this class to add content-type specific
