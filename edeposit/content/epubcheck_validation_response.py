@@ -39,20 +39,24 @@ class IEPubCheckValidationResponse(form.Schema, IImageScaleTraversable):
 
     created = schema.TextLine(
         title = u"Vytvořeno",
-        required = False
+        required = False,
+        readonly = True,
         )
 
-    format = schema.TextLine(
+    documentFormat = schema.TextLine(
         title = u"Formát",
-        required = False
+        required = False,
+        readonly = True,
         )
     version = schema.TextLine(
         title = u"Verze",
-        required = False
+        required = False,
+        readonly = True,
         )
     status = schema.TextLine(
         title = u"Status",
-        required = False
+        required = False,
+        readonly = True,
         )
 
     # form.widget(messages=z3c.form.browser.multi.multiFieldWidgetFactory)
@@ -92,7 +96,7 @@ class EPubCheckValidationResponse(Item):
         return elements and elements[0].text or ""
 
     @property
-    def format(self):
+    def documentFormat(self):
         if not self.xml:
             return ""
         elements = etree.fromstring(self.xml.data).xpath("/jhove/repInfo/format")
