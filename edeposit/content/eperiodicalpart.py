@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from five import grok
+import zope
 
 from z3c.form import group, field
 from zope import schema
@@ -21,7 +22,7 @@ from plone.rfc822.interfaces import IPrimaryFieldInfo, IPrimaryField
 
 from plone.namedfile.field import NamedBlobImage, NamedBlobFile
 from plone.namedfile.interfaces import IImageScaleTraversable
-from z3c.relationfield.schema import RelationChoice, RelationList
+from z3c.relationfield.schema import RelationChoice, RelationList, Relation
 from plone.formwidget.contenttree import ObjPathSourceBinder, UUIDSourceBinder
 from plone.formwidget.autocomplete import AutocompleteFieldWidget, AutocompleteMultiFieldWidget
 from edeposit.content.library import ILibrary
@@ -34,6 +35,7 @@ import os.path
 from edeposit.content.behaviors import IFormat, ICalibreFormat
 from Acquisition import aq_parent, aq_inner
 from plone.app.layout.navigation.root import getNavigationRootObject
+from plone.uuid.interfaces import IUUID
 
 from .tasks import (
     IPloneTaskSender,
@@ -45,7 +47,8 @@ from plone.dexterity.interfaces import IDexterityFTI
 def availableAlephRecords(context):
     path = '/'.join(context.getPhysicalPath())
     query = { "portal_type" : ("edeposit.content.alephrecord","edeposit.content.alephrecordforeperiodical"),
-              "path": {'query' :path } }
+              #"path": {'query' :path } 
+              }
     return ObjPathSourceBinder(navigation_tree_query = query).__call__(context)
 
 # file source
@@ -83,7 +86,7 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
                   fields = [ 'thumbnail',
                              'storage_download_url',
                              'storage_path',
-                             'related_aleph_record',
+                             #'related_aleph_record',
                              'rest_id',
                              ]
                   )
@@ -110,9 +113,10 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
         required = False,
     )
     
-    related_aleph_record = RelationChoice( title=u"Odpovídající záznam v Alephu",
-                                           required = False,
-                                           source = availableAlephRecords)
+    # related_aleph_record = RelationChoice( title=u"Odpovídající záznam v Alephu",
+    #                                        required = False,
+    #                                        readonly=True,
+    #                                        source = availableAlephRecords)
     
     rest_id = schema.ASCIILine (
         title = u"ID objektu v REST API serveru",
@@ -138,7 +142,8 @@ class ePeriodicalPart(Container):
         while parent and parent.portal_type != 'edeposit.content.eperiodical': 
             parent = getattr(parent,'aq_parent',None)
 
-        return getattr(parent,'related_aleph_record',None)
+        result = getattr(parent,'related_aleph_record',None)
+        return result
 
     def needsThumbnailGeneration(self):
         fileformat  = (getAdapter(self,IFormat).format or "")
@@ -290,12 +295,61 @@ class PrimaryFieldInfo(object):
 # of this type by uncommenting the grok.name line below or by
 # changing the view class name and template filename to View / view.pt.
 
-class SampleView(grok.View):
-    """ sample view class """
+class ISimpleEditForm(form.Schema):
+    title = schema.TextLine (
+        title = u"Nadpis",
+        required = True,)
 
+    description = schema.Text(
+        title = u"Popis",
+        required=False,
+        max_length = 500,
+        )
+
+    form.primary('file')
+    file = EPeriodicalPartFile (
+        title=_(u"Original File of an ePeriodical Part"),
+        required = False,
+        )
+    
+
+class SimpleEditForm(form.SchemaEditForm):
+    grok.name('simple-edit')
+    grok.require('edeposit.AddEPublication')
     grok.context(IePeriodicalPart)
-    grok.require('zope2.View')
+    schema = ISimpleEditForm
+    ignoreContext = False
+    label = u"Přiložit vydání"
+    enable_form_tabbing = False
+    autoGroups = False
 
-    # grok.name('view')
+    def applyChanges(self, data):
+        self.context.file = data['file']
+        self.context.description = data['description']
+        self.context.title = data['title']
 
-    # Add view methods here
+        wft = self.context.portal_workflow
+        transitions = wft.getTransitionsFor(self.context)
+        available = len(filter(lambda tr: 'submitDeclaration' in tr['id'], transitions))
+        if available:
+            wft.doActionFor(self.context,'submitDeclaration')
+
+class SimpleEditFromEPeriodicalPart(object):
+    zope.interface.implements(ISimpleEditForm)
+    adapts(IePeriodicalPart)
+    
+    def __init__(self,context):
+        self.context = context
+        self.title = context.title
+        self.description = context.description
+        self.file = context.file
+    
+
+class EPeriodicalPartToUUID(object):
+    zope.interface.implements(IUUID)
+    adapts(IePeriodicalPart)
+
+    def __init__(self, context):
+        self.context = context
+        import pdb; pdb.set_trace()
+    

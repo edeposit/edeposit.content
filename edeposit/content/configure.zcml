@@ -105,6 +105,8 @@
   <adapter factory=".originalfile_changes.OriginalFileChanges"/>
 
   <adapter factory=".eperiodicalpart.PrimaryFieldInfo"/>
+  <adapter factory=".eperiodicalpart.SimpleEditFromEPeriodicalPart"/>
+  <!-- <adapter factory=".eperiodicalpart.EPeriodicalPartToUUID"/> -->
 
   <subscriber
       for=".eperiodicalpart.IePeriodicalPart

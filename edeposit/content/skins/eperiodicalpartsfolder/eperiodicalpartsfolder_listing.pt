@@ -95,7 +95,7 @@
 			 class="add-next-part">další číslo</a></td>
 
 		  <td>
-		    <a tal:attributes="href string:${item_url}/edit" 
+		    <a tal:attributes="href string:${item_url}/simple-edit" 
 		       tal:condition="python:item_type == 'edeposit.content.eperiodicalpart' and item_obj.canModify()"
 		       class="add-next-part">přiložit vydání</a>
 		  </td>

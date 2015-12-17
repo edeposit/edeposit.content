@@ -25,6 +25,8 @@ from plone.formwidget.autocomplete import AutocompleteFieldWidget, AutocompleteM
 from plone.dexterity.utils import createContentInContainer, addContentToContainer, createContent
 from edeposit.content.library import ILibrary
 from edeposit.content.eperiodicalfolder import IePeriodicalFolder
+from edeposit.content.eperiodicalpart import IePeriodicalPart
+
 from edeposit.content import MessageFactory as _
 from plone import api
 from edeposit.app.fields import PeriodicityChoice
@@ -204,6 +206,7 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
                   fields = ['related_aleph_record', 'isClosed' ]
                   )
     
+    form.omitted('related_aleph_record')
     related_aleph_record = RelationChoice( title=u"Odpovídající záznam v Alephu",
                                            required = False,
                                            source = availableAlephRecords)
@@ -213,6 +216,7 @@ class IePeriodical(form.Schema, IImageScaleTraversable):
         description = u"",
         required = False,
         default = False,
+        readonly = True,
     )
 
 
@@ -345,28 +349,88 @@ class ePeriodical(Container):
 
 #  http://www.mkcr.cz/scripts/detail.php?id=353
 
+from edeposit.content.eperiodicalpart import EPeriodicalPartFile
+from z3c.form.interfaces import ActionExecutionError
+from zope.interface import Invalid
+
+class IePeriodicalPartForForm(form.Schema, IImageScaleTraversable):
+    form.fieldset('one-part',
+                  label=_('Jeden výtisk'),
+                  fields = [ 'rok_vydani', 'vytisk' , 'file']
+                  )
+
+    rok_vydani = schema.Int (
+        title = u"Rok",
+        required = False,
+    )
+
+    vytisk = schema.TextLine(
+        title = u'Název',
+        required = False,
+    )
+
+
+    file = EPeriodicalPartFile (
+        title=_(u"soubor"),
+        required = False,
+        )
+
+
+
 class AddAtOnceForm(form.SchemaForm):
     grok.name('add-at-once')
     grok.require('edeposit.AddEPeriodical')
     grok.context(IePeriodicalFolder)
     schema = IePeriodical
+    additionalSchemata = [IePeriodicalPartForForm]
     ignoreContext = True
+    ignoreReadonly = True
     label = u"Oznámení vydávání ePeriodika"
     enable_form_tabbing = False
     autoGroups = False
     
+
+    def extractData(self):
+        data, errors = super(form.SchemaForm,self).extractData()
+        eperiodicalPartData = [pp for pp in data.items() if 'IePeriodicalPartForForm' in pp[0]]
+        filled = len([pp for pp in eperiodicalPartData if pp[1]])
+        if filled > 0 and filled < 3:
+           raise ActionExecutionError(Invalid(u"V sekci 'Jeden výtisk' je potřeba vyplnit buď všechny položky, nebo žádnou!"))
+
+        return data, errors
+
     @button.buttonAndHandler(u"Odeslat", name='save')
     def handleAdd(self, action):
         data, errors = self.extractData()
         if errors:
             self.status = self.formErrorsMessage
             return
-
-        newEPeriodical = createContentInContainer(self.context, 'edeposit.content.eperiodical', **data)
+        
+        eperiodicalPartData = dict([pp for pp in data.items() if 'IePeriodicalPartForForm' in pp[0] and pp[1]])
+        eperiodicalData = dict([pp for pp in data.items() if 'IePeriodicalPartForForm' not in pp[0]])
+        
+        newEPeriodical = createContentInContainer(self.context, 'edeposit.content.eperiodical', **eperiodicalData)
+        newEPeriodicalPart = eperiodicalPartData and self.addOnePart(newEPeriodical, eperiodicalPartData)
+        
         wft = api.portal.get_tool('portal_workflow')
         api.content.get_state(newEPeriodical)
         wft.doActionFor(newEPeriodical, 'toAcquisition', comment='handled automatically')
-        self.request.response.redirect(newEPeriodical.absolute_url())
+        self.request.response.redirect((newEPeriodicalPart or newEPeriodical).absolute_url())
+
+    def addOnePart(self, eperiodical, data):
+        year = str(data['IePeriodicalPartForForm.rok_vydani'])
+        title = data['IePeriodicalPartForForm.vytisk']
+        file = data['IePeriodicalPartForForm.file']
+        folder = (year not in eperiodical) \
+            and createContentInContainer(eperiodical,
+                                         'edeposit.content.eperiodicalpartsfolder',
+                                         title=year) \
+            or getattr(eperiodical,year,None)
+
+        newPart = folder and createContentInContainer(folder,'edeposit.content.eperiodicalpart',
+                                                      title = title,
+                                                      file = file)
+        return newPart
 
 
 # class SampleView(grok.View):
