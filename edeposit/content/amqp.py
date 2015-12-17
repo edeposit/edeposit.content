@@ -1384,7 +1384,7 @@ class SendEmailsWithCollectionToAllProducentsHandler(
         namedtuple('SendEmailsWithCollectionToAllProducentsHandler',['context','result'])):
         
     def handle(self):
-        print "<- Plone AMQP Task: ", str(self.result)
+        print "<- Plone AMQP Task: ", str(self), str(self.result)
         with api.env.adopt_user(username="system"):
             producents = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producent')
             for producentId in map(attrgetter('id'), producents):
@@ -1402,7 +1402,7 @@ class SendEmailWithCollectionToProperProducentMembersHandler (
         namedtuple('SendEmailWithCollectionToProperProducentMembersHandler',['context','result'])):
 
     def handle(self):
-        print "<- Plone AMQP Task: ", str(self.result)
+        print "<- Plone AMQP Task: ", str(self), str(self.result)
 
         collectionPath = filter(bool,self.result.collectionPath.split("/"))
         producentPath = filter(bool,self.result.producentPath.split("/"))
@@ -1512,7 +1512,7 @@ class LoadSysNumbersFromAlephTaskHandler(namedtuple('LoadSysNumbersFromAlephTask
     result:  ILoadSysNumbersFromAleph
     """
     def handle(self):
-        print "<- Plone AMQP Task: ", str(self.result)
+        print "<- Plone AMQP Task: ", str(self), str(self.result)
         with api.env.adopt_user(username="system"):
             producentsFolder = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producentfolder')[0].getObject()
             def getObj(accum, key):
@@ -1528,7 +1528,7 @@ class LoadSysNumbersFromAlephTaskHandler(namedtuple('LoadSysNumbersFromAlephTask
                     IPloneTaskSender(DoActionFor(transition='searchSysNumber', uid=uid)).send()
 
             # collection = reduce(getObj, ['prehledy','originaly','ve_zpracovani'], producentsFolder)
-            #collection = producentsFolder['originalfiles-waiting-for-renew-aleph-records']                                         
+            # collection = producentsFolder['originalfiles-waiting-for-renew-aleph-records']                                         
             pass
 
 class RenewAlephRecordsTaskHandler(namedtuple('RenewAlephRecordsTaskHandler',
@@ -1538,7 +1538,7 @@ class RenewAlephRecordsTaskHandler(namedtuple('RenewAlephRecordsTaskHandler',
     result:  IRenewAlephRecords
     """
     def handle(self):
-        print "<- Plone AMQP Task: ", str(self.result)
+        print "<- Plone AMQP Task: ", str(self), str(self.result)
         with api.env.adopt_user(username="system"):
             producentsFolder = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producentfolder')[0].getObject()
 
@@ -1558,7 +1558,7 @@ class RenewAlephRecordsTaskHandler(namedtuple('RenewAlephRecordsTaskHandler',
 class DoActionForTaskHandler(namedtuple('DoActionForTaskHandler',
                                         ['context','result'])):
     def handle(self):
-        print "<- Plone AMQP Task: ", str(self.result)
+        print "<- Plone AMQP Task: ", str(self),  str(self.result)
         with api.env.adopt_user(username="system"):
             wft = api.portal.get_tool('portal_workflow')
             obj = api.content.get(UID = self.result.uid)
@@ -1567,7 +1567,7 @@ class DoActionForTaskHandler(namedtuple('DoActionForTaskHandler',
             except WorkflowException:
                 comment = u"akce: '%s' neni ve stavu '%s' povolena" %( self.result.transition, api.content.get_state(obj=obj))
                 print "... amqp error", comment
-                wft.doActionFor(obj,'amqpError',comment=comment)
+                #wft.doActionFor(obj,'amqpError',comment=comment)
 
 
 class SendEmailWithUserWorklistTaskHandler(namedtuple('SendEmailWithUserWorklistTaskHandler',
@@ -1635,7 +1635,7 @@ class SendEmailWithUserWorklistTaskHandler(namedtuple('SendEmailWithUserWorklist
 
 class CheckUpdatesTaskHandler(namedtuple('CheckUpdatesTaskHandler', ['context','result'])):
     def handle(self):
-        print "<- Plone AMQP Task: ", str(self.result)
+        print "<- Plone AMQP Task: ", str(self), str(self.result)
         with api.env.adopt_user(username="system"):
             obj = api.content.get(UID = self.result.uid)
             obj.checkUpdates()
@@ -1643,7 +1643,7 @@ class CheckUpdatesTaskHandler(namedtuple('CheckUpdatesTaskHandler', ['context','
 class EPublicationsWithErrorEmailNotifyTaskHandler(
         namedtuple('EPublicationsWithErrorEmailNotifyTaskHandler', ['context','result'])):
     def handle(self):
-        print "<- Plone AMQP Task: ", str(self.result)
+        print "<- Plone AMQP Task: ", str(self), str(self.result)
         with api.env.adopt_user(username="system"):
             obj = api.content.get(UID = self.result.uid)
             obj.notifyProducentAboutEPublicationsWithError()
@@ -1661,7 +1661,7 @@ class EnsureProducentsRolesConsistencyTaskHandler(namedtuple('EnsureProducentsRo
     result:  IEnsureProducentsRolesConsistency
     """
     def handle(self):
-        print "<- Plone AMQP Task: ", str(self.result)
+        print "<- Plone AMQP Task: ", str(self), str(self.result)
         with api.env.adopt_user(username="system"):
             producents = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producent')
             uids = map(lambda item: item.UID, producents)
@@ -1686,7 +1686,7 @@ class EPublicationsWithErrorEmailNotifyForAllProducentsHandler(namedtuple('EPubl
     result:  IEPublicationsWithErrorEmailNotifyForAllProducents
     """
     def handle(self):
-        print "<- Plone AMQP Task: ", str(self.result)
+        print "<- Plone AMQP Task: ", str(self), str(self.result)
         with api.env.adopt_user(username="system"):
             producents = api.portal.get_tool('portal_catalog')(portal_type='edeposit.user.producent')
             uids = map(lambda item: item.UID, producents)
