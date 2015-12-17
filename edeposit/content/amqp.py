@@ -1562,6 +1562,9 @@ class DoActionForTaskHandler(namedtuple('DoActionForTaskHandler',
         with api.env.adopt_user(username="system"):
             wft = api.portal.get_tool('portal_workflow')
             obj = api.content.get(UID = self.result.uid)
+            if not obj:
+                print self, "no obj found for:", self.result
+                return 
             try:
                 wft.doActionFor(obj,self.result.transition)
             except WorkflowException:
