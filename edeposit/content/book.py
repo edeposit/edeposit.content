@@ -76,7 +76,9 @@ def vazbaSource(context):
 @grok.provider(IContextSourceBinder)
 def availableAlephRecords(context):
     path = '/'.join(context.getPhysicalPath())
-    query = { "portal_type" : ("edeposit.content.alephrecord",),
+    query = { "portal_type" : ("edeposit.content.alephrecord",
+                               "edeposit.content.alephrecordforbook"
+                               ),
               "path": {'query' :path } 
              }
     return ObjPathSourceBinder(navigation_tree_query = query).__call__(context)
@@ -364,7 +366,8 @@ class Book(Container):
 
     def updateOrAddAlephRecord(self, dataForFactory):
         sysNumber = dataForFactory.get('aleph_sys_number',None)
-        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})
+        alephRecords = self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'})\
+            + self.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforbook'})
 
         def hasTheSameSysNumber(arecord):
             return arecord.aleph_sys_number == sysNumber
@@ -379,7 +382,7 @@ class Book(Container):
             # if changedAttrs and changedAttrs != ['xml']:
             #     IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
         else:
-            createContentInContainer(self, 'edeposit.content.alephrecord', **dataForFactory)
+            createContentInContainer(self, 'edeposit.content.alephrecordforbook', **dataForFactory)
             #self.reindexObject()
             #IPloneTaskSender(CheckUpdates(uid=self.UID())).send()
 

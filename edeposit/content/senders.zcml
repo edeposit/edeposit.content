@@ -122,6 +122,13 @@
     />
 
   <adapter
+    for="edeposit.content.book.IBook"
+    provides="edeposit.content.amqp.IAMQPSender"
+    factory=".amqp.BookSysNumberSearchRequestSender"
+    name="sysnumber-aleph-search"
+    />
+
+  <adapter
     for="edeposit.content.originalfile.IOriginalFile"
     provides="edeposit.content.amqp.IAMQPSender"
     factory=".amqp.RenewAlephRecordsRequestSender"

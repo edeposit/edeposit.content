@@ -28,7 +28,7 @@ from normalize_cz_unicode import normalize
 import lxml
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from  cz_urnnbn_api import api as urnnbn_api
+from cz_urnnbn_api import api as urnnbn_api
 
 # (occur-1 "class " nil (list (current-buffer)) "*amqp: class*")
 # (occur-1 "def " nil (list(current-buffer)) "*amqp: def*")
@@ -472,6 +472,21 @@ class OriginalFileSysNumberSearchRequestSender(namedtuple('SysNumberSearchReques
         producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
 
+class BookSysNumberSearchRequestSender(namedtuple('BookSysNumberSearchRequest',['context'])):
+    """ context will be book """
+    implements(IAMQPSender)
+    def send(self):
+        print "-> SysNumber search Request for: ", str(self.context), self.context.isbn
+        request = SearchRequest(ISBNQuery(self.context.isbn))
+        producer = getUtility(IProducer, name="amqp.isbn-search-request")
+        msg = ""
+        session_data =  { 'isbn': str(self.context.isbn),
+                          'msg': msg,
+        }
+        headers = make_headers(self.context, session_data)
+        producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
+        pass
+
 class OriginalFileSearchRequestSender(namedtuple('OriginalFileSearchRequest',['context'])):
     """ context will be original file """
     implements(IAMQPSender)
@@ -524,7 +539,8 @@ class RenewAlephRecordsBySysNumberRequestSender(namedtuple('RenewAlephRecordsByS
         print "-> Renew Aleph Records By SysNumber Request for: ", str(self.context)
         alephRecords = self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'}) \
             +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforepublication'}) \
-            +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforeperiodical'})
+            +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforeperiodical'}) \
+            +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforbook'})
 
         for alephRecord in alephRecords:
             print "... renew Aleph Record: ", str(alephRecord)
@@ -549,7 +565,8 @@ class RenewAlephRecordsByICZSysNumberRequestSender(namedtuple('RenewAlephRecords
         print "-> Renew Aleph Records By ICZ SysNumber Request for: ", str(self.context)
         alephRecords = self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecord'}) \
             +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforepublication'}) \
-            +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforeperiodical'})
+            +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforeperiodical'}) \
+            +  self.context.listFolderContents(contentFilter={'portal_type':'edeposit.content.alephrecordforbook'})
 
         for alephRecord in filter(lambda rr: getattr(rr,'isClosed',False), alephRecords):
             print "... renew Summary record for closed Aleph Record: ", str(alephRecord)
