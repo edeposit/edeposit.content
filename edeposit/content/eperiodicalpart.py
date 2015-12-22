@@ -189,7 +189,7 @@ class ePeriodicalPart(Container):
     def checkUpdates(self):
         state = api.content.get_state(self)
         if state == 'acquisition' and self.isApprovedByAcquisition():
-            wft = api.portal.get_tool('plone_workflow')
+            wft = api.portal.get_tool('portal_workflow')
             wft.doActionFor(self,'submitAcquisition')
         pass
 
