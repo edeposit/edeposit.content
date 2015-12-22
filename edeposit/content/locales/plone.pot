@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2015-02-03 13:33+0000\n"
+"POT-Creation-Date: 2015-12-22 10:48+0000\n"
 "PO-Revision-Date: 2014-12-01 09:56+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -77,6 +77,10 @@ msgstr ""
 
 #: edeposit/content/profiles/default/registry.xml
 msgid "Metadata"
+msgstr ""
+
+#: edeposit/content/profiles/default/registry.xml
+msgid "Možnosti zpřístupnění knihovnám"
 msgstr ""
 
 #: edeposit/content/profiles/default/portlets.xml

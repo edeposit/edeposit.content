@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2015-02-03 13:33+0000\n"
+"POT-Creation-Date: 2015-12-22 10:48+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +17,11 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: edeposit.content\n"
 
-#: edeposit/content/eperiodical.py:121
-#: edeposit/content/eperiodicalpart.py:140
+#: edeposit/content/profiles/default/types/edeposit.content.amqpfolder.xml
+msgid "AMQP Folder"
+msgstr ""
+
+#: edeposit/content/eperiodical.py:156
 msgid "Accessing"
 msgstr ""
 
@@ -26,18 +29,8 @@ msgstr ""
 msgid "Add EPublication"
 msgstr ""
 
-#: edeposit/content/epublication.py:453
-msgid "Add New Item operation cancelled"
-msgstr ""
-
-#: edeposit/content/portlets/addoriginalfile.py:139
+#: edeposit/content/portlets/addoriginalfile.py:146
 msgid "Add OriginalFile"
-msgstr ""
-
-#: edeposit/content/book.py:136
-#: edeposit/content/eperiodical.py:112
-#: edeposit/content/eperiodicalpart.py:131
-msgid "Aleph DocNumber"
 msgstr ""
 
 #: edeposit/content/profiles/default/types/edeposit.content.alephexception.xml
@@ -52,7 +45,9 @@ msgstr ""
 msgid "Aleph Export Result"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:70
+#: edeposit/content/aleph_record.py:74
+#: edeposit/content/aleph_record_for_book.py:66
+#: edeposit/content/aleph_record_for_eperiodical.py:80
 msgid "Aleph Library"
 msgstr ""
 
@@ -60,12 +55,32 @@ msgstr ""
 msgid "Aleph Record"
 msgstr ""
 
+#: edeposit/content/profiles/default/types/edeposit.content.alephrecordforbook.xml
+msgid "Aleph Record for Book/Preprint/Postprint"
+msgstr ""
+
+#: edeposit/content/profiles/default/types/edeposit.content.alephrecordforeperiodical.xml
+msgid "Aleph Record for ePeriodical"
+msgstr ""
+
+#: edeposit/content/profiles/default/types/edeposit.content.alephrecordforepublication.xml
+msgid "Aleph Record for ePublication"
+msgstr ""
+
 #: edeposit/content/profiles/default/types/edeposit.content.alephsearchsysnumberrequest.xml
 msgid "Aleph Search SysNumber Request"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:64
+#: edeposit/content/aleph_record.py:68
+#: edeposit/content/aleph_record_for_book.py:61
+#: edeposit/content/aleph_record_for_eperiodical.py:74
 msgid "Aleph SysNumber"
+msgstr ""
+
+#: edeposit/content/aleph_record.py:133
+#: edeposit/content/aleph_record_for_book.py:125
+#: edeposit/content/aleph_record_for_eperiodical.py:107
+msgid "Aleph SysNumber of Summary Record"
 msgstr ""
 
 #: edeposit/content/profiles/default/types/edeposit.content.author.xml
@@ -84,39 +99,15 @@ msgstr ""
 msgid "Book"
 msgstr ""
 
-#: edeposit/content/book.py:28
-#: edeposit/content/eperiodicalpart.py:33
-msgid "Book Binding"
-msgstr ""
-
 #: edeposit/content/profiles/default/types/edeposit.content.bookfolder.xml
 msgid "BookFolder"
 msgstr ""
 
-#: edeposit/content/epublication.py:451
-msgid "Cancel"
-msgstr ""
-
-#: edeposit/content/book.py:160
-msgid "Category of a Book for RIV"
-msgstr ""
-
-#: edeposit/content/eperiodical.py:157
-#: edeposit/content/eperiodicalpart.py:176
+#: edeposit/content/eperiodical.py:197
 msgid "Category of an ePublication for RIV"
 msgstr ""
 
-#: edeposit/content/eperiodical.py:128
-#: edeposit/content/eperiodicalpart.py:147
-msgid "Choose libraries that can show an ePublication at its terminal."
-msgstr ""
-
-#: edeposit/content/eperiodical.py:140
-#: edeposit/content/eperiodicalpart.py:159
-msgid "Choose libraries that can show an ePublication at public."
-msgstr ""
-
-#: edeposit/content/portlets/chooseproperalephrecord.py:86
+#: edeposit/content/portlets/chooseproperalephrecord.py:89
 msgid "Choose proper aleph record"
 msgstr ""
 
@@ -124,9 +115,16 @@ msgstr ""
 msgid "Count ISBN occurrences in Aleph"
 msgstr ""
 
-#: edeposit/content/book.py:105
-#: edeposit/content/eperiodicalpart.py:110
-msgid "Currency"
+#: edeposit/content/aleph_record.py:93
+#: edeposit/content/aleph_record_for_book.py:85
+#: edeposit/content/aleph_record_for_epublication.py:86
+msgid "Descriptive Cataloguing Fields"
+msgstr ""
+
+#: edeposit/content/aleph_record.py:100
+#: edeposit/content/aleph_record_for_book.py:92
+#: edeposit/content/aleph_record_for_epublication.py:93
+msgid "Descriptive Cataloguing Review Fields"
 msgstr ""
 
 #: edeposit/content/profiles/default/types/edeposit.content.book.xml
@@ -161,6 +159,18 @@ msgstr ""
 msgid "E-Deposit Aleph Record"
 msgstr ""
 
+#: edeposit/content/profiles/default/types/edeposit.content.alephrecordforbook.xml
+msgid "E-Deposit Aleph Record for Book/Preprint/Postprint"
+msgstr ""
+
+#: edeposit/content/profiles/default/types/edeposit.content.alephrecordforeperiodical.xml
+msgid "E-Deposit Aleph Record for ePeriodical"
+msgstr ""
+
+#: edeposit/content/profiles/default/types/edeposit.content.alephrecordforepublication.xml
+msgid "E-Deposit Aleph Record for ePublication"
+msgstr ""
+
 #: edeposit/content/profiles/default/types/edeposit.content.libraryfolder.xml
 msgid "E-Deposit Library Folder"
 msgstr ""
@@ -181,6 +191,10 @@ msgstr ""
 msgid "E-Deposit ePublication"
 msgstr ""
 
+#: edeposit/content/profiles/default/types/edeposit.content.amqpfolder.xml
+msgid "E-Deposit: AMQP Folder for amqp messages"
+msgstr ""
+
 #: edeposit/content/profiles/default/types/edeposit.content.producentuserplan.xml
 msgid "E-Deposit: Producent User Plan"
 msgstr ""
@@ -189,66 +203,20 @@ msgstr ""
 msgid "E-Deposit: Producent User Plans Folder"
 msgstr ""
 
-#: edeposit/content/book.py:111
-#: edeposit/content/eperiodical.py:36
-#: edeposit/content/eperiodicalpart.py:44
-msgid "Edition"
+#: edeposit/content/profiles/default/types/edeposit.content.eperiodicalpartsfolder.xml
+msgid "E-Deposit: ePeriodical Parts Folder"
+msgstr ""
+
+#: edeposit/content/profiles/default/types/edeposit.content.epubcheckvalidationresponse.xml
+msgid "EPubCheck Validation Response"
 msgstr ""
 
 #: edeposit/content/profiles/default/types/edeposit.content.alephexception.xml
 msgid "Exception that Aleph Daemon sends"
 msgstr ""
 
-#: edeposit/content/profiles/default/types/edeposit.content.printingfile.xml
-msgid "File used for printing of a publication"
-msgstr ""
-
-#: edeposit/content/book.py:63
-msgid "Fill in a coedition of a book"
-msgstr ""
-
-#: edeposit/content/eperiodical.py:60
-#: edeposit/content/eperiodicalpart.py:68
-msgid "Fill in a coedition of an ePublication"
-msgstr ""
-
 #: edeposit/content/previewfile.py:28
 msgid "Fill in a file that contains a preview on an epublication"
-msgstr ""
-
-#: edeposit/content/printingfile.py:29
-msgid "Fill in a file that contains of a printing file for a publication"
-msgstr ""
-
-#: edeposit/content/book.py:128
-msgid "Fill in a name of a person who processed this book."
-msgstr ""
-
-#: edeposit/content/eperiodicalpart.py:123
-msgid "Fill in a name of a person who processed this ePeriodical part."
-msgstr ""
-
-#: edeposit/content/eperiodical.py:104
-msgid "Fill in a name of a person who processed this ePeriodical."
-msgstr ""
-
-#: edeposit/content/book.py:72
-msgid "Fill in an order a book was published at."
-msgstr ""
-
-#: edeposit/content/eperiodical.py:69
-#: edeposit/content/eperiodicalpart.py:77
-msgid "Fill in an order an ePublication was published at."
-msgstr ""
-
-#: edeposit/content/book.py:29
-#: edeposit/content/eperiodicalpart.py:34
-msgid "Fill in binding of a book."
-msgstr ""
-
-#: edeposit/content/book.py:106
-#: edeposit/content/eperiodicalpart.py:111
-msgid "Fill in currency of a price."
 msgstr ""
 
 #: edeposit/content/profiles/default/types/edeposit.content.messagesfolder.xml
@@ -263,19 +231,20 @@ msgstr ""
 msgid "Folder holds libraries"
 msgstr ""
 
-#: edeposit/content/originalfile.py:84
-#: edeposit/content/printingfile.py:34
+#: edeposit/content/behaviors.py:18
 msgid "Format of a file."
 msgstr ""
 
-#: edeposit/content/book.py:145
-msgid "Generate ISBN"
+#: edeposit/content/aleph_record.py:34
+#: edeposit/content/aleph_record_for_book.py:27
+#: edeposit/content/aleph_record_for_epublication.py:27
+msgid "ISBN"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:29
-#: edeposit/content/isbn.py:31
-#: edeposit/content/originalfile.py:66
-msgid "ISBN"
+#: edeposit/content/aleph_record.py:86
+#: edeposit/content/aleph_record_for_book.py:78
+#: edeposit/content/aleph_record_for_epublication.py:79
+msgid "ISBN Agency Fields"
 msgstr ""
 
 #: edeposit/content/profiles/default/types/edeposit.content.isbncountrequest.xml
@@ -286,7 +255,7 @@ msgstr ""
 msgid "ISBN Count Result"
 msgstr ""
 
-#: edeposit/content/portlets/isbngeneratingportlet.py:140
+#: edeposit/content/portlets/isbngeneratingportlet.py:143
 msgid "ISBN Generating Portlet"
 msgstr ""
 
@@ -306,6 +275,7 @@ msgstr ""
 msgid "ISBN Validation Result"
 msgstr ""
 
+#: edeposit/content/aleph_record_for_eperiodical.py:27
 #: edeposit/content/profiles/default/types/edeposit.content.issn.xml
 msgid "ISSN"
 msgstr ""
@@ -314,41 +284,68 @@ msgstr ""
 msgid "Identification number of an ePublication"
 msgstr ""
 
+#: edeposit/content/aleph_record.py:138
+#: edeposit/content/aleph_record_for_book.py:129
+#: edeposit/content/aleph_record_for_eperiodical.py:113
+msgid "Info about Summary Record"
+msgstr ""
+
+#: edeposit/content/aleph_record_for_eperiodical.py:114
+msgid "Informations about Summary Aleph Record for this ePeriodical"
+msgstr ""
+
+#: edeposit/content/aleph_record.py:139
+#: edeposit/content/aleph_record_for_epublication.py:132
+msgid "Informations about Summary Aleph Record for this ePublication"
+msgstr ""
+
 #: edeposit/content/profiles/default/types/edeposit.content.library.xml
 msgid "Informations about library"
 msgstr ""
 
-#: edeposit/content/book.py:137
-msgid "Internal DocNumber that Aleph refers to metadata of this book"
+#: edeposit/content/aleph_record_for_eperiodical.py:108
+msgid "Internal SysNumber of a Summary Aleph Record for this ePeriodical"
 msgstr ""
 
-#: edeposit/content/eperiodical.py:113
-msgid "Internal DocNumber that Aleph refers to metadata of this ePeriodical"
+#: edeposit/content/aleph_record.py:134
+#: edeposit/content/aleph_record_for_epublication.py:127
+msgid "Internal SysNumber of a Summary Aleph Record for this ePublication"
 msgstr ""
 
-#: edeposit/content/eperiodicalpart.py:132
-msgid "Internal DocNumber that Aleph refers to metadata of this ePeriodical part"
+#: edeposit/content/aleph_record_for_eperiodical.py:75
+msgid "Internal SysNumber that Aleph refers to metadata of this ePeriodical"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:65
+#: edeposit/content/aleph_record.py:69
+#: edeposit/content/aleph_record_for_epublication.py:62
 msgid "Internal SysNumber that Aleph refers to metadata of this ePublication"
 msgstr ""
 
-#: edeposit/content/epublication.py:474
+#: edeposit/content/aleph_record.py:143
+#: edeposit/content/aleph_record_for_book.py:133
+#: edeposit/content/aleph_record_for_epublication.py:136
+msgid "Internal URL"
+msgstr ""
+
+#: edeposit/content/aleph_record.py:148
+#: edeposit/content/aleph_record_for_book.py:138
+#: edeposit/content/aleph_record_for_eperiodical.py:67
+msgid "Internal URLs"
+msgstr ""
+
+#: edeposit/content/book.py:226
+msgid "Interní"
+msgstr ""
+
+#: edeposit/content/epublication.py:510
 msgid "Item created"
 msgstr ""
 
-#: edeposit/content/eperiodical.py:127
-#: edeposit/content/eperiodicalpart.py:146
-msgid "Libraries that can access at library terminal"
+#: edeposit/content/eperiodical.py:358
+msgid "Jeden výtisk"
 msgstr ""
 
-#: edeposit/content/eperiodical.py:139
-#: edeposit/content/eperiodicalpart.py:158
-msgid "Libraries that can access at public"
-msgstr ""
-
-#: edeposit/content/epublication.py:216
+#: edeposit/content/epublication.py:252
 msgid "Libraries that can access this ePublication"
 msgstr ""
 
@@ -356,7 +353,16 @@ msgstr ""
 msgid "Library"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:71
+#: edeposit/content/aleph_record_for_book.py:67
+msgid "Library that Aleph refers to metadata of this Book"
+msgstr ""
+
+#: edeposit/content/aleph_record_for_eperiodical.py:81
+msgid "Library that Aleph refers to metadata of this ePeriodical"
+msgstr ""
+
+#: edeposit/content/aleph_record.py:75
+#: edeposit/content/aleph_record_for_epublication.py:68
 msgid "Library that Aleph refers to metadata of this ePublication"
 msgstr ""
 
@@ -368,7 +374,7 @@ msgstr ""
 msgid "Messages Folder"
 msgstr ""
 
-#: edeposit/content/originalfile_contributing_requests_folder.py:70
+#: edeposit/content/originalfile_contributing_requests_folder.py:69
 msgid "Odevzdání dokumentu"
 msgstr ""
 
@@ -376,8 +382,12 @@ msgstr ""
 msgid "Original File External Links"
 msgstr ""
 
-#: edeposit/content/originalfile.py:79
-#: edeposit/content/portlets/addoriginalfile.py:53
+#: edeposit/content/eperiodicalpart.py:80
+msgid "Original File of an ePeriodical Part"
+msgstr ""
+
+#: edeposit/content/originalfile.py:141
+#: edeposit/content/portlets/addoriginalfile.py:56
 msgid "Original File of an ePublication"
 msgstr ""
 
@@ -397,16 +407,13 @@ msgstr ""
 msgid "OriginalFiles Links"
 msgstr ""
 
-#: edeposit/content/book.py:127
-#: edeposit/content/eperiodical.py:103
-#: edeposit/content/eperiodicalpart.py:122
-msgid "Person who processed this."
+#: edeposit/content/book.py:238
+#: edeposit/content/originalfile.py:160
+msgid "PDF kopie"
 msgstr ""
 
-#: edeposit/content/book.py:47
-#: edeposit/content/eperiodical.py:49
-#: edeposit/content/eperiodicalpart.py:57
-msgid "Place of Publishing"
+#: edeposit/content/profiles/default/types/edeposit.content.pdfboxvalidationresponse.xml
+msgid "PDFBox Validation Response"
 msgstr ""
 
 #: edeposit/content/previewfile.py:27
@@ -417,19 +424,6 @@ msgstr ""
 msgid "PreviewFile"
 msgstr ""
 
-#: edeposit/content/book.py:100
-#: edeposit/content/eperiodicalpart.py:105
-msgid "Price"
-msgstr ""
-
-#: edeposit/content/printingfile.py:28
-msgid "Printing File"
-msgstr ""
-
-#: edeposit/content/profiles/default/types/edeposit.content.printingfile.xml
-msgid "PrintingFile"
-msgstr ""
-
 #: edeposit/content/profiles/default/types/edeposit.content.producentuserplan.xml
 msgid "Producent User Plan"
 msgstr ""
@@ -438,59 +432,35 @@ msgstr ""
 msgid "Producent User Plans Folder"
 msgstr ""
 
-#: edeposit/content/book.py:71
-#: edeposit/content/eperiodical.py:68
-#: edeposit/content/eperiodicalpart.py:76
-msgid "Published at order"
-msgstr ""
-
-#: edeposit/content/book.py:62
-#: edeposit/content/eperiodical.py:59
-#: edeposit/content/eperiodicalpart.py:67
-msgid "Published with Coedition"
-msgstr ""
-
-#: edeposit/content/book.py:52
-#: edeposit/content/eperiodical.py:54
-msgid "Publisher"
-msgstr ""
-
-#: edeposit/content/book.py:38
-#: edeposit/content/eperiodical.py:41
-#: edeposit/content/eperiodicalpart.py:49
+#: edeposit/content/eperiodical.py:139
 msgid "Publishing"
 msgstr ""
 
-#: edeposit/content/book.py:57
-#: edeposit/content/eperiodicalpart.py:62
-msgid "Publishing Date"
-msgstr ""
-
-#: edeposit/content/book.py:154
-#: edeposit/content/eperiodical.py:151
-#: edeposit/content/eperiodicalpart.py:170
+#: edeposit/content/book.py:172
+#: edeposit/content/eperiodical.py:191
+#: edeposit/content/epublication.py:204
 msgid "RIV"
 msgstr ""
 
-#: edeposit/content/book.py:159
-#: edeposit/content/eperiodical.py:156
-#: edeposit/content/eperiodicalpart.py:175
+#: edeposit/content/eperiodical.py:196
 msgid "RIV category"
 msgstr ""
 
-#: edeposit/content/eperiodical.py:133
-#: edeposit/content/eperiodicalpart.py:152
-#: edeposit/content/epublication.py:222
+#: edeposit/content/eperiodical.py:185
+#: edeposit/content/epublication.py:258
 msgid "Related libraries"
-msgstr ""
-
-#: edeposit/content/eperiodical.py:145
-#: edeposit/content/eperiodicalpart.py:164
-msgid "Related libraries at public"
 msgstr ""
 
 #: edeposit/content/profiles/default/types/edeposit.content.isbnvalidationrequest.xml
 msgid "Request for ISBN Validation"
+msgstr ""
+
+#: edeposit/content/profiles/default/types/edeposit.content.epubcheckvalidationresponse.xml
+msgid "Response from AMQP EPubCheck validation service"
+msgstr ""
+
+#: edeposit/content/profiles/default/types/edeposit.content.pdfboxvalidationresponse.xml
+msgid "Response from AMQP PDFBox validation service"
 msgstr ""
 
 #: edeposit/content/profiles/default/types/edeposit.content.isbnvalidationresult.xml
@@ -505,19 +475,24 @@ msgstr ""
 msgid "Result sent by Aleph amqp daemon"
 msgstr ""
 
-#: edeposit/content/handlers.py:259
+#: edeposit/content/handlers.py:479
 msgid "Review of authors"
 msgstr ""
 
-#: edeposit/content/book.py:34
-#: edeposit/content/eperiodical.py:31
-#: edeposit/content/eperiodicalpart.py:39
-msgid "Subtitle"
+#: edeposit/content/aleph_record.py:107
+#: edeposit/content/aleph_record_for_book.py:99
+#: edeposit/content/aleph_record_for_epublication.py:100
+msgid "Subject Cataloguing Fields"
 msgstr ""
 
-#: edeposit/content/book.py:121
-#: edeposit/content/eperiodical.py:97
-#: edeposit/content/eperiodicalpart.py:116
+#: edeposit/content/aleph_record.py:114
+#: edeposit/content/aleph_record_for_book.py:106
+#: edeposit/content/aleph_record_for_epublication.py:107
+msgid "Subject Cataloguing Review Fields"
+msgstr ""
+
+#: edeposit/content/eperiodical.py:205
+#: edeposit/content/eperiodicalpart.py:85
 msgid "Technical"
 msgstr ""
 
@@ -525,20 +500,8 @@ msgstr ""
 msgid "Technical Metadata"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:82
-msgid "This record has ISBN Agency fields"
-msgstr ""
-
-#: edeposit/content/aleph_record.py:76
-msgid "This record has acquisition fields."
-msgstr ""
-
-#: edeposit/content/originalfile.py:105
-msgid "Thumbnail File of an ePublication"
-msgstr ""
-
 #: edeposit/content/library.py:38
-#: edeposit/content/portlets/addoriginalfile.py:47
+#: edeposit/content/portlets/addoriginalfile.py:50
 msgid "URL"
 msgstr ""
 
@@ -550,6 +513,10 @@ msgstr ""
 msgid "URL of a library"
 msgstr ""
 
+#: edeposit/content/aleph_record_for_eperiodical.py:56
+msgid "URL to an ePeriodical source"
+msgstr ""
+
 #: edeposit/content/library.py:46
 msgid "URL where you can work with Kramerius"
 msgstr ""
@@ -558,28 +525,14 @@ msgstr ""
 msgid "URLs"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:30
-#: edeposit/content/isbn.py:32
-#: edeposit/content/originalfile_contributing_request.py:41
+#: edeposit/content/aleph_record.py:35
+#: edeposit/content/aleph_record_for_book.py:28
+#: edeposit/content/aleph_record_for_epublication.py:28
 msgid "Value of ISBN"
 msgstr ""
 
-#: edeposit/content/book.py:81
-#: edeposit/content/eperiodical.py:78
-#: edeposit/content/eperiodicalpart.py:86
-msgid "Volume"
-msgstr ""
-
-#: edeposit/content/book.py:95
-#: edeposit/content/eperiodical.py:92
-#: edeposit/content/eperiodicalpart.py:100
-msgid "Volume Number"
-msgstr ""
-
-#: edeposit/content/book.py:90
-#: edeposit/content/eperiodical.py:87
-#: edeposit/content/eperiodicalpart.py:95
-msgid "Volume Title"
+#: edeposit/content/aleph_record_for_eperiodical.py:28
+msgid "Value of ISSN"
 msgstr ""
 
 #: edeposit/content/portlets/waitingforaleph.py:35
@@ -590,15 +543,18 @@ msgstr ""
 msgid "Waiting for Acquisition"
 msgstr ""
 
-#: edeposit/content/book.py:146
-msgid "Whether ISBN agency should generate ISBN number."
-msgstr ""
-
-#: edeposit/content/aleph_record.py:111
+#: edeposit/content/aleph_record.py:154
+#: edeposit/content/aleph_record_for_book.py:144
+#: edeposit/content/aleph_record_for_eperiodical.py:119
 msgid "XML file with MARC21"
 msgstr ""
 
-#: edeposit/content/originalfile_contributing_requests_folder.py:71
+#: edeposit/content/epubcheck_validation_response.py:70
+#: edeposit/content/pdfbox_validation_response.py:55
+msgid "XML file with full response"
+msgstr ""
+
+#: edeposit/content/originalfile_contributing_requests_folder.py:70
 msgid "Známe ISBN záznamu v Alephu, chceme k němu odevzdat odpovídající dokument."
 msgstr ""
 
@@ -626,43 +582,57 @@ msgstr ""
 msgid "ePublicationFolder"
 msgstr ""
 
-#: edeposit/content/handlers.py:296
+#: edeposit/content/handlers.py:520
 msgid "ePublications in declaring"
 msgstr ""
 
-#: edeposit/content/handlers.py:311
+#: edeposit/content/handlers.py:535
 msgid "ePublications waiting for RIV to be reviewed"
 msgstr ""
 
-#: edeposit/content/handlers.py:301
+#: edeposit/content/handlers.py:525
 msgid "ePublications waiting for preparing of acquisition"
 msgstr ""
 
-#: edeposit/content/handlers.py:306
+#: edeposit/content/handlers.py:530
 msgid "ePublications with errors"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:75
+#: edeposit/content/profiles/default/types/edeposit.content.eperiodicalpartsfolder.xml
+msgid "eperiodicalpartsfolder"
+msgstr ""
+
+#: edeposit/content/aleph_record.py:79
+#: edeposit/content/aleph_record_for_book.py:71
+#: edeposit/content/aleph_record_for_eperiodical.py:86
 msgid "has Acquisition Fields"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:87
-msgid "has Descriptive Cataloguing Fields"
+#: edeposit/content/aleph_record.py:121
+#: edeposit/content/aleph_record_for_book.py:113
+#: edeposit/content/aleph_record_for_eperiodical.py:93
+msgid "is closed out by Catalogizators"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:93
-msgid "has Descriptive Cataloguing Review Fields"
+#: edeposit/content/aleph_record.py:127
+#: edeposit/content/aleph_record_for_book.py:119
+#: edeposit/content/aleph_record_for_eperiodical.py:100
+msgid "is summary record"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:81
-msgid "has ISBN Agency Fields"
+#: edeposit/content/aleph_record.py:144
+#: edeposit/content/aleph_record_for_book.py:134
+#: edeposit/content/aleph_record_for_epublication.py:137
+msgid "link to eDeposit"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:99
-msgid "has Subject Cataloguing Fields"
+#: edeposit/content/aleph_record.py:149
+#: edeposit/content/aleph_record_for_book.py:139
+#: edeposit/content/aleph_record_for_eperiodical.py:68
+msgid "links to eDeposit"
 msgstr ""
 
-#: edeposit/content/aleph_record.py:105
-msgid "has Subject Cataloguing Review Fields"
+#: edeposit/content/eperiodical.py:374
+msgid "soubor"
 msgstr ""
 
