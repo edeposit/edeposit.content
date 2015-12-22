@@ -36,6 +36,13 @@ from edeposit.content.behaviors import IFormat, ICalibreFormat
 from Acquisition import aq_parent, aq_inner
 from plone.app.layout.navigation.root import getNavigationRootObject
 from plone.uuid.interfaces import IUUID
+import edeposit.amqp.marcxml2mods
+
+from cz_urnnbn_api import (
+ api as urnnbn_api,
+ convert_mono_xml,
+ convert_mono_volume_xml
+)
 
 from .tasks import (
     IPloneTaskSender,
@@ -84,6 +91,7 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
     form.fieldset('technical',
                   label=_('Technical'),
                   fields = [ 'thumbnail',
+                             'urnnbn',
                              'storage_download_url',
                              'storage_path',
                              #'related_aleph_record',
@@ -95,6 +103,11 @@ class IePeriodicalPart(form.Schema, IImageScaleTraversable):
         title=u"PDF kopie",
         required = False,
         )
+
+    urnnbn = schema.ASCIILine (
+        title = u"URN:NBN číslo",
+        required = False,
+    )
 
     isWellFormedForLTP = schema.Bool (
         title = u"Vydání je ve formátu vhodném pro LTP",
@@ -187,10 +200,10 @@ class ePeriodicalPart(Container):
         return alephRecord and getattr(alephRecord,'acquisitionFields',False)
         
     def checkUpdates(self):
-        state = api.content.get_state(self)
-        if state == 'acquisition' and self.isApprovedByAcquisition():
-            wft = api.portal.get_tool('portal_workflow')
-            wft.doActionFor(self,'submitAcquisition')
+        # state = api.content.get_state(self)
+        # if state == 'acquisition' and self.isApprovedByAcquisition():
+        #     wft = api.portal.get_tool('portal_workflow')
+        #     wft.doActionFor(self,'submitAcquisition')
         pass
 
     def isValidPDFA(self):
@@ -235,13 +248,11 @@ class ePeriodicalPart(Container):
 
     def getMODS(self):
         aleph_record = getattr(self.related_aleph_record,'to_object',None)
-        summary_aleph_record = getattr(self.summary_aleph_record, 'to_object',None)
-
-        if not aleph_record and not summary_aleph_record:
+        if not aleph_record:
             return None
-        
+
         result = edeposit.amqp.marcxml2mods.marcxml2mods(
-            marc_xml=(summary_aleph_record or aleph_record).xml.data, 
+            marc_xml=aleph_record.xml.data, 
             uuid = self.UID(), 
             url = self.makeInternalURL())
         mods = result and result[0]
