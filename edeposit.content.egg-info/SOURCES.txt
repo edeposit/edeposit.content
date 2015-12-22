@@ -16,6 +16,9 @@ edeposit/content/aleph_exception.py
 edeposit/content/aleph_export_request.py
 edeposit/content/aleph_export_result.py
 edeposit/content/aleph_record.py
+edeposit/content/aleph_record_for_book.py
+edeposit/content/aleph_record_for_eperiodical.py
+edeposit/content/aleph_record_for_epublication.py
 edeposit/content/aleph_search_sysnumber_request.py
 edeposit/content/amqp.py
 edeposit/content/amqp_folder.py
