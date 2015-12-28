@@ -230,6 +230,19 @@ class PloneTaskRunProducent(Producer):
     routing_key = "request"
     pass
 
+class ExportToKrameriusProducent(Producer):
+    grok.name('amqp.export-to-kramerius-request')
+
+    connection_id = "kramerius"
+    exchange = "export-to-kramerius"
+    serializer = "text/plain"
+    exchange_type = "topic"
+    exchange_durable = True
+    auto_delete = False
+    durable = True
+    routing_key = "request"
+    pass
+
 class IScanResult(Interface):
     result = Attribute("")
     filename = Attribute("")
@@ -1983,27 +1996,36 @@ class ExportToLTPResultHandler(namedtuple('ExportToLTPResult',['context', 'resul
             pass
         pass
 
+class ExportToKramerius(namedtuple('ExportToKramerius',['uuid',
+                                                        'urnnbn',
+                                                        'b64_marcxml',
+                                                        'preview_page_position',
+                                                        'original',
+                                                        'edeposit_url',
+                                                        'location_at_kramerius',
+                                                        'is_private'])):
+    pass
+
 class ExportToKrameriusRequestSender(namedtuple('ExportToKrameriusRequest',['context'])):
     """ context will be original file, book """
     implements(IAMQPSender)
     def send(self):
         print "-> Export To Kramerius Request for: ", str(self.context)
-        # publication = Publication(
-        #     urnnbn = self.context.urnnbn,
-        #     uuid = self.context.UID(),
-        #     title = self.context.title,
-        #     isbn = self.context.isbn,
-        #     aleph_id = self.context.aleph_sys_number,
-        #     is_public = self.context.is_public,
-        #     filename = self.context.file.filename,
-        #     b64_data = base64.b64encode(self.context.file.data),
-        #     )
-        
-        # request = SaveRequest(pub=publication)
-        # producer = getUtility(IProducer, name="amqp.kramerius-export-request")
-        # session_data =  { 'isbn': str(self.context.isbn), }
-        # headers = make_headers(self.context, session_data)
-        # producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
+        request = ExportToKramerius(
+            uuid = self.context.UID(),
+            urnnbn = self.context.urnnbn,
+            b64_marcxml = base64.b64encode(self.context.related_aleph_record.xml.data),
+            preview_page_position = 1,
+            original = base64.b64encode(self.context.file.data),
+            edeposit_url = self.context.makeInternalURL() or "",
+            location_at_kramerius = self.context.absolute_url(),
+            is_private = True, )
+
+        producer = getUtility(IProducer, name="amqp.kramerius-export-request")
+        session_data =  { 'url': self.context.absolute_url(), 
+                          'uuid': self.context.UID(), }
+        headers = make_headers(self.context, session_data)
+        producer.publish(serialize(request),  content_type = 'application/json', headers = headers)
         pass
 
 class ExportToKrameriusResultHandler(namedtuple('ExportToKrameriusResult',['context', 'result'])):
